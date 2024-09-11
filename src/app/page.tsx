@@ -1,9 +1,9 @@
-import Nav from "~/components/nav"
+import Header from "~/components/header"
 
 export default function HomePage() {
     return (
         <main className="flex gap-5 flex-col items-center">
-            <Nav></Nav>
+            <Header></Header>
             <h1>OI</h1>
         </main>
     )

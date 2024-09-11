@@ -18,9 +18,7 @@ export default function RootLayout({
     return (
         <ClerkProvider localization={ptBR}>
             <html lang="pt" className={`${GeistSans.variable}`}>
-                <body className="bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white min-h-screen">
-                    {children}
-                </body>
+                <body className="min-h-screen">{children}</body>
             </html>
         </ClerkProvider>
     )
