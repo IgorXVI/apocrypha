@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { Home, PanelLeft, Crown } from "lucide-react"
+import { Home, Menu, Crown } from "lucide-react"
 
 import {
     Sheet,
@@ -17,7 +17,7 @@ export default function MenuSheet() {
         <Sheet>
             <SheetTrigger asChild>
                 <Button size="icon" variant="ghost">
-                    <PanelLeft className="h-6 w-6" />
+                    <Menu className="h-6 w-6" />
                     <span className="sr-only">Menu</span>
                 </Button>
             </SheetTrigger>
@@ -34,7 +34,7 @@ export default function MenuSheet() {
                         Página Inicial
                     </Link>
                     <Link
-                        href="#"
+                        href="/admin"
                         className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                     >
                         <Crown className="h-5 w-5" />

@@ -1,44 +1,26 @@
+import { MapPin } from "lucide-react"
+
 import HeaderUserButton from "./header-user-button"
 import MenuSheet from "./menu-sheet"
-
-import { ShoppingCartIcon, SearchIcon, MapPin } from "lucide-react"
+import ShoppingCartButton from "./shopping-cart-button"
+import SearchBar from "./search-bar"
+import StoreIconButton from "./store-icon-button"
 
 export default function Header() {
     return (
         <header className="flex flex-col w-screen text-white">
-            <div className="bg-black flex flex-col p-2 gap-1 pb-4">
+            <div className="bg-black flex flex-col gap-1 px-2 pb-4">
                 <div className="flex justify-between items-center">
                     <div className="flex justify-between items-center">
                         <MenuSheet></MenuSheet>
-                        <a href="/">
-                            <img
-                                src="favicon.ico"
-                                alt="Logo da loja"
-                                className="h-7"
-                            />
-                        </a>
+                        <StoreIconButton></StoreIconButton>
                     </div>
-
-                    <div className="flex justify-between gap-6 items-center p-2">
-                        <div className="rounded-sm relative">
-                            <ShoppingCartIcon className="h-7 w-7"></ShoppingCartIcon>
-                            <span className=" text-white absolute -top-2 left-6 text-center w-6 h-6 bg-slate-600 rounded-full">
-                                0
-                            </span>
-                        </div>
+                    <div className="flex justify-between gap-5 items-center p-2">
+                        <ShoppingCartButton></ShoppingCartButton>
                         <HeaderUserButton></HeaderUserButton>
                     </div>
                 </div>
-
-                <form action="" className="flex-grow flex p-1">
-                    <input
-                        type="text"
-                        className="flex-grow rounded-l text-black p-2"
-                    />
-                    <button className="bg-blue-500 hover:bg-blue-300 rounded-tr rounded-br p-2">
-                        <SearchIcon></SearchIcon>
-                    </button>
-                </form>
+                <SearchBar></SearchBar>
             </div>
             <div className="flex bg-slate-600 text-sm items-center p-2">
                 <div className="flex items-center rounded gap-1">
