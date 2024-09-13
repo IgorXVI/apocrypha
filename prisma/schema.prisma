@@ -86,6 +86,7 @@ model Author {
     id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     name         String
     about        String
+    imgUrl       String
     AuthorOnBook AuthorOnBook[]
 }
 
