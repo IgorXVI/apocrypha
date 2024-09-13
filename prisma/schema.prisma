@@ -10,11 +10,104 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model Book {
+    id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    stripeId         String             @unique
+    price            Decimal            @db.Decimal(8, 4)
+    currency         Currency           @default(BRL)
+    title            String
+    descriptionTitle String             @db.VarChar(100)
+    description      String
+    pages            Int
+    publicationDate  DateTime
+    isbn10Code       String             @db.VarChar(10)
+    isbn13Code       String             @db.VarChar(14)
+    width            Int
+    height           Int
+    length           Int
+    edition          String?
+    AuthorOnBook     AuthorOnBook[]
+    TranslatorOnBook TranslatorOnBook[]
+    Category         Category           @relation(fields: [categoryId], references: [id])
+    categoryId       String             @db.Uuid
+    Publisher        Publisher          @relation(fields: [publisherId], references: [id])
+    publisherId      String             @db.Uuid
+    Language         Language           @relation(fields: [languageId], references: [id])
+    languageId       String             @db.Uuid
+    DisplayImage     DisplayImage[]
+    Series           Series?            @relation(fields: [seriesId], references: [id])
+    seriesId         String?            @db.Uuid
+}
 
-    @@index([name])
+enum Currency {
+    BRL
+    USD
+}
+
+model Series {
+    id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name String
+    Book Book[]
+}
+
+model DisplayImage {
+    id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    url    String
+    order  Int    @default(0)
+    Book   Book   @relation(fields: [bookId], references: [id])
+    bookId String @db.Uuid
+}
+
+model Language {
+    id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name        String
+    iso6392Code String @db.VarChar(3)
+    iso6391Code String @db.VarChar(2)
+    Book        Book[]
+}
+
+model Publisher {
+    id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name String
+    Book Book[]
+}
+
+model AuthorOnBook {
+    Book     Book    @relation(fields: [bookId], references: [id])
+    bookId   String  @db.Uuid
+    Author   Author  @relation(fields: [authorId], references: [id])
+    authorId String  @db.Uuid
+    main     Boolean
+
+    @@id([bookId, authorId])
+}
+
+model Author {
+    id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name         String
+    about        String
+    AuthorOnBook AuthorOnBook[]
+}
+
+model TranslatorOnBook {
+    Book         Book       @relation(fields: [bookId], references: [id])
+    bookId       String     @db.Uuid
+    Translator   Translator @relation(fields: [translatorId], references: [id])
+    translatorId String     @db.Uuid
+    main         Boolean
+
+    @@id([bookId, translatorId])
+}
+
+model Translator {
+    id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name             String
+    TranslatorOnBook TranslatorOnBook[]
+}
+
+model Category {
+    id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name    String
+    iconUrl String?
+    Book    Book[]
 }
