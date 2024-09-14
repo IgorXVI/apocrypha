@@ -44,11 +44,15 @@ function Row(props: { id: string; label: string; iso4217Code: string }) {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem>
+                            <Link href={`/admin/currency/update/${props.id}`}>
+                                Atualizar
+                            </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem>
                             <Link href={`/admin/currency/delete/${props.id}`}>
-                                Delete
+                                Apagar
                             </Link>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
