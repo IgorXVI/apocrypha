@@ -14,7 +14,6 @@ model Book {
     id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     stripeId         String             @unique
     price            Decimal            @db.Decimal(8, 4)
-    currency         Currency           @default(BRL)
     title            String
     descriptionTitle String             @db.VarChar(100)
     description      String
@@ -37,11 +36,15 @@ model Book {
     DisplayImage     DisplayImage[]
     Series           Series?            @relation(fields: [seriesId], references: [id])
     seriesId         String?            @db.Uuid
+    currency         Currency           @relation(fields: [currencyId], references: [id])
+    currencyId       String             @db.Uuid
 }
 
-enum Currency {
-    BRL
-    USD
+model Currency {
+    id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    label       String @db.VarChar(5)
+    iso4217Code String @db.VarChar(4)
+    Book        Book[]
 }
 
 model Series {
