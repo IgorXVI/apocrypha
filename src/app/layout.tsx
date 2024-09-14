@@ -5,6 +5,7 @@ import { ptBR } from "@clerk/localizations"
 
 import { GeistSans } from "geist/font/sans"
 import { type Metadata } from "next"
+import { Toaster } from "~/components/ui/sonner"
 
 export const metadata: Metadata = {
     title: "Loja do Igor",
@@ -18,7 +19,10 @@ export default function RootLayout({
     return (
         <ClerkProvider localization={ptBR}>
             <html lang="pt" className={`${GeistSans.variable}`}>
-                <body className="min-h-screen">{children}</body>
+                <body className="min-h-screen">
+                    {children}
+                    <Toaster></Toaster>
+                </body>
             </html>
         </ClerkProvider>
     )

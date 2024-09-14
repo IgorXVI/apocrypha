@@ -1,107 +1,99 @@
-"use client"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { MoreHorizontal, PlusCircle } from "lucide-react"
+import Link from "next/link"
 
 import { Button } from "~/components/ui/button"
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "~/components/ui/form"
-import { Input } from "~/components/ui/input"
-import { createCurrency } from "~/server/queries"
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "~/components/ui/card"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "~/components/ui/table"
+import { getAllCurrencies } from "~/server/queries"
 
-const formSchema = z.object({
-    label: z
-        .string()
-        .min(1, {
-            message: "Prefixo deve ter ao menos 1 caracter.",
-        })
-        .max(5, {
-            message: "Prefixo deve ter no máximo 5 caracteres.",
-        }),
-    iso4217Code: z
-        .string()
-        .min(3, {
-            message: "Código ISO 4217 deve ter ao menos 3 caracteres.",
-        })
-        .max(4, {
-            message: "Código ISO 4217 deve ter no máximo 4 caracteres.",
-        }),
-})
+function Row(props: { id: string; label: string; iso4217Code: string }) {
+    return (
+        <TableRow>
+            <TableCell>{props.label}</TableCell>
+            <TableCell>{props.iso4217Code}</TableCell>
+            <TableCell>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                        >
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem>
+                            <Link href={`/admin/currency/delete/${props.id}`}>
+                                Delete
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </TableCell>
+        </TableRow>
+    )
+}
 
-export default function CurrencyForm() {
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            label: "",
-            iso4217Code: "",
-        },
-    })
-
-    const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        const result = await createCurrency(values)
-        console.log(result)
-    }
+export default async function Currencies() {
+    const { currencies } = await getAllCurrencies()
 
     return (
-        <Form {...form}>
-            <h1 className="text-center p-5 text-2xl font-extrabold">
-                Cadastrar Moedas
-            </h1>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="p-5 flex flex-col gap-3"
-            >
-                <FormField
-                    control={form.control}
-                    name="label"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Prefixo</FormLabel>
-                            <FormControl>
-                                <Input placeholder="$" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                                Esse é o préfixo que vai aparecer antes do valor
-                                monetário.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="iso4217Code"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Código ISO 4217</FormLabel>
-                            <FormControl>
-                                <Input placeholder="EUR" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                                Esse é o código
-                                <a
-                                    href="https://pt.wikipedia.org/wiki/ISO_4217"
-                                    className="underline mr-1 ml-1"
-                                >
-                                    ISO 4217
-                                </a>
-                                da moeda.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <Button type="submit" className="mt-5">
-                    Salvar
+        <main className="flex flex-col p-2 gap-3">
+            <div className="ml-auto flex items-center gap-2">
+                <Button className="h-7">
+                    <Link href="/admin/currency/create">
+                        <PlusCircle className="h-3.5 w-3.5" />
+                    </Link>
                 </Button>
-            </form>
-        </Form>
+            </div>
+            <Card x-chunk="dashboard-06-chunk-0">
+                <CardHeader>
+                    <CardTitle>Moedas</CardTitle>
+                    <CardDescription>
+                        Crie, atualize, apague ou busque as moedas cadastradas.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="text-nowrap">
+                                <TableHead>Prefixo</TableHead>
+                                <TableHead>Código</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {currencies.map((c) => (
+                                <Row key={c.id} {...c}></Row>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+                <CardFooter>PAGINAÇÃO</CardFooter>
+            </Card>
+        </main>
     )
 }
