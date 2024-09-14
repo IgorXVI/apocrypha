@@ -14,6 +14,7 @@ import {
     FormMessage,
 } from "~/components/ui/form"
 import { Input } from "~/components/ui/input"
+import { createCurrency } from "~/server/queries"
 
 const formSchema = z.object({
     label: z
@@ -27,7 +28,7 @@ const formSchema = z.object({
     iso4217Code: z
         .string()
         .min(3, {
-            message: "Código ISO 4217 deve ter ao menos 3 caracter.",
+            message: "Código ISO 4217 deve ter ao menos 3 caracteres.",
         })
         .max(4, {
             message: "Código ISO 4217 deve ter no máximo 4 caracteres.",
@@ -43,12 +44,16 @@ export default function CurrencyForm() {
         },
     })
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values)
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        const result = await createCurrency(values)
+        console.log(result)
     }
 
     return (
         <Form {...form}>
+            <h1 className="text-center p-5 text-2xl font-extrabold">
+                Cadastrar Moedas
+            </h1>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="p-5 flex flex-col gap-3"
@@ -93,7 +98,9 @@ export default function CurrencyForm() {
                         </FormItem>
                     )}
                 />
-                <Button type="submit">Salvar</Button>
+                <Button type="submit" className="mt-5">
+                    Salvar
+                </Button>
             </form>
         </Form>
     )

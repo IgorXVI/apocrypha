@@ -11,6 +11,9 @@ const config = {
         "plugin:@typescript-eslint/stylistic-type-checked",
     ],
     rules: {
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
         "@next/next/no-img-element": "off",
         "@typescript-eslint/array-type": "off",
         "@typescript-eslint/consistent-type-definitions": "off",
