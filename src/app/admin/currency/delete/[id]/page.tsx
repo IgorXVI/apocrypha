@@ -18,7 +18,7 @@ export default function DeleteCurrency({
         setInputDisabled(true)
 
         return dbQueryWithToast({
-            dbMutation: () => deleteCurrency(id),
+            dbQuery: () => deleteCurrency(id),
             mutationName: "currency-delete",
             successMessage: "Moeda Apagada",
             waitingMessage: "Apagando moeda...",

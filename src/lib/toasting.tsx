@@ -4,12 +4,12 @@ import { toast } from "sonner"
 import { LoaderCircle } from "lucide-react"
 
 export async function dbQueryWithToast<T>({
-    dbMutation,
+    dbQuery,
     mutationName,
     waitingMessage,
     successMessage,
 }: {
-    dbMutation: () => Promise<{
+    dbQuery: () => Promise<{
         success: boolean
         errorMessage: string
         data: T | undefined
@@ -32,7 +32,7 @@ export async function dbQueryWithToast<T>({
     )
 
     try {
-        const result = await dbMutation()
+        const result = await dbQuery()
 
         toast.dismiss(beginDBCallId)
 

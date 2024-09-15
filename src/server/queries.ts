@@ -1,7 +1,6 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { setTimeout } from "timers/promises"
 import { db } from "./db"
 
 export const createCurrency = async (data: {
@@ -9,8 +8,6 @@ export const createCurrency = async (data: {
     iso4217Code: string
 }) => {
     try {
-        await setTimeout(3000)
-
         await db.currency.create({
             data,
         })
@@ -40,8 +37,6 @@ export const updateCurrency = async (
     },
 ) => {
     try {
-        await setTimeout(3000)
-
         await db.currency.update({
             data,
             where: {
@@ -122,21 +117,57 @@ export const getOneCurrency = async (id: string) => {
     }
 }
 
-export const getAllCurrencies = async () => {
+export const getManyCurrencies = async ({
+    take,
+    skip,
+}: {
+    take: number
+    skip: number
+}) => {
     try {
-        const currencies = await db.currency.findMany()
+        const [currenciesResult, totalResult] = await Promise.allSettled([
+            db.currency.findMany({
+                take,
+                skip,
+            }),
+            db.currency.count(),
+        ])
+
+        if (currenciesResult.status === "rejected") {
+            console.error(currenciesResult.reason)
+            return {
+                success: false,
+                errorMessage: (currenciesResult.reason as Error).message,
+                data: undefined,
+            }
+        }
+
+        if (totalResult.status === "rejected") {
+            console.error(totalResult.reason)
+            return {
+                success: false,
+                errorMessage: (totalResult.reason as Error).message,
+                data: undefined,
+            }
+        }
+
+        const total = totalResult.value
+        const currencies = currenciesResult.value
 
         return {
             success: true,
             errorMessage: "",
-            currencies,
+            data: {
+                total,
+                currencies,
+            },
         }
     } catch (e) {
         console.error(e)
         return {
             success: false,
             errorMessage: (e as Error).message,
-            currencies: [],
+            data: undefined,
         }
     }
 }

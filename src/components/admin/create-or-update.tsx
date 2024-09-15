@@ -70,7 +70,7 @@ export default function CreateOrUpdate<T, K, Z>(props: {
 
     const onSubmit = async (values: ZodRawShape) => {
         await dbQueryWithToast({
-            dbMutation: () => props.dbMutation(values as T),
+            dbQuery: () => props.dbMutation(values as T),
             mutationName: props.mutationName,
             waitingMessage: props.waitingMessage,
             successMessage: props.successMessage,
