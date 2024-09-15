@@ -120,15 +120,41 @@ export const getOneCurrency = async (id: string) => {
 export const getManyCurrencies = async ({
     take,
     skip,
+    searchTerm,
 }: {
     take: number
     skip: number
+    searchTerm: string
 }) => {
     try {
         const [currenciesResult, totalResult] = await Promise.allSettled([
             db.currency.findMany({
                 take,
                 skip,
+                where: {
+                    OR: [
+                        {
+                            iso4217Code: {
+                                startsWith: searchTerm,
+                            },
+                        },
+                        {
+                            iso4217Code: {
+                                endsWith: searchTerm,
+                            },
+                        },
+                        {
+                            label: {
+                                startsWith: searchTerm,
+                            },
+                        },
+                        {
+                            label: {
+                                endsWith: searchTerm,
+                            },
+                        },
+                    ],
+                },
             }),
             db.currency.count(),
         ])

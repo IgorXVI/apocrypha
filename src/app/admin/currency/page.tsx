@@ -1,6 +1,12 @@
 "use client"
 
-import { MoreHorizontal, PlusCircle, ArrowLeft, ArrowRight } from "lucide-react"
+import {
+    MoreHorizontal,
+    PlusCircle,
+    ArrowLeft,
+    ArrowRight,
+    Search,
+} from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -71,7 +77,7 @@ function Row(props: { id: string; label: string; iso4217Code: string }) {
 
 export default function Currencies() {
     const [page, setPage] = useState(1)
-    const [take, setTake] = useState(5)
+    const [take, setTake] = useState(10)
     const [skip, setSkip] = useState(0)
     const [rows, setRows] = useState([
         {
@@ -81,6 +87,7 @@ export default function Currencies() {
         },
     ])
     const [total, setTotal] = useState(0)
+    const [searchTerm, setSearchTerm] = useState("")
 
     const toastDBRowsError = (errorMessage: string | React.ReactNode) => {
         toast(
@@ -95,6 +102,7 @@ export default function Currencies() {
             const result = await getManyCurrencies({
                 take,
                 skip,
+                searchTerm,
             })
 
             if (!result.success) {
@@ -109,12 +117,25 @@ export default function Currencies() {
         }
 
         getRows().catch((e) => toastDBRowsError((e as Error).message))
-    }, [take, skip])
+    }, [take, skip, searchTerm])
 
     return (
         <main className="flex flex-col p-2 gap-3">
-            <div className="flex flex-row items-center p-2">
+            <div className="flex flex-row items-center p-2 gap-3">
                 <div className="flex flex-row items-center gap-2">
+                    <div className="relative ml-auto flex-1 md:grow-0">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Procure..."
+                            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                            disabled={total <= 0}
+                            onChange={useDebouncedCallback((e) => {
+                                const value = e.target.value as string
+                                setSearchTerm(value)
+                            }, 500)}
+                        />
+                    </div>
                     <Label htmlFor="take">Linhas:</Label>
                     <Input
                         id="take"
