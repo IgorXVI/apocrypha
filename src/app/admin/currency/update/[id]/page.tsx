@@ -1,18 +1,12 @@
 "use client"
 
-import { getOneCurrency, updateCurrency } from "~/server/queries"
+import CreateOrUpdate from "~/app/admin/_components/create-or-update"
+import { updatePageProps } from "../../config"
 
-import CreateOrUpdateCurrency from "../../_components/create-or-update-currency"
-
-export default function UpdateCurrency({
+export default function UpdateOne({
     params: { id },
 }: {
     params: { id: string }
 }) {
-    return (
-        <CreateOrUpdateCurrency
-            dbMutation={(values) => updateCurrency(id, values)}
-            dbGetOne={() => getOneCurrency(id)}
-        ></CreateOrUpdateCurrency>
-    )
+    return <CreateOrUpdate {...updatePageProps(id)}></CreateOrUpdate>
 }

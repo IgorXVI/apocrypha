@@ -47,7 +47,6 @@ export default function SearchPage<
     tableHeaders: string[]
     tableAttrs: string[]
     slug: string
-    defaultValues: T
     getManyQuery: (input: {
         take: number
         skip: number
@@ -64,7 +63,7 @@ export default function SearchPage<
     const [page, setPage] = useState(1)
     const [take, setTake] = useState(10)
     const [skip, setSkip] = useState(0)
-    const [rows, setRows] = useState([props.defaultValues])
+    const [rows, setRows] = useState<T[]>([])
     const [total, setTotal] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
 

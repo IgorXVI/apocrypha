@@ -3,17 +3,15 @@
 import { toast } from "sonner"
 import { LoaderCircle } from "lucide-react"
 
+import { type CommonDBReturn } from "~/server/queries"
+
 export async function dbQueryWithToast<T>({
     dbQuery,
     mutationName,
     waitingMessage,
     successMessage,
 }: {
-    dbQuery: () => Promise<{
-        success: boolean
-        errorMessage: string
-        data: T | undefined
-    }>
+    dbQuery: () => Promise<CommonDBReturn<T>>
     mutationName: string
     waitingMessage: string
     successMessage: string

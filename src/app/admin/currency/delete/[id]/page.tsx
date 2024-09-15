@@ -1,17 +1,12 @@
 "use client"
 
-import { deleteCurrency } from "~/server/queries"
 import DeletePage from "~/app/admin/_components/delete-page"
+import { deletePageProps } from "../../config"
 
-export default function DeleteCurrency({
+export default function DeleteOne({
     params: { id },
 }: {
     params: { id: string }
 }) {
-    return (
-        <DeletePage
-            dbMutation={() => deleteCurrency(id)}
-            idForQuestion={`Moeda com id ${id}`}
-        ></DeletePage>
-    )
+    return <DeletePage {...deletePageProps(id)}></DeletePage>
 }
