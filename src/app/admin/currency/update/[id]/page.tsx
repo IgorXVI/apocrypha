@@ -1,8 +1,8 @@
 "use client"
 
 import { getOneCurrency, updateCurrency } from "~/server/queries"
-import CreateOrUpdate from "~/components/admin/create-or-update"
-import { defaultValues, zodValidationSchema, inputKeyMap } from "../../config"
+
+import CreateOrUpdateCurrency from "../../_components/create-or-update-currency"
 
 export default function UpdateCurrency({
     params: { id },
@@ -10,16 +10,9 @@ export default function UpdateCurrency({
     params: { id: string }
 }) {
     return (
-        <CreateOrUpdate
-            title="Atualizar Moeda"
-            mutationName="currency-update"
-            waitingMessage="Atualizando moeda..."
-            successMessage="Moeda atualizada"
+        <CreateOrUpdateCurrency
             dbMutation={(values) => updateCurrency(id, values)}
             dbGetOne={() => getOneCurrency(id)}
-            defaultValues={defaultValues}
-            formSchema={zodValidationSchema}
-            inputKeyMap={inputKeyMap}
-        ></CreateOrUpdate>
+        ></CreateOrUpdateCurrency>
     )
 }

@@ -1,9 +1,12 @@
+"use client"
+
 import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
+import CreateOrUpdate from "~/app/admin/_components/create-or-update"
 
-export const zodValidationSchema = z.object({
+const zodValidationSchema = z.object({
     label: z
         .string()
         .min(1, {
@@ -22,14 +25,14 @@ export const zodValidationSchema = z.object({
         }),
 })
 
-export const defaultValues = {
+const defaultValues = {
     label: "",
     iso4217Code: "",
 }
 
 type NodeFieldType = ControllerRenderProps<FieldValues, "label" | "iso4217Code">
 
-export const inputKeyMap = {
+const inputKeyMap = {
     label: {
         node: (field: NodeFieldType) => <Input placeholder="$" {...field} />,
         label: "Prefixo",
@@ -52,4 +55,33 @@ export const inputKeyMap = {
             </>
         ),
     },
+}
+
+type MainType = typeof defaultValues
+
+export default function CreateOrUpdateCurrency(props: {
+    dbMutation: (values: MainType) => Promise<{
+        success: boolean
+        errorMessage: string
+        data: MainType | undefined
+    }>
+    dbGetOne?: () => Promise<{
+        success: boolean
+        errorMessage: string
+        data: MainType | undefined
+    }>
+}) {
+    return (
+        <CreateOrUpdate
+            title="Criar Moeda"
+            mutationName="currency-create"
+            waitingMessage="Criando moeda..."
+            successMessage="Moeda criada"
+            dbMutation={props.dbMutation}
+            dbGetOne={props.dbGetOne}
+            defaultValues={defaultValues}
+            formSchema={zodValidationSchema}
+            inputKeyMap={inputKeyMap}
+        ></CreateOrUpdate>
+    )
 }

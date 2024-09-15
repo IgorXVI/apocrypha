@@ -127,36 +127,40 @@ export const getManyCurrencies = async ({
     searchTerm: string
 }) => {
     try {
+        const whereClause = {
+            OR: [
+                {
+                    iso4217Code: {
+                        startsWith: searchTerm,
+                    },
+                },
+                {
+                    iso4217Code: {
+                        endsWith: searchTerm,
+                    },
+                },
+                {
+                    label: {
+                        startsWith: searchTerm,
+                    },
+                },
+                {
+                    label: {
+                        endsWith: searchTerm,
+                    },
+                },
+            ],
+        }
+
         const [currenciesResult, totalResult] = await Promise.allSettled([
             db.currency.findMany({
                 take,
                 skip,
-                where: {
-                    OR: [
-                        {
-                            iso4217Code: {
-                                startsWith: searchTerm,
-                            },
-                        },
-                        {
-                            iso4217Code: {
-                                endsWith: searchTerm,
-                            },
-                        },
-                        {
-                            label: {
-                                startsWith: searchTerm,
-                            },
-                        },
-                        {
-                            label: {
-                                endsWith: searchTerm,
-                            },
-                        },
-                    ],
-                },
+                where: whereClause,
             }),
-            db.currency.count(),
+            db.currency.count({
+                where: whereClause,
+            }),
         ])
 
         if (currenciesResult.status === "rejected") {
@@ -178,14 +182,14 @@ export const getManyCurrencies = async ({
         }
 
         const total = totalResult.value
-        const currencies = currenciesResult.value
+        const rows = currenciesResult.value
 
         return {
             success: true,
             errorMessage: "",
             data: {
                 total,
-                currencies,
+                rows,
             },
         }
     } catch (e) {
