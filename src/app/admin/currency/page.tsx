@@ -1,9 +1,10 @@
 "use client"
 
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, ArrowLeft, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { useDebouncedCallback } from "use-debounce"
 
 import { Button } from "~/components/ui/button"
 import {
@@ -31,7 +32,6 @@ import {
     TableHeader,
     TableRow,
 } from "~/components/ui/table"
-import { dbQueryWithToast } from "~/lib/toasting"
 import { getManyCurrencies } from "~/server/queries"
 
 function Row(props: { id: string; label: string; iso4217Code: string }) {
@@ -81,47 +81,50 @@ export default function Currencies() {
     ])
     const [total, setTotal] = useState(0)
 
+    const toastDBRowsError = (errorMessage: string | React.ReactNode) => {
+        toast(
+            <span className="text-red-500">
+                Erro ao tentar buscar linhas: {errorMessage}
+            </span>,
+        )
+    }
+
     useEffect(() => {
         const getRows = async () => {
-            const data = await dbQueryWithToast({
-                dbQuery: () =>
-                    getManyCurrencies({
-                        take,
-                        skip,
-                    }),
-                mutationName: "getting-currencies",
-                waitingMessage: "Buscando moedas...",
-                successMessage: "Moedas buscadas",
+            const result = await getManyCurrencies({
+                take,
+                skip,
             })
 
-            if (data) {
-                setRows(data.currencies)
-                setTotal(data.total)
+            if (!result.success) {
+                toastDBRowsError(result.errorMessage)
+                return
+            }
+
+            if (result.data) {
+                setRows(result.data.currencies)
+                setTotal(result.data.total)
             }
         }
 
-        getRows().catch((e) =>
-            toast(
-                <span className="text-red-500">
-                    Erro ao tentar buscar linhas: {(e as Error).message}
-                </span>,
-            ),
-        )
+        getRows().catch((e) => toastDBRowsError((e as Error).message))
     }, [take, skip])
 
     return (
         <main className="flex flex-col p-2 gap-3">
             <div className="flex flex-row items-center p-2">
                 <div className="flex flex-row items-center gap-2">
-                    <Label htmlFor="take">Linhas por página:</Label>
+                    <Label htmlFor="take">Linhas:</Label>
                     <Input
                         id="take"
+                        disabled={total <= 0}
                         type="number"
                         className="w-10"
-                        value={take}
-                        onChange={(e) => {
-                            setTake(Number(e.target.value) || 0)
-                        }}
+                        defaultValue={take}
+                        onChange={useDebouncedCallback(
+                            (e) => setTake(Number(e.target.value) || 0),
+                            300,
+                        )}
                     ></Input>
                 </div>
                 <Button className="h-7 ml-auto p-5">
@@ -154,23 +157,25 @@ export default function Currencies() {
                     </Table>
                 </CardContent>
                 <CardFooter className="flex flex-row gap-2">
-                    Mostrando {rows.length} de {total}
-                    {rows.length + skip < total && (
-                        <Button
-                            type="button"
-                            onClick={() => setSkip((prev) => prev + take)}
-                        >
-                            Próxima
-                        </Button>
+                    {total > 0 && (
+                        <span>
+                            Mostrando {rows.length} de {total}
+                        </span>
                     )}
-                    {skip > 0 && (
-                        <Button
-                            type="button"
-                            onClick={() => setSkip((prev) => prev - take)}
-                        >
-                            Anterior
-                        </Button>
-                    )}
+                    <Button
+                        type="button"
+                        disabled={skip <= 0}
+                        onClick={() => setSkip((prev) => prev - take)}
+                    >
+                        <ArrowLeft></ArrowLeft>
+                    </Button>
+                    <Button
+                        type="button"
+                        disabled={rows.length + skip >= total}
+                        onClick={() => setSkip((prev) => prev + take)}
+                    >
+                        <ArrowRight></ArrowRight>
+                    </Button>
                 </CardFooter>
             </Card>
         </main>
