@@ -29,19 +29,21 @@ const zodValidationSchema = z.object({
         }),
 })
 
-const defaultValues = {
+type SchemaType = z.infer<typeof zodValidationSchema>
+
+const defaultValues: SchemaType = {
     label: "",
     iso4217Code: "",
 }
 
-type ModelAttrs = "label" | "iso4217Code"
-
-type NodeFieldType = ControllerRenderProps<FieldValues, ModelAttrs>
+type ModelAttrs = keyof SchemaType
 
 const inputKeyMap: Record<
     ModelAttrs,
     {
-        node: (field: NodeFieldType) => React.ReactNode
+        node: (
+            field: ControllerRenderProps<FieldValues, ModelAttrs>,
+        ) => React.ReactNode
         label: string
         description: string | React.ReactNode
     }
@@ -75,13 +77,13 @@ export const searchPageProps = {
     description: "Crie, atualize, apague ou busque moedas cadastradas",
     slug: "currency",
     tableHeaders: ["Prefixo", "Código"],
-    tableAttrs: ["label", "iso4217Code"],
+    tableAttrs: ["label", "iso4217Code"] as ModelAttrs[],
     getManyQuery: getManyCurrencies,
 }
 
 export const deletePageProps = (id: string) => ({
     dbMutation: () => deleteCurrency(id),
-    idForQuestion: `Moeda com id ${id}`,
+    idForQuestion: "moeda",
 })
 
 export const updatePageProps = (id: string) => ({
@@ -89,7 +91,7 @@ export const updatePageProps = (id: string) => ({
     mutationName: "currency-update",
     waitingMessage: "Atualizando moeda...",
     successMessage: "Moeda atualizada",
-    dbMutation: (data: typeof defaultValues) => updateCurrency(id, data),
+    dbMutation: (data: SchemaType) => updateCurrency(id, data),
     dbGetOne: () => getOneCurrency(id),
     defaultValues,
     formSchema: zodValidationSchema,
