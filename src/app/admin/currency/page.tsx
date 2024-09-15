@@ -70,6 +70,7 @@ function Row(props: { id: string; label: string; iso4217Code: string }) {
 }
 
 export default function Currencies() {
+    const [page, setPage] = useState(1)
     const [take, setTake] = useState(5)
     const [skip, setSkip] = useState(0)
     const [rows, setRows] = useState([
@@ -122,7 +123,10 @@ export default function Currencies() {
                         className="w-10"
                         defaultValue={take}
                         onChange={useDebouncedCallback(
-                            (e) => setTake(Number(e.target.value) || 0),
+                            (e) =>
+                                setTake(
+                                    Math.floor(Number(e.target.value)) || 0,
+                                ),
                             300,
                         )}
                     ></Input>
@@ -156,23 +160,33 @@ export default function Currencies() {
                         </TableBody>
                     </Table>
                 </CardContent>
-                <CardFooter className="flex flex-row gap-2">
-                    {total > 0 && (
-                        <span>
-                            Mostrando {rows.length} de {total}
-                        </span>
-                    )}
+                <CardFooter className="flex flex-row gap-2 text-sm justify-between">
+                    <div className="mr-auto flex gap-2">
+                        Página {page}:
+                        {total > 0 && (
+                            <span>
+                                Mostrando {rows.length} de {total}
+                            </span>
+                        )}
+                    </div>
+
                     <Button
                         type="button"
                         disabled={skip <= 0}
-                        onClick={() => setSkip((prev) => prev - take)}
+                        onClick={() => {
+                            setSkip((prev) => prev - take)
+                            setPage((prev) => prev - 1)
+                        }}
                     >
                         <ArrowLeft></ArrowLeft>
                     </Button>
                     <Button
                         type="button"
                         disabled={rows.length + skip >= total}
-                        onClick={() => setSkip((prev) => prev + take)}
+                        onClick={() => {
+                            setSkip((prev) => prev + take)
+                            setPage((prev) => prev + 1)
+                        }}
                     >
                         <ArrowRight></ArrowRight>
                     </Button>
