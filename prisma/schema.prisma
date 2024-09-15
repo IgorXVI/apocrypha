@@ -14,6 +14,7 @@ model Book {
     id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     stripeId         String             @unique
     price            Decimal            @db.Decimal(8, 4)
+    amount           Int
     title            String
     descriptionTitle String             @db.VarChar(100)
     description      String
