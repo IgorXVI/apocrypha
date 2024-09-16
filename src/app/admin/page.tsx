@@ -7,22 +7,22 @@ export default function Admin() {
                     <a href="/admin/books">Livros</a>
                 </li>
                 <li>
-                    <a href="/admin/authors">Autores</a>
+                    <a href="/admin/author">Autores</a>
                 </li>
                 <li>
-                    <a href="/admin/translators">Tradutores</a>
+                    <a href="/admin/translator">Tradutores</a>
                 </li>
                 <li>
-                    <a href="/admin/publishers">Editoras</a>
+                    <a href="/admin/publisher">Editoras</a>
                 </li>
                 <li>
                     <a href="/admin/series">Séries</a>
                 </li>
                 <li>
-                    <a href="/admin/categories">Categorias</a>
+                    <a href="/admin/category">Categorias</a>
                 </li>
                 <li>
-                    <a href="/admin/languages">Línguas</a>
+                    <a href="/admin/language">Línguas</a>
                 </li>
                 <li>
                     <a href="/admin/currency">Moedas</a>

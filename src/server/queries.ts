@@ -79,7 +79,7 @@ const deleteOne = (model: AnyModel, slug: string) => (id: string) =>
 
 const getOne =
     <T>(model: AnyModel) =>
-    async (id: string) =>
+    (id: string) =>
         errorHandler(async () => {
             const row = await model.findUnique({
                 where: {
@@ -96,7 +96,7 @@ const getOne =
 
 const getMany =
     <T>({ attrs, model }: { attrs: string[]; model: AnyModel }) =>
-    async (input: { take: number; skip: number; searchTerm: string }) =>
+    (input: { take: number; skip: number; searchTerm: string }) =>
         errorHandler(async () => {
             const whereClause = {
                 OR: attrs.reduce(
@@ -166,3 +166,49 @@ export const currencyAdminQueries = createAdminQueries<
     Prisma.CurrencyCreateInput,
     Prisma.CurrencyUpdateInput
 >(db.currency as unknown as AnyModel, "currency", ["iso4217Code", "label"])
+
+export const authorAdminQueries = createAdminQueries<
+    Prisma.AuthorGetPayload<Prisma.AuthorDefaultArgs>,
+    Prisma.AuthorScalarFieldEnum,
+    Prisma.AuthorCreateInput,
+    Prisma.AuthorUpdateInput
+>(db.author as unknown as AnyModel, "author", ["about", "name"])
+
+export const translatorAdminQueries = createAdminQueries<
+    Prisma.TranslatorGetPayload<Prisma.TranslatorDefaultArgs>,
+    Prisma.TranslatorScalarFieldEnum,
+    Prisma.TranslatorCreateInput,
+    Prisma.TranslatorUpdateInput
+>(db.translator as unknown as AnyModel, "translator", ["name"])
+
+export const publisherAdminQueries = createAdminQueries<
+    Prisma.PublisherGetPayload<Prisma.PublisherDefaultArgs>,
+    Prisma.PublisherScalarFieldEnum,
+    Prisma.PublisherCreateInput,
+    Prisma.PublisherUpdateInput
+>(db.publisher as unknown as AnyModel, "publisher", ["name"])
+
+export const SeriesAdminQueries = createAdminQueries<
+    Prisma.SeriesGetPayload<Prisma.SeriesDefaultArgs>,
+    Prisma.SeriesScalarFieldEnum,
+    Prisma.SeriesCreateInput,
+    Prisma.SeriesUpdateInput
+>(db.series as unknown as AnyModel, "series", ["name"])
+
+export const categoryAdminQueries = createAdminQueries<
+    Prisma.CategoryGetPayload<Prisma.CategoryDefaultArgs>,
+    Prisma.CategoryScalarFieldEnum,
+    Prisma.CategoryCreateInput,
+    Prisma.CategoryUpdateInput
+>(db.category as unknown as AnyModel, "category", ["name"])
+
+export const languageAdminQueries = createAdminQueries<
+    Prisma.LanguageGetPayload<Prisma.LanguageDefaultArgs>,
+    Prisma.LanguageScalarFieldEnum,
+    Prisma.LanguageCreateInput,
+    Prisma.LanguageUpdateInput
+>(db.language as unknown as AnyModel, "language", [
+    "name",
+    "iso6391Code",
+    "iso6392Code",
+])
