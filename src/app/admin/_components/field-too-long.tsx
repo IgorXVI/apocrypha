@@ -17,43 +17,43 @@ export default function FieldTooLong(props: { content: string }) {
     return (
         <TooltipProvider>
             <Tooltip>
-                <TooltipTrigger
-                    ref={triggerRef}
-                    onClick={(event) => event.preventDefault()}
-                >
-                    <div className="flex flex-row gap-2 justify-center items-center">
-                        <CopyToClipboard
-                            text={props.content}
-                            onCopy={() => {
-                                toast(
-                                    <span className="text-green-500">
-                                        Copiado!
-                                    </span>,
-                                )
-                            }}
+                <div className="flex flex-row gap-1 items-center justify-center">
+                    <CopyToClipboard
+                        text={props.content}
+                        onCopy={() => {
+                            toast(
+                                <span className="text-green-500">
+                                    Copiado!
+                                </span>,
+                            )
+                        }}
+                    >
+                        <button
+                            type="button"
+                            className="hover:border-black border border-transparent rounded mr-1"
                         >
-                            <button
-                                type="button"
-                                className="hover:border-black border border-transparent rounded"
-                            >
-                                <CopyIcon></CopyIcon>
-                            </button>
-                        </CopyToClipboard>
+                            <CopyIcon></CopyIcon>
+                        </button>
+                    </CopyToClipboard>
+                    <TooltipTrigger
+                        ref={triggerRef}
+                        onClick={(event) => event.preventDefault()}
+                    >
                         <span>
                             {props.content.slice(0, 5)}
                             ...
                         </span>
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent
-                    sideOffset={5}
-                    onPointerDownOutside={(event) => {
-                        if (event.target === triggerRef.current)
-                            event.preventDefault()
-                    }}
-                >
-                    {props.content}
-                </TooltipContent>
+                    </TooltipTrigger>
+                    <TooltipContent
+                        sideOffset={5}
+                        onPointerDownOutside={(event) => {
+                            if (event.target === triggerRef.current)
+                                event.preventDefault()
+                        }}
+                    >
+                        {props.content}
+                    </TooltipContent>
+                </div>
             </Tooltip>
         </TooltipProvider>
     )
