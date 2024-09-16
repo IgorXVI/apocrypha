@@ -2,9 +2,6 @@
 
 import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
-import { LoaderCircle } from "lucide-react"
 
 import { Input } from "~/components/ui/input"
 import {
@@ -14,8 +11,8 @@ import {
     authorUpdateOne,
     authorDeleteOne,
 } from "~/server/queries"
-import { UploadButton } from "~/lib/utils"
 import { Textarea } from "~/components/ui/textarea"
+import SingleImageField from "../_components/single-image-field"
 
 const zodValidationSchema = z.object({
     name: z.string().min(3, {
@@ -24,7 +21,7 @@ const zodValidationSchema = z.object({
     about: z.string().min(5, {
         message: "Sobre deve ter ao menos 5 caracteres.",
     }),
-    imgUrl: z.string().url("Deve ser uma URL."),
+    imgUrl: z.string().url("Selecione uma imagem."),
 })
 
 type SchemaType = z.infer<typeof zodValidationSchema>
@@ -63,38 +60,20 @@ const inputKeyMap: Record<
         description: "Campo para descrever quem é o autor.",
     },
     imgUrl: {
-        node: (field) => (
-            <UploadButton
-                endpoint="imageUploader"
-                onClientUploadComplete={(res) => {
-                    toast(
-                        <span className="text-lg text-green-500">
-                            Upload concluído.
-                        </span>,
-                    )
-                    field.onChange(res[0]?.url)
-                }}
-                onUploadError={(error: Error) => {
-                    toast(
-                        <span className="text-red-500">
-                            Erro ao tentar fazer upload da imagem:{" "}
-                            {error.message}
-                        </span>,
-                    )
-                }}
-            ></UploadButton>
-        ),
+        node: (field) => <SingleImageField {...field}></SingleImageField>,
         label: "Imagem de perfil",
         description: "Escolha a foto para o perfil do autor.",
     },
 }
 
+type ModelAttrsAndId = ModelAttrs | "id"
+
 export const searchPageProps = {
     title: "Autors",
     description: "Crie, atualize, apague ou busque autores cadastrados",
     slug: "author",
-    tableHeaders: ["Nome", "Sobre", "URL da imagem de perfil"],
-    tableAttrs: ["name", "about", "imgUrl"] as ModelAttrs[],
+    tableHeaders: ["ID", "Imagem de perfil", "Nome", "Sobre"],
+    tableAttrs: ["id", "imgUrl", "name", "about"] as ModelAttrsAndId[],
     getManyQuery: authorGetMany,
 }
 
@@ -107,7 +86,7 @@ export const updatePageProps = (id: string) => ({
     title: "Atualizar Autor",
     mutationName: "author-update",
     waitingMessage: "Atualizando Autor...",
-    successMessage: "Autor atualizao",
+    successMessage: "Autor atualizado",
     dbMutation: (data: SchemaType) => authorUpdateOne(id, data),
     dbGetOne: () => authorGetOne(id),
     defaultValues,

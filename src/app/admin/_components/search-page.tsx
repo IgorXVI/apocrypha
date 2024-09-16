@@ -6,6 +6,8 @@ import {
     ArrowLeft,
     ArrowRight,
     Search,
+    LoaderCircle,
+    CircleX,
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -38,6 +40,7 @@ import {
     TableHeader,
     TableRow,
 } from "~/components/ui/table"
+import FieldTooLong from "./field-too-long"
 
 export default function SearchPage<
     T extends Record<string, string | number>,
@@ -66,18 +69,22 @@ export default function SearchPage<
     const [rows, setRows] = useState<T[]>([])
     const [total, setTotal] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
+    const [getRowsDone, setGetRowsDone] = useState(false)
+    const [showErrorIndicator, setShowErrorIndicator] = useState(false)
 
     const toastDBRowsError = (errorMessage: string | React.ReactNode) => {
+        setShowErrorIndicator(true)
         toast(
             <span className="text-red-500">
                 Erro ao tentar buscar linhas: {errorMessage}
             </span>,
+            {
+                duration: 5000,
+            },
         )
     }
 
     const { getManyQuery } = props
-
-    console.log(getManyQuery)
 
     useEffect(() => {
         const getRows = async () => {
@@ -92,13 +99,17 @@ export default function SearchPage<
                 return
             }
 
+            setGetRowsDone(true)
+
             if (result.data) {
                 setRows(result.data.rows)
                 setTotal(result.data.total)
             }
         }
 
-        getRows().catch((e) => toastDBRowsError((e as Error).message))
+        getRows().catch((e) => {
+            toastDBRowsError((e as Error).message)
+        })
     }, [getManyQuery, take, skip, searchTerm])
 
     return (
@@ -146,67 +157,114 @@ export default function SearchPage<
                     <CardTitle>{props.title}</CardTitle>
                     <CardDescription>{props.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="text-nowrap">
-                                {props.tableHeaders.map((text, index) => (
-                                    <TableHead key={index}>{text}</TableHead>
-                                ))}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {rows.map((row) => (
-                                <TableRow key={row.id}>
-                                    {props.tableAttrs.map((attr) => (
-                                        <TableCell key={attr}>
-                                            {row[attr]}
-                                        </TableCell>
+                {!getRowsDone && !showErrorIndicator && (
+                    <div className="flex w-full justify-center items-center">
+                        <LoaderCircle
+                            width={100}
+                            height={100}
+                            className="animate-spin"
+                        ></LoaderCircle>
+                    </div>
+                )}
+                {showErrorIndicator && (
+                    <div className="flex w-full justify-center items-center">
+                        <CircleX width={100} height={100} color="red"></CircleX>
+                    </div>
+                )}
+                {getRowsDone && (
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="text-nowrap">
+                                    {props.tableHeaders.map((text, index) => (
+                                        <TableHead key={index}>
+                                            {text}
+                                        </TableHead>
                                     ))}
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    aria-haspopup="true"
-                                                    size="icon"
-                                                    variant="ghost"
-                                                >
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>
-                                                    Ações
-                                                </DropdownMenuLabel>
-                                                <DropdownMenuItem>
-                                                    <Link
-                                                        href={`/admin/${props.slug}/update/${row.id}`}
-                                                    >
-                                                        Atualizar
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    <Link
-                                                        href={`/admin/${props.slug}/delete/${row.id}`}
-                                                    >
-                                                        Apagar
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
+                            </TableHeader>
+                            <TableBody>
+                                {rows.map((row) => (
+                                    <TableRow key={row.id}>
+                                        {props.tableAttrs.map((attr) =>
+                                            attr.includes("Url") ? (
+                                                <TableCell
+                                                    key={attr}
+                                                    className="table-cell"
+                                                >
+                                                    <img
+                                                        alt="Product image"
+                                                        className="aspect-square rounded-md object-cover"
+                                                        src={
+                                                            row[attr] as string
+                                                        }
+                                                        height="64"
+                                                        width="64"
+                                                    />
+                                                </TableCell>
+                                            ) : (
+                                                <TableCell key={attr}>
+                                                    {typeof row[attr] ===
+                                                        "string" &&
+                                                    row[attr].length > 20 ? (
+                                                        <FieldTooLong
+                                                            content={row[attr]}
+                                                        ></FieldTooLong>
+                                                    ) : (
+                                                        row[attr]
+                                                    )}
+                                                </TableCell>
+                                            ),
+                                        )}
+                                        <TableCell>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        aria-haspopup="true"
+                                                        size="icon"
+                                                        variant="ghost"
+                                                    >
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>
+                                                        Ações
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuItem>
+                                                        <Link
+                                                            href={`/admin/${props.slug}/update/${row.id}`}
+                                                        >
+                                                            Atualizar
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem>
+                                                        <Link
+                                                            href={`/admin/${props.slug}/delete/${row.id}`}
+                                                        >
+                                                            Apagar
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                )}
+
                 <CardFooter className="flex flex-row gap-2 text-sm justify-between">
                     <div className="mr-auto flex gap-2">
-                        Página {page}:
-                        {total > 0 && (
-                            <span>
-                                Mostrando {rows.length} de {total}
-                            </span>
+                        {getRowsDone && (
+                            <div>
+                                Página {page}:
+                                <span>
+                                    {" "}
+                                    Mostrando {rows.length} de {total}
+                                </span>
+                            </div>
                         )}
                     </div>
 
