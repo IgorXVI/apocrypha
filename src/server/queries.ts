@@ -145,28 +145,24 @@ const getMany =
             }
         })
 
-type SearchCurrencyPayload =
-    Prisma.CurrencyGetPayload<Prisma.CurrencyDefaultArgs>
-
-const currencyAnyModel = db.currency as unknown as AnyModel
-
-const currencySlug = "currency"
-
-export const getManyCurrencies = getMany<SearchCurrencyPayload>({
-    attrs: ["label", "iso4217Code"] as Prisma.CurrencyScalarFieldEnum[],
-    model: currencyAnyModel,
+const createAdminQueries = <T, F extends string, C, U>(
+    model: AnyModel,
+    slug: string,
+    searchAttrs: F[],
+) => ({
+    getMany: getMany<T>({
+        attrs: searchAttrs,
+        model,
+    }),
+    getOne: getOne<T>(model),
+    createOne: createOne<C>(model, slug),
+    updateOne: updateOne<U>(model, slug),
+    deleteOne: deleteOne(model, slug),
 })
 
-export const getOneCurrency = getOne<SearchCurrencyPayload>(currencyAnyModel)
-
-export const createCurrency = createOne<Prisma.CurrencyCreateInput>(
-    currencyAnyModel,
-    currencySlug,
-)
-
-export const updateCurrency = updateOne<Prisma.CurrencyUpdateInput>(
-    currencyAnyModel,
-    currencySlug,
-)
-
-export const deleteCurrency = deleteOne(currencyAnyModel, currencySlug)
+export const currencyAdminQueries = createAdminQueries<
+    Prisma.CurrencyGetPayload<Prisma.CurrencyDefaultArgs>,
+    Prisma.CurrencyScalarFieldEnum,
+    Prisma.CurrencyCreateInput,
+    Prisma.CurrencyUpdateInput
+>(db.currency as unknown as AnyModel, "currency", ["iso4217Code", "label"])
