@@ -1,8 +1,16 @@
+"use client"
+
 import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { currencyAdminQueries } from "~/server/queries"
+import {
+    currencyGetMany,
+    currencyGetOne,
+    currencyCreateOne,
+    currencyUpdateOne,
+    currencyDeleteOne,
+} from "~/server/queries"
 
 const zodValidationSchema = z.object({
     label: z
@@ -72,11 +80,11 @@ export const searchPageProps = {
     slug: "currency",
     tableHeaders: ["Prefixo", "Código"],
     tableAttrs: ["label", "iso4217Code"] as ModelAttrs[],
-    getManyQuery: currencyAdminQueries.getMany,
+    getManyQuery: currencyGetMany,
 }
 
 export const deletePageProps = (id: string) => ({
-    dbMutation: () => currencyAdminQueries.deleteOne(id),
+    dbMutation: () => currencyDeleteOne(id),
     idForQuestion: "moeda",
 })
 
@@ -85,8 +93,8 @@ export const updatePageProps = (id: string) => ({
     mutationName: "currency-update",
     waitingMessage: "Atualizando moeda...",
     successMessage: "Moeda atualizada",
-    dbMutation: (data: SchemaType) => currencyAdminQueries.updateOne(id, data),
-    dbGetOne: () => currencyAdminQueries.getOne(id),
+    dbMutation: (data: SchemaType) => currencyUpdateOne(id, data),
+    dbGetOne: () => currencyGetOne(id),
     defaultValues,
     formSchema: zodValidationSchema,
     inputKeyMap,
@@ -97,7 +105,7 @@ export const createPageProps = {
     mutationName: "currency-create",
     waitingMessage: "Criando moeda...",
     successMessage: "Moeda criada",
-    dbMutation: currencyAdminQueries.createOne,
+    dbMutation: currencyCreateOne,
     defaultValues,
     formSchema: zodValidationSchema,
     inputKeyMap,

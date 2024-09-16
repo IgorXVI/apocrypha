@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache"
 
 import { db } from "./db"
 
-export type CommonDBReturn<T> = {
+type CommonDBReturn<T> = {
     success: boolean
     errorMessage: string
     data: T | undefined
@@ -160,49 +160,79 @@ const createAdminQueries = <T, F extends string, C, U>(
     deleteOne: deleteOne(model, slug),
 })
 
-export const currencyAdminQueries = createAdminQueries<
+const currencyAdminQueries = createAdminQueries<
     Prisma.CurrencyGetPayload<Prisma.CurrencyDefaultArgs>,
     Prisma.CurrencyScalarFieldEnum,
     Prisma.CurrencyCreateInput,
     Prisma.CurrencyUpdateInput
 >(db.currency as unknown as AnyModel, "currency", ["iso4217Code", "label"])
+export const currencyGetMany = currencyAdminQueries.getMany
+export const currencyGetOne = currencyAdminQueries.getOne
+export const currencyCreateOne = currencyAdminQueries.createOne
+export const currencyUpdateOne = currencyAdminQueries.updateOne
+export const currencyDeleteOne = currencyAdminQueries.deleteOne
 
-export const authorAdminQueries = createAdminQueries<
+const authorAdminQueries = createAdminQueries<
     Prisma.AuthorGetPayload<Prisma.AuthorDefaultArgs>,
     Prisma.AuthorScalarFieldEnum,
     Prisma.AuthorCreateInput,
     Prisma.AuthorUpdateInput
 >(db.author as unknown as AnyModel, "author", ["about", "name"])
+export const authorGetMany = authorAdminQueries.getMany
+export const authorGetOne = authorAdminQueries.getOne
+export const authorCreateOne = authorAdminQueries.createOne
+export const authorUpdateOne = authorAdminQueries.updateOne
+export const authorDeleteOne = authorAdminQueries.deleteOne
 
-export const translatorAdminQueries = createAdminQueries<
+const translatorAdminQueries = createAdminQueries<
     Prisma.TranslatorGetPayload<Prisma.TranslatorDefaultArgs>,
     Prisma.TranslatorScalarFieldEnum,
     Prisma.TranslatorCreateInput,
     Prisma.TranslatorUpdateInput
 >(db.translator as unknown as AnyModel, "translator", ["name"])
+export const translatorGetMany = translatorAdminQueries.getMany
+export const translatorGetOne = translatorAdminQueries.getOne
+export const translatorCreateOne = translatorAdminQueries.createOne
+export const translatorUpdateOne = translatorAdminQueries.updateOne
+export const translatorDeleteOne = translatorAdminQueries.deleteOne
 
-export const publisherAdminQueries = createAdminQueries<
+const publisherAdminQueries = createAdminQueries<
     Prisma.PublisherGetPayload<Prisma.PublisherDefaultArgs>,
     Prisma.PublisherScalarFieldEnum,
     Prisma.PublisherCreateInput,
     Prisma.PublisherUpdateInput
 >(db.publisher as unknown as AnyModel, "publisher", ["name"])
+export const publisherGetMany = publisherAdminQueries.getMany
+export const publisherGetOne = publisherAdminQueries.getOne
+export const publisherCreateOne = publisherAdminQueries.createOne
+export const publisherUpdateOne = publisherAdminQueries.updateOne
+export const publisherDeleteOne = publisherAdminQueries.deleteOne
 
-export const SeriesAdminQueries = createAdminQueries<
+const seriesAdminQueries = createAdminQueries<
     Prisma.SeriesGetPayload<Prisma.SeriesDefaultArgs>,
     Prisma.SeriesScalarFieldEnum,
     Prisma.SeriesCreateInput,
     Prisma.SeriesUpdateInput
 >(db.series as unknown as AnyModel, "series", ["name"])
+export const seriesGetMany = seriesAdminQueries.getMany
+export const seriesGetOne = seriesAdminQueries.getOne
+export const seriesCreateOne = seriesAdminQueries.createOne
+export const seriesUpdateOne = seriesAdminQueries.updateOne
+export const seriesDeleteOne = seriesAdminQueries.deleteOne
 
-export const categoryAdminQueries = createAdminQueries<
+const categoryAdminQueries = createAdminQueries<
     Prisma.CategoryGetPayload<Prisma.CategoryDefaultArgs>,
     Prisma.CategoryScalarFieldEnum,
     Prisma.CategoryCreateInput,
     Prisma.CategoryUpdateInput
 >(db.category as unknown as AnyModel, "category", ["name"])
+export const categoryGetMany = categoryAdminQueries.getMany
+export const categoryGetOne = categoryAdminQueries.getOne
+export const categoryCreateOne = categoryAdminQueries.createOne
+export const categoryUpdateOne = categoryAdminQueries.updateOne
+export const categoryDeleteOne = categoryAdminQueries.deleteOne
 
-export const languageAdminQueries = createAdminQueries<
+const languageAdminQueries = createAdminQueries<
     Prisma.LanguageGetPayload<Prisma.LanguageDefaultArgs>,
     Prisma.LanguageScalarFieldEnum,
     Prisma.LanguageCreateInput,
@@ -212,3 +242,8 @@ export const languageAdminQueries = createAdminQueries<
     "iso6391Code",
     "iso6392Code",
 ])
+export const languageGetMany = languageAdminQueries.getMany
+export const languageGetOne = languageAdminQueries.getOne
+export const languageCreateOne = languageAdminQueries.createOne
+export const languageUpdateOne = languageAdminQueries.updateOne
+export const languageDeleteOne = languageAdminQueries.deleteOne

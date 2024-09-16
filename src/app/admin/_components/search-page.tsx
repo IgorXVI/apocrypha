@@ -77,6 +77,8 @@ export default function SearchPage<
 
     const { getManyQuery } = props
 
+    console.log(getManyQuery)
+
     useEffect(() => {
         const getRows = async () => {
             const result = await getManyQuery({
