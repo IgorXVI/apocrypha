@@ -2,9 +2,9 @@ import "~/styles/globals.css"
 
 import { ClerkProvider } from "@clerk/nextjs"
 import { ptBR } from "@clerk/localizations"
-
 import { GeistSans } from "geist/font/sans"
 import { type Metadata } from "next"
+
 import { Toaster } from "~/components/ui/sonner"
 
 export const metadata: Metadata = {
