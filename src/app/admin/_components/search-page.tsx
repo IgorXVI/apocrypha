@@ -41,6 +41,7 @@ import {
     TableRow,
 } from "~/components/ui/table"
 import FieldTooLong from "./field-too-long"
+import Image from "next/image"
 
 export default function SearchPage<
     T extends Record<string, string | number>,
@@ -192,7 +193,7 @@ export default function SearchPage<
                                                     key={attr}
                                                     className="table-cell"
                                                 >
-                                                    <img
+                                                    <Image
                                                         alt="Product image"
                                                         className="aspect-square rounded-md object-cover"
                                                         src={

@@ -44,6 +44,11 @@ const inputKeyMap: Record<
         description: string | React.ReactNode
     }
 > = {
+    imgUrl: {
+        node: (field) => <SingleImageField {...field}></SingleImageField>,
+        label: "Imagem de perfil",
+        description: "Escolha a foto para o perfil do autor.",
+    },
     name: {
         node: (field) => <Input placeholder="Fulano da Silva" {...field} />,
         label: "Nome",
@@ -52,17 +57,13 @@ const inputKeyMap: Record<
     about: {
         node: (field) => (
             <Textarea
+                className="h-[50vh]"
                 placeholder="O Fulando da Silva é uma autor de livros..."
                 {...field}
             />
         ),
         label: "Sobre",
         description: "Campo para descrever quem é o autor.",
-    },
-    imgUrl: {
-        node: (field) => <SingleImageField {...field}></SingleImageField>,
-        label: "Imagem de perfil",
-        description: "Escolha a foto para o perfil do autor.",
     },
 }
 

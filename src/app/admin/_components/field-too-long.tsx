@@ -17,7 +17,7 @@ export default function FieldTooLong(props: { content: string }) {
     return (
         <TooltipProvider>
             <Tooltip>
-                <div className="flex flex-row gap-1 items-center justify-center">
+                <div className="flex flex-row gap-1 items-center">
                     <CopyToClipboard
                         text={props.content}
                         onCopy={() => {
