@@ -35,76 +35,68 @@ async function errorHandler<T>(
     }
 }
 
-export const createCurrency = (data: { label: string; iso4217Code: string }) =>
-    errorHandler(async () => {
-        await db.currency.create({
-            data,
+const createOne =
+    <T>(model: AnyModel, slug: string) =>
+    (data: T) =>
+        errorHandler(async () => {
+            await model.create({
+                data: data as unknown as Prisma.PublisherCreateInput,
+            })
+
+            revalidatePath(`/admin/${slug}`)
+
+            return undefined
         })
 
-        revalidatePath("/admin/currency")
+const updateOne =
+    <T>(model: AnyModel, slug: string) =>
+    (id: string, data: T) =>
+        errorHandler(async () => {
+            await model.update({
+                data: data as unknown as Prisma.PublisherUpdateInput,
+                where: {
+                    id,
+                },
+            })
 
-        return undefined
-    })
+            revalidatePath(`/admin/${slug}`)
 
-export const updateCurrency = (
-    id: string,
-    data: {
-        label: string
-        iso4217Code: string
-    },
-) =>
+            return undefined
+        })
+
+const deleteOne = (model: AnyModel, slug: string) => (id: string) =>
     errorHandler(async () => {
-        await db.currency.update({
-            data,
+        await model.delete({
             where: {
                 id,
             },
         })
 
-        revalidatePath("/admin/currency")
+        revalidatePath(`/admin/${slug}`)
 
         return undefined
     })
 
-export const deleteCurrency = (id: string) =>
-    errorHandler(async () => {
-        await db.currency.delete({
-            where: {
-                id,
-            },
+const getOne =
+    <T>(model: AnyModel) =>
+    async (id: string) =>
+        errorHandler(async () => {
+            const row = await model.findUnique({
+                where: {
+                    id,
+                },
+            })
+
+            if (!row) {
+                throw new Error("Not found")
+            }
+
+            return row as T
         })
 
-        revalidatePath("/admin/currency")
-
-        return undefined
-    })
-
-export const getOneCurrency = async (id: string) =>
-    errorHandler(async () => {
-        const currency = await db.currency.findUnique({
-            where: {
-                id,
-            },
-        })
-
-        if (!currency) {
-            throw new Error("Currency not found")
-        }
-
-        return currency
-    })
-
-export const getMany =
+const getMany =
     <T>({ attrs, model }: { attrs: string[]; model: AnyModel }) =>
-    async ({
-        take,
-        skip,
-        searchTerm,
-    }: {
-        take: number
-        skip: number
-        searchTerm: string
-    }) =>
+    async (input: { take: number; skip: number; searchTerm: string }) =>
         errorHandler(async () => {
             const whereClause = {
                 OR: attrs.reduce(
@@ -112,12 +104,12 @@ export const getMany =
                         prev.concat([
                             {
                                 [attr]: {
-                                    startsWith: searchTerm,
+                                    startsWith: input.searchTerm,
                                 },
                             },
                             {
                                 [attr]: {
-                                    endsWith: searchTerm,
+                                    endsWith: input.searchTerm,
                                 },
                             },
                         ]),
@@ -127,8 +119,8 @@ export const getMany =
 
             const [rowsResult, totalResult] = await Promise.allSettled([
                 model.findMany({
-                    take,
-                    skip,
+                    take: input.take,
+                    skip: input.skip,
                     where: whereClause,
                 }),
                 model.count({
@@ -153,48 +145,28 @@ export const getMany =
             }
         })
 
-export const getManyCurrencies = getMany<
+type SearchCurrencyPayload =
     Prisma.CurrencyGetPayload<Prisma.CurrencyDefaultArgs>
->({
+
+const currencyAnyModel = db.currency as unknown as AnyModel
+
+const currencySlug = "currency"
+
+export const getManyCurrencies = getMany<SearchCurrencyPayload>({
     attrs: ["label", "iso4217Code"] as Prisma.CurrencyScalarFieldEnum[],
-    model: db.currency as unknown as AnyModel,
+    model: currencyAnyModel,
 })
 
-export const getManyTranslators = getMany<
-    Prisma.TranslatorGetPayload<Prisma.TranslatorDefaultArgs>
->({
-    attrs: ["name"] as Prisma.TranslatorScalarFieldEnum[],
-    model: db.translator as unknown as AnyModel,
-})
+export const getOneCurrency = getOne<SearchCurrencyPayload>(currencyAnyModel)
 
-export const getManyPublishers = getMany<
-    Prisma.PublisherGetPayload<Prisma.PublisherDefaultArgs>
->({
-    attrs: ["name"] as Prisma.PublisherScalarFieldEnum[],
-    model: db.publisher as unknown as AnyModel,
-})
+export const createCurrency = createOne<Prisma.CurrencyCreateInput>(
+    currencyAnyModel,
+    currencySlug,
+)
 
-export const getManyLanguages = getMany<
-    Prisma.LanguageGetPayload<Prisma.LanguageDefaultArgs>
->({
-    attrs: [
-        "name",
-        "iso6391Code",
-        "iso6392Code",
-    ] as Prisma.LanguageScalarFieldEnum[],
-    model: db.language as unknown as AnyModel,
-})
+export const updateCurrency = updateOne<Prisma.CurrencyUpdateInput>(
+    currencyAnyModel,
+    currencySlug,
+)
 
-export const getManyCategories = getMany<
-    Prisma.CategoryGetPayload<Prisma.CategoryDefaultArgs>
->({
-    attrs: ["name"] as Prisma.CategoryScalarFieldEnum[],
-    model: db.category as unknown as AnyModel,
-})
-
-export const getManyAuthors = getMany<
-    Prisma.AuthorGetPayload<Prisma.AuthorDefaultArgs>
->({
-    attrs: ["name", "about"] as Prisma.AuthorScalarFieldEnum[],
-    model: db.author as unknown as AnyModel,
-})
+export const deleteCurrency = deleteOne(currencyAnyModel, currencySlug)
