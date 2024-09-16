@@ -1,4 +1,9 @@
+"use client"
+
+import { CopyIcon } from "lucide-react"
 import { useRef } from "react"
+import CopyToClipboard from "react-copy-to-clipboard"
+import { toast } from "sonner"
 import {
     Tooltip,
     TooltipContent,
@@ -16,10 +21,29 @@ export default function FieldTooLong(props: { content: string }) {
                     ref={triggerRef}
                     onClick={(event) => event.preventDefault()}
                 >
-                    <span>
-                        {props.content.slice(0, 5)}
-                        ...
-                    </span>
+                    <div className="flex flex-row gap-2 justify-center items-center">
+                        <CopyToClipboard
+                            text={props.content}
+                            onCopy={() => {
+                                toast(
+                                    <span className="text-green-500">
+                                        Copiado!
+                                    </span>,
+                                )
+                            }}
+                        >
+                            <button
+                                type="button"
+                                className="hover:border-black border border-transparent rounded"
+                            >
+                                <CopyIcon></CopyIcon>
+                            </button>
+                        </CopyToClipboard>
+                        <span>
+                            {props.content.slice(0, 5)}
+                            ...
+                        </span>
+                    </div>
                 </TooltipTrigger>
                 <TooltipContent
                     sideOffset={5}
