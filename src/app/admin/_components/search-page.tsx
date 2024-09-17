@@ -122,13 +122,12 @@ export default function SearchPage<
     return (
         <main className="flex flex-col p-2 gap-3">
             <div className="flex flex-row items-center p-2 gap-3">
-                <div className="relative flex-1 md:grow-0 mr-auto">
+                <div className="relative flex-1 md:grow-0 mr-auto md:ml-auto md:mr-0">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
                         placeholder="Procure..."
                         className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
-                        disabled={total <= 0}
                         onChange={useDebouncedCallback((e) => {
                             const value = e.target.value as string
                             setSearchTerm(value)

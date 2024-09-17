@@ -8,9 +8,9 @@ import {
     SheetContent,
     SheetHeader,
     SheetTitle,
-} from "./ui/sheet"
+} from "../ui/sheet"
 
-import { Button } from "./ui/button"
+import { Button } from "../ui/button"
 
 export default function MenuSheet() {
     return (

@@ -1,8 +1,8 @@
 export default function Admin() {
     return (
-        <main className="flex text-6xl gap-12 flex-col items-center justify-center h-screen">
+        <main className="flex text-xl gap-3 flex-col items-center justify-center h-screen">
             <h1>OI ADEMIR</h1>
-            <nav className="underline flex flex-col gap-10">
+            <nav className="underline flex flex-col gap-3">
                 <li>
                     <a href="/admin/books">Livros</a>
                 </li>

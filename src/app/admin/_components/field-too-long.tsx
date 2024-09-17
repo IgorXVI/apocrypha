@@ -1,22 +1,22 @@
-"use client"
-
 import { CopyIcon } from "lucide-react"
-import { useRef } from "react"
 import CopyToClipboard from "react-copy-to-clipboard"
 import { toast } from "sonner"
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "~/components/ui/tooltip"
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "~/components/ui/popover"
 
 export default function FieldTooLong(props: { content: string }) {
-    const triggerRef = useRef(null)
-
     return (
-        <TooltipProvider>
-            <Tooltip>
+        <Popover>
+            <PopoverTrigger>
+                <span>
+                    {props.content.slice(0, 20)}
+                    ...
+                </span>
+            </PopoverTrigger>
+            <PopoverContent>
                 <div className="flex flex-row gap-1 items-center">
                     <CopyToClipboard
                         text={props.content}
@@ -35,26 +35,12 @@ export default function FieldTooLong(props: { content: string }) {
                             <CopyIcon></CopyIcon>
                         </button>
                     </CopyToClipboard>
-                    <TooltipTrigger
-                        ref={triggerRef}
-                        onClick={(event) => event.preventDefault()}
-                    >
-                        <span>
-                            {props.content.slice(0, 20)}
-                            ...
-                        </span>
-                    </TooltipTrigger>
-                    <TooltipContent
-                        sideOffset={5}
-                        onPointerDownOutside={(event) => {
-                            if (event.target === triggerRef.current)
-                                event.preventDefault()
-                        }}
-                    >
-                        {props.content}
-                    </TooltipContent>
+                    <p>
+                        {props.content.slice(0, 255)}
+                        {props.content.length >= 255 ? "..." : ""}
+                    </p>
                 </div>
-            </Tooltip>
-        </TooltipProvider>
+            </PopoverContent>
+        </Popover>
     )
 }
