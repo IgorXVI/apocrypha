@@ -2,12 +2,7 @@
 
 import { toast } from "sonner"
 import { LoaderCircle } from "lucide-react"
-
-type CommonDBReturn<T> = {
-    success: boolean
-    errorMessage: string
-    data: T | undefined
-}
+import { type CommonDBReturn } from "~/server/queries"
 
 export async function dbQueryWithToast<T>({
     dbQuery,

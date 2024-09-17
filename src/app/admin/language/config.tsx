@@ -5,37 +5,31 @@ import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
 import {
-    currencyGetMany,
-    currencyGetOne,
-    currencyCreateOne,
-    currencyUpdateOne,
-    currencyDeleteOne,
+    languageGetMany,
+    languageGetOne,
+    languageCreateOne,
+    languageUpdateOne,
+    languageDeleteOne,
 } from "~/server/queries"
 
 const zodValidationSchema = z.object({
-    label: z
-        .string()
-        .min(1, {
-            message: "Prefixo deve ter ao menos 1 caracter.",
-        })
-        .max(5, {
-            message: "Prefixo deve ter no máximo 5 caracteres.",
-        }),
-    iso4217Code: z
-        .string()
-        .min(3, {
-            message: "Código ISO 4217 deve ter ao menos 3 caracteres.",
-        })
-        .max(4, {
-            message: "Código ISO 4217 deve ter no máximo 4 caracteres.",
-        }),
+    name: z.string().min(3, {
+        message: "Prefixo deve ter ao menos 1 caracter.",
+    }),
+    iso6392Code: z.string().length(3, {
+        message: "Código ISO 6392 deve ter 3 caracteres.",
+    }),
+    iso6391Code: z.string().length(2, {
+        message: "Código ISO 6391 deve ter 2 caracteres.",
+    }),
 })
 
 type SchemaType = z.infer<typeof zodValidationSchema>
 
 const defaultValues: SchemaType = {
-    label: "",
-    iso4217Code: "",
+    name: "",
+    iso6391Code: "",
+    iso6392Code: "",
 }
 
 type ModelAttrs = keyof SchemaType
@@ -50,23 +44,38 @@ const inputKeyMap: Record<
         description: string | React.ReactNode
     }
 > = {
-    label: {
-        node: (field) => <Input placeholder="$" {...field} />,
-        label: "Prefixo",
-        description:
-            "Esse é o préfixo que vai aparecer antes do valor monetário.",
+    name: {
+        node: (field) => <Input placeholder="Inglês" {...field} />,
+        label: "Nome",
+        description: "Esse é o nome da língua.",
     },
-    iso4217Code: {
-        node: (field) => <Input placeholder="EUR" {...field} />,
-        label: "Código ISO 4217",
+    iso6391Code: {
+        node: (field) => <Input placeholder="pt" {...field} />,
+        label: "Código ISO 6391",
         description: (
             <>
                 Esse é o código
                 <a
-                    href="https://pt.wikipedia.org/wiki/ISO_4217"
+                    href="https://pt.wikipedia.org/wiki/ISO_6391"
                     className="underline mr-1 ml-1"
                 >
-                    ISO 4217
+                    ISO 6391
+                </a>
+                da moeda.
+            </>
+        ),
+    },
+    iso6392Code: {
+        node: (field) => <Input placeholder="eng" {...field} />,
+        label: "Código ISO 6392",
+        description: (
+            <>
+                Esse é o código
+                <a
+                    href="https://pt.wikipedia.org/wiki/ISO_6392"
+                    className="underline mr-1 ml-1"
+                >
+                    ISO 6392
                 </a>
                 da moeda.
             </>
@@ -75,37 +84,37 @@ const inputKeyMap: Record<
 }
 
 export const searchPageProps = {
-    title: "Moedas",
-    description: "Crie, atualize, apague ou busque moedas cadastradas",
-    slug: "currency",
-    tableHeaders: ["Prefixo", "Código"],
-    tableAttrs: ["label", "iso4217Code"] as ModelAttrs[],
-    getManyQuery: currencyGetMany,
+    title: "Línguas",
+    description: "Crie, atualize, apague ou busque Línguas cadastradas",
+    slug: "language",
+    tableHeaders: ["Nome", "Código ISO 6391", "Código ISO 6392"],
+    tableAttrs: ["name", "iso6391Code", "iso6392Code"] as ModelAttrs[],
+    getManyQuery: languageGetMany,
 }
 
 export const deletePageProps = (id: string) => ({
-    dbMutation: () => currencyDeleteOne(id),
-    idForQuestion: "moeda",
+    dbMutation: () => languageDeleteOne(id),
+    idForQuestion: "Língua",
 })
 
 export const updatePageProps = (id: string) => ({
-    title: "Atualizar Moeda",
-    mutationName: "currency-update",
-    waitingMessage: "Atualizando moeda...",
-    successMessage: "Moeda atualizada",
-    dbMutation: (data: SchemaType) => currencyUpdateOne(id, data),
-    dbGetOne: () => currencyGetOne(id),
+    title: "Atualizar Língua",
+    mutationName: "language-update",
+    waitingMessage: "Atualizando Língua...",
+    successMessage: "Língua atualizada",
+    dbMutation: (data: SchemaType) => languageUpdateOne(id, data),
+    dbGetOne: () => languageGetOne(id),
     defaultValues,
     formSchema: zodValidationSchema,
     inputKeyMap,
 })
 
 export const createPageProps = {
-    title: "Criar Moeda",
-    mutationName: "currency-create",
-    waitingMessage: "Criando moeda...",
-    successMessage: "Moeda criada",
-    dbMutation: currencyCreateOne,
+    title: "Criar Língua",
+    mutationName: "language-create",
+    waitingMessage: "Criando Língua...",
+    successMessage: "Língua criada",
+    dbMutation: languageCreateOne,
     defaultValues,
     formSchema: zodValidationSchema,
     inputKeyMap,

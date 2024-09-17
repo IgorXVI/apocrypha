@@ -5,37 +5,26 @@ import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
 import {
-    currencyGetMany,
-    currencyGetOne,
-    currencyCreateOne,
-    currencyUpdateOne,
-    currencyDeleteOne,
+    categoryGetMany,
+    categoryGetOne,
+    categoryCreateOne,
+    categoryUpdateOne,
+    categoryDeleteOne,
 } from "~/server/queries"
+import SingleImageField from "../_components/single-image-field"
 
 const zodValidationSchema = z.object({
-    label: z
-        .string()
-        .min(1, {
-            message: "Prefixo deve ter ao menos 1 caracter.",
-        })
-        .max(5, {
-            message: "Prefixo deve ter no máximo 5 caracteres.",
-        }),
-    iso4217Code: z
-        .string()
-        .min(3, {
-            message: "Código ISO 4217 deve ter ao menos 3 caracteres.",
-        })
-        .max(4, {
-            message: "Código ISO 4217 deve ter no máximo 4 caracteres.",
-        }),
+    name: z.string().min(3, {
+        message: "Nome deve ter ao menos 3 caracteres.",
+    }),
+    iconUrl: z.string().url("Selecione uma imagem."),
 })
 
 type SchemaType = z.infer<typeof zodValidationSchema>
 
 const defaultValues: SchemaType = {
-    label: "",
-    iso4217Code: "",
+    name: "",
+    iconUrl: "",
 }
 
 type ModelAttrs = keyof SchemaType
@@ -50,62 +39,50 @@ const inputKeyMap: Record<
         description: string | React.ReactNode
     }
 > = {
-    label: {
-        node: (field) => <Input placeholder="$" {...field} />,
-        label: "Prefixo",
-        description:
-            "Esse é o préfixo que vai aparecer antes do valor monetário.",
+    iconUrl: {
+        node: (field) => <SingleImageField {...field}></SingleImageField>,
+        label: "Imagem do ícone da categoria.",
+        description: "Escolha imagem para servir como ícone da categoria.",
     },
-    iso4217Code: {
-        node: (field) => <Input placeholder="EUR" {...field} />,
-        label: "Código ISO 4217",
-        description: (
-            <>
-                Esse é o código
-                <a
-                    href="https://pt.wikipedia.org/wiki/ISO_4217"
-                    className="underline mr-1 ml-1"
-                >
-                    ISO 4217
-                </a>
-                da moeda.
-            </>
-        ),
+    name: {
+        node: (field) => <Input placeholder="Fanstasia" {...field} />,
+        label: "Nome",
+        description: "Esse é o nome da categoria.",
     },
 }
 
 export const searchPageProps = {
-    title: "Moedas",
-    description: "Crie, atualize, apague ou busque moedas cadastradas",
-    slug: "currency",
-    tableHeaders: ["Prefixo", "Código"],
-    tableAttrs: ["label", "iso4217Code"] as ModelAttrs[],
-    getManyQuery: currencyGetMany,
+    title: "Categorias",
+    description: "Crie, atualize, apague ou busque categorias cadastradas",
+    slug: "category",
+    tableHeaders: ["Ícone", "Nome"],
+    tableAttrs: ["iconUrl", "name"] as ModelAttrs[],
+    getManyQuery: categoryGetMany,
 }
 
 export const deletePageProps = (id: string) => ({
-    dbMutation: () => currencyDeleteOne(id),
-    idForQuestion: "moeda",
+    dbMutation: () => categoryDeleteOne(id),
+    idForQuestion: "categoria",
 })
 
 export const updatePageProps = (id: string) => ({
-    title: "Atualizar Moeda",
-    mutationName: "currency-update",
-    waitingMessage: "Atualizando moeda...",
-    successMessage: "Moeda atualizada",
-    dbMutation: (data: SchemaType) => currencyUpdateOne(id, data),
-    dbGetOne: () => currencyGetOne(id),
+    title: "Atualizar categoria",
+    mutationName: "category-update",
+    waitingMessage: "Atualizando categoria...",
+    successMessage: "Categoria atualizada",
+    dbMutation: (data: SchemaType) => categoryUpdateOne(id, data),
+    dbGetOne: () => categoryGetOne(id),
     defaultValues,
     formSchema: zodValidationSchema,
     inputKeyMap,
 })
 
 export const createPageProps = {
-    title: "Criar Moeda",
-    mutationName: "currency-create",
-    waitingMessage: "Criando moeda...",
-    successMessage: "Moeda criada",
-    dbMutation: currencyCreateOne,
+    title: "Criar categoria",
+    mutationName: "category-create",
+    waitingMessage: "Criando categoria...",
+    successMessage: "Categoria criada",
+    dbMutation: categoryCreateOne,
     defaultValues,
     formSchema: zodValidationSchema,
     inputKeyMap,

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache"
 
 import { db } from "./db"
 
-type CommonDBReturn<T> = {
+export type CommonDBReturn<T> = {
     success: boolean
     errorMessage: string
     data: T | undefined

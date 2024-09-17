@@ -1,8 +1,11 @@
 import { toast } from "sonner"
 import { LoaderCircleIcon, ImageUpIcon } from "lucide-react"
 import Image from "next/image"
+import { generateReactHelpers } from "@uploadthing/react"
 
-import { useUploadThing } from "~/lib/utils"
+import { type OurFileRouter } from "~/app/api/uploadthing/core"
+
+export const { useUploadThing } = generateReactHelpers<OurFileRouter>()
 
 type Input = Parameters<typeof useUploadThing>
 

@@ -8,7 +8,6 @@ import {
     Search,
     LoaderCircle,
     CircleX,
-    SunIcon,
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -44,9 +43,7 @@ import FieldTooLong from "./field-too-long"
 import Image from "next/image"
 import {
     Select,
-    SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "~/components/ui/select"
