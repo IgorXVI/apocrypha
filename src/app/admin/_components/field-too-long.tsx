@@ -40,7 +40,7 @@ export default function FieldTooLong(props: { content: string }) {
                         onClick={(event) => event.preventDefault()}
                     >
                         <span>
-                            {props.content.slice(0, 5)}
+                            {props.content.slice(0, 20)}
                             ...
                         </span>
                     </TooltipTrigger>
