@@ -247,3 +247,23 @@ export const languageGetOne = languageAdminQueries.getOne
 export const languageCreateOne = languageAdminQueries.createOne
 export const languageUpdateOne = languageAdminQueries.updateOne
 export const languageDeleteOne = languageAdminQueries.deleteOne
+
+const bookAdminQueries = createAdminQueries<
+    Prisma.BookGetPayload<Prisma.BookDefaultArgs>,
+    Prisma.BookScalarFieldEnum,
+    Prisma.BookCreateInput,
+    Prisma.BookUpdateInput
+>(db.book as unknown as AnyModel, "book", [
+    "title",
+    "description",
+    "edition",
+    "isbn10Code",
+    "isbn13Code",
+    "descriptionTitle",
+    "seriesId",
+])
+export const bookGetMany = bookAdminQueries.getMany
+export const bookGetOne = bookAdminQueries.getOne
+export const bookCreateOne = bookAdminQueries.createOne
+export const bookUpdateOne = bookAdminQueries.updateOne
+export const bookDeleteOne = bookAdminQueries.deleteOne
