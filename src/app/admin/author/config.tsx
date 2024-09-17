@@ -70,8 +70,8 @@ const inputKeyMap: Record<
 type ModelAttrsAndId = ModelAttrs | "id"
 
 export const searchPageProps = {
-    title: "Autors",
-    description: "Crie, atualize, apague ou busque autores cadastrados",
+    title: "Autores",
+    description: "Crie, atualize, apague ou busque autores cadastrados.",
     slug: "author",
     tableHeaders: ["ID", "Imagem de perfil", "Nome", "Sobre"],
     tableAttrs: ["id", "imgUrl", "name", "about"] as ModelAttrsAndId[],
@@ -84,9 +84,9 @@ export const deletePageProps = (id: string) => ({
 })
 
 export const updatePageProps = (id: string) => ({
-    title: "Atualizar Autor",
+    title: "Atualizar autor",
     mutationName: "author-update",
-    waitingMessage: "Atualizando Autor...",
+    waitingMessage: "Atualizando autor...",
     successMessage: "Autor atualizado",
     dbMutation: (data: SchemaType) => authorUpdateOne(id, data),
     dbGetOne: () => authorGetOne(id),
@@ -96,9 +96,9 @@ export const updatePageProps = (id: string) => ({
 })
 
 export const createPageProps = {
-    title: "Criar Autor",
+    title: "Criar autores",
     mutationName: "author-create",
-    waitingMessage: "Criando Autor...",
+    waitingMessage: "Criando autor...",
     successMessage: "Autor criado",
     dbMutation: authorCreateOne,
     defaultValues,

@@ -1,5 +1,5 @@
 import { toast } from "sonner"
-import { ImageIcon, LoaderCircleIcon, UploadIcon } from "lucide-react"
+import { LoaderCircleIcon, ImageUpIcon } from "lucide-react"
 import Image from "next/image"
 
 import { useUploadThing } from "~/lib/utils"
@@ -72,7 +72,6 @@ export default function SingleImageField(props: {
 
     return (
         <div className="flex flex-col gap-3 items-center justify-center">
-            {!props.value && <ImageIcon height={150} width={150}></ImageIcon>}
             {props.value && (
                 <Image
                     src={props.value}
@@ -83,11 +82,11 @@ export default function SingleImageField(props: {
                 />
             )}
             <label htmlFor="upload-button">
-                <UploadIcon
+                <ImageUpIcon
                     width={50}
                     height={50}
-                    className="cursor-pointer hover:border-black rounded border-transparent border border-gray-400 p-1"
-                ></UploadIcon>
+                    className="cursor-pointer hover:border-black rounded border border-gray-400 p-1"
+                ></ImageUpIcon>
             </label>
             <input
                 id="upload-button"

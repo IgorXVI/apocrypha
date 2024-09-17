@@ -8,6 +8,7 @@ import {
     Search,
     LoaderCircle,
     CircleX,
+    SunIcon,
 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -31,7 +32,6 @@ import {
     DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu"
 import { Input } from "~/components/ui/input"
-import { Label } from "~/components/ui/label"
 import {
     Table,
     TableBody,
@@ -42,6 +42,15 @@ import {
 } from "~/components/ui/table"
 import FieldTooLong from "./field-too-long"
 import Image from "next/image"
+import {
+    Select,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "~/components/ui/select"
+import { SelectContent } from "@radix-ui/react-select"
 
 export default function SearchPage<
     T extends Record<string, string | number>,
@@ -116,37 +125,37 @@ export default function SearchPage<
     return (
         <main className="flex flex-col p-2 gap-3">
             <div className="flex flex-row items-center p-2 gap-3">
-                <div className="flex flex-row items-center gap-2">
-                    <div className="relative ml-auto flex-1 md:grow-0">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder="Procure..."
-                            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
-                            disabled={total <= 0}
-                            onChange={useDebouncedCallback((e) => {
-                                const value = e.target.value as string
-                                setSearchTerm(value)
-                            }, 500)}
-                        />
-                    </div>
-                    <Label htmlFor="take">Linhas:</Label>
+                <div className="relative flex-1 md:grow-0 mr-auto">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        id="take"
+                        type="search"
+                        placeholder="Procure..."
+                        className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
                         disabled={total <= 0}
-                        type="number"
-                        className="w-10"
-                        defaultValue={take}
-                        onChange={useDebouncedCallback(
-                            (e) =>
-                                setTake(
-                                    Math.floor(Number(e.target.value)) || 0,
-                                ),
-                            300,
-                        )}
-                    ></Input>
+                        onChange={useDebouncedCallback((e) => {
+                            const value = e.target.value as string
+                            setSearchTerm(value)
+                        }, 500)}
+                    />
                 </div>
-                <Button className="h-7 ml-auto p-5">
+                <div>
+                    <Select
+                        defaultValue={take.toString()}
+                        onValueChange={(value) => {
+                            setTake(Math.floor(Number(value)) || 0)
+                        }}
+                    >
+                        <SelectTrigger className="w-16">
+                            <SelectValue></SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-50">
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">99</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <Button className="h-7 p-5">
                     <Link href={`/admin/${props.slug}/create`}>
                         <PlusCircle />
                     </Link>
