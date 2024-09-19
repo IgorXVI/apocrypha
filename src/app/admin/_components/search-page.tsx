@@ -534,7 +534,7 @@ export default function SearchPage<T extends Record<string, string | number>>(
                     }
                 }}
             >
-                <DialogContent className="overflow-y-scroll max-h-screen scroll-m-1">
+                <DialogContent className="overflow-y-scroll max-h-full scrollbar-none">
                     {searchParams.has(ModalParams.delete) && (
                         <>
                             <DialogHeader>

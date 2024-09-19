@@ -100,7 +100,7 @@ export default function CreateOrUpdate<T>(props: {
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="p-5 flex flex-col gap-3"
+                className="flex flex-col gap-3"
             >
                 {fieldNames.map((key, index) => (
                     <FormField
@@ -127,7 +127,7 @@ export default function CreateOrUpdate<T>(props: {
                         )}
                     />
                 ))}
-                <div className="flex flex-row items-center justify-center p-5">
+                <div className="flex flex-row items-center justify-center p-2">
                     <Button
                         disabled={
                             form.formState.isSubmitting ||
