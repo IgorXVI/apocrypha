@@ -1,60 +1,18 @@
-import { toast } from "sonner"
-import { LoaderCircleIcon, ImageUpIcon } from "lucide-react"
-import Image from "next/image"
 import { generateReactHelpers } from "@uploadthing/react"
 
 import { type OurFileRouter } from "~/app/api/uploadthing/core"
+import { Input } from "~/components/ui/input"
+import Image from "next/image"
+import { toast } from "sonner"
 
 export const { useUploadThing } = generateReactHelpers<OurFileRouter>()
 
-type Input = Parameters<typeof useUploadThing>
-
-const useUploadThingInputProps = (...args: Input) => {
-    const $ut = useUploadThing(...args)
-
-    const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files) {
-            return
-        }
-
-        const selectFiles = Array.from(e.target.files)
-
-        if (selectFiles.length === 0) {
-            return
-        }
-
-        await $ut.startUpload(selectFiles)
-    }
-
-    return {
-        inputProps: {
-            onChange,
-            multiple: false,
-            accept: "image/*",
-        },
-        isUploading: $ut.isUploading,
-    }
-}
-
 export default function SingleImageField(props: {
-    onChange: (fileUrl: string) => void
-    value?: string
+    onChange: (value: string) => void
+    value: string
 }) {
-    const { inputProps } = useUploadThingInputProps("imageUploader", {
-        onUploadBegin() {
-            toast(
-                <div className="flex gap-2 items-center">
-                    <LoaderCircleIcon className="animate-spin"></LoaderCircleIcon>
-                    <span className="text-lg">Fazendo upload...</span>
-                </div>,
-                {
-                    duration: 100000,
-                    id: "upload-begin",
-                },
-            )
-        },
+    const uploadThing = useUploadThing("imageUploader", {
         onUploadError(e) {
-            toast.dismiss("upload-begin")
             toast.error(
                 <span className="text-lg text-red-500">
                     Erro durante upload: {e.message}
@@ -64,13 +22,6 @@ export default function SingleImageField(props: {
                 },
             )
         },
-        onClientUploadComplete(res) {
-            toast.dismiss("upload-begin")
-            toast(
-                <span className="text-lg text-green-500">Upload completo</span>,
-            )
-            props.onChange(res[0]?.url ?? "")
-        },
     })
 
     return (
@@ -78,25 +29,34 @@ export default function SingleImageField(props: {
             {props.value && (
                 <Image
                     src={props.value}
-                    width={150}
-                    height={150}
+                    width={250}
+                    height={250}
                     className="aspect-square rounded-md object-cover"
                     alt="Imagem que foi salva no servidor."
                 />
             )}
-            <label htmlFor="upload-button">
-                <ImageUpIcon
-                    width={50}
-                    height={50}
-                    className="cursor-pointer hover:border-black rounded border border-gray-400 p-1"
-                ></ImageUpIcon>
-            </label>
-            <input
-                id="upload-button"
+            <Input
                 type="file"
-                className="sr-only"
-                {...inputProps}
-            ></input>
+                multiple={false}
+                accept="image/*"
+                onChange={async (e) => {
+                    if (!e.target.files) {
+                        return
+                    }
+
+                    const selectFiles = Array.from(e.target.files)
+
+                    if (selectFiles.length === 0) {
+                        return
+                    }
+
+                    const result = await uploadThing.startUpload(selectFiles)
+
+                    if (result) {
+                        props.onChange(result[0]?.url ?? "")
+                    }
+                }}
+            ></Input>
         </div>
     )
 }

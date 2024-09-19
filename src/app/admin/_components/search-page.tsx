@@ -3,14 +3,13 @@
 import {
     MoreHorizontal,
     PlusCircle,
-    ArrowLeft,
-    ArrowRight,
     Search,
     LoaderCircle,
     CircleX,
 } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useSearchParams, usePathname, useRouter } from "next/navigation"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useDebouncedCallback } from "use-debounce"
 
@@ -46,58 +45,119 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
+    SelectContent,
 } from "~/components/ui/select"
-import { SelectContent } from "@radix-ui/react-select"
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "~/components/ui/pagination"
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog"
+import DeleteOne from "./delete-page"
+import { type CommonDBReturn } from "~/server/queries"
 
-export default function SearchPage<
-    T extends Record<string, string | number>,
->(props: {
-    title: string
-    description: string
-    tableHeaders: string[]
-    tableAttrs: string[]
-    slug: string
-    getManyQuery: (input: {
-        take: number
-        skip: number
-        searchTerm: string
-    }) => Promise<{
-        success: boolean
-        errorMessage: string
-        data?: {
-            total: number
-            rows: T[]
-        }
-    }>
-}) {
-    const [page, setPage] = useState(1)
-    const [take, setTake] = useState(10)
-    const [skip, setSkip] = useState(0)
+export default function SearchPage<T extends Record<string, string | number>>(
+    props: Readonly<{
+        title: string
+        description: string
+        tableHeaders: string[]
+        tableAttrs: string[]
+        slug: string
+        getManyQuery: (input: {
+            take: number
+            skip: number
+            searchTerm: string
+        }) => Promise<
+            CommonDBReturn<{
+                total: number
+                rows: T[]
+            }>
+        >
+        deleteOneQuery: (id: string) => Promise<CommonDBReturn<undefined>>
+    }>,
+) {
     const [rows, setRows] = useState<T[]>([])
     const [total, setTotal] = useState(0)
-    const [searchTerm, setSearchTerm] = useState("")
     const [getRowsDone, setGetRowsDone] = useState(false)
     const [showErrorIndicator, setShowErrorIndicator] = useState(false)
 
-    const toastDBRowsError = (errorMessage: string | React.ReactNode) => {
-        setShowErrorIndicator(true)
-        toast(
-            <span className="text-red-500">
-                Erro ao tentar buscar linhas: {errorMessage}
-            </span>,
-            {
-                duration: 5000,
-            },
-        )
-    }
+    const searchParams = useSearchParams()
+    const pathname = usePathname()
+    const router = useRouter()
 
-    const { getManyQuery } = props
+    const toastDBRowsError = useCallback(
+        (errorMessage: string | React.ReactNode) => {
+            setShowErrorIndicator(true)
+            toast(
+                <span className="text-red-500">
+                    Erro ao tentar buscar linhas: {errorMessage}
+                </span>,
+                {
+                    duration: 5000,
+                },
+            )
+        },
+        [],
+    )
+
+    const changeURLParams = useCallback(
+        (key: string, value?: string) => {
+            const params = new URLSearchParams(searchParams)
+
+            if (value) {
+                params.set(key, value)
+            } else {
+                params.delete(key)
+            }
+
+            router.replace(`${pathname}?${params.toString()}`)
+        },
+        [searchParams, pathname, router],
+    )
+
+    const currentPage = useMemo(
+        () => Number(searchParams.get("page")) || 1,
+        [searchParams],
+    )
+
+    const currentTake = useMemo(
+        () => Number(searchParams.get("take")) || 10,
+        [searchParams],
+    )
+
+    const maxPage = useMemo(
+        () => Math.ceil(total / currentTake),
+        [total, currentTake],
+    )
+
+    const getNextPageLink = useCallback(
+        (offset: number) => {
+            const params = new URLSearchParams(searchParams)
+
+            const newPage = currentPage + offset
+
+            if (newPage <= 0) {
+                return pathname
+            }
+
+            params.set("page", newPage.toString())
+
+            return `${pathname}?${params.toString()}`
+        },
+        [searchParams, pathname, currentPage],
+    )
 
     useEffect(() => {
         const getRows = async () => {
-            const result = await getManyQuery({
-                take,
-                skip,
+            const searchTerm = searchParams.get("search") ?? ""
+
+            const result = await props.getManyQuery({
+                take: currentTake,
+                skip: currentTake * (currentPage - 1),
                 searchTerm,
             })
 
@@ -109,6 +169,7 @@ export default function SearchPage<
             setGetRowsDone(true)
 
             if (result.data) {
+                setShowErrorIndicator(false)
                 setRows(result.data.rows)
                 setTotal(result.data.total)
             }
@@ -117,7 +178,7 @@ export default function SearchPage<
         getRows().catch((e) => {
             toastDBRowsError((e as Error).message)
         })
-    }, [getManyQuery, take, skip, searchTerm])
+    }, [props, currentPage, currentTake, toastDBRowsError, searchParams])
 
     return (
         <main className="flex flex-col p-2 gap-3">
@@ -128,26 +189,27 @@ export default function SearchPage<
                         type="search"
                         placeholder="Procure..."
                         className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
-                        onChange={useDebouncedCallback((e) => {
-                            const value = e.target.value as string
-                            setSearchTerm(value)
-                        }, 500)}
+                        defaultValue={searchParams.get("search")?.toString()}
+                        onChange={useDebouncedCallback(
+                            (e) => changeURLParams("search", e.target.value),
+                            500,
+                        )}
                     />
                 </div>
                 <div>
                     <Select
-                        defaultValue={take.toString()}
-                        onValueChange={(value) => {
-                            setTake(Math.floor(Number(value)) || 0)
-                        }}
+                        defaultValue={searchParams.get("take")?.toString()}
+                        onValueChange={(value) =>
+                            changeURLParams("take", value)
+                        }
                     >
-                        <SelectTrigger className="w-16">
-                            <SelectValue></SelectValue>
+                        <SelectTrigger className="w-24">
+                            <SelectValue placeholder="Linhas"></SelectValue>
                         </SelectTrigger>
                         <SelectContent className="bg-gray-50">
                             <SelectItem value="10">10</SelectItem>
                             <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">99</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -223,36 +285,95 @@ export default function SearchPage<
                                             ),
                                         )}
                                         <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        aria-haspopup="true"
-                                                        size="icon"
-                                                        variant="ghost"
+                                            <Dialog
+                                                defaultOpen={
+                                                    searchParams.get(
+                                                        "DDeleteId",
+                                                    ) === row.id ||
+                                                    searchParams.get(
+                                                        "UUpdateId",
+                                                    ) === row.id
+                                                }
+                                                onOpenChange={(open) => {
+                                                    if (open) {
+                                                        return
+                                                    }
+
+                                                    searchParams.forEach(
+                                                        (_, paramKey) => {
+                                                            if (
+                                                                paramKey.startsWith(
+                                                                    "DDelete",
+                                                                ) ||
+                                                                paramKey.startsWith(
+                                                                    "UUpdate",
+                                                                )
+                                                            ) {
+                                                                console.log(
+                                                                    paramKey,
+                                                                )
+                                                                changeURLParams(
+                                                                    paramKey,
+                                                                    undefined,
+                                                                )
+                                                            }
+                                                        },
+                                                    )
+                                                }}
+                                            >
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger
+                                                        asChild
                                                     >
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>
-                                                        Ações
-                                                    </DropdownMenuLabel>
-                                                    <DropdownMenuItem>
-                                                        <Link
-                                                            href={`/admin/${props.slug}/update/${row.id}`}
+                                                        <Button
+                                                            aria-haspopup="true"
+                                                            size="icon"
+                                                            variant="ghost"
                                                         >
-                                                            Atualizar
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <Link
-                                                            href={`/admin/${props.slug}/delete/${row.id}`}
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>
+                                                            Ações
+                                                        </DropdownMenuLabel>
+                                                        <DropdownMenuItem>
+                                                            <Link
+                                                                href={`/admin/${props.slug}/update/${row.id}`}
+                                                            >
+                                                                Atualizar
+                                                            </Link>
+                                                        </DropdownMenuItem>
+
+                                                        <DialogTrigger
+                                                            asChild
+                                                            onClick={() => {
+                                                                changeURLParams(
+                                                                    "DDeleteId",
+                                                                    String(
+                                                                        row.id,
+                                                                    ),
+                                                                )
+                                                            }}
                                                         >
-                                                            Apagar
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                                            <DropdownMenuItem>
+                                                                Apagar
+                                                            </DropdownMenuItem>
+                                                        </DialogTrigger>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                                <DialogContent>
+                                                    <DeleteOne
+                                                        dbMutation={() =>
+                                                            props.deleteOneQuery(
+                                                                searchParams.get(
+                                                                    "DDeleteId",
+                                                                ) ?? "",
+                                                            )
+                                                        }
+                                                    ></DeleteOne>
+                                                </DialogContent>
+                                            </Dialog>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -262,38 +383,49 @@ export default function SearchPage<
                 )}
 
                 <CardFooter className="flex flex-row gap-2 text-sm justify-between">
-                    <div className="mr-auto flex gap-2">
-                        {getRowsDone && (
-                            <div>
-                                Página {page}:
-                                <span>
-                                    {" "}
-                                    Mostrando {rows.length} de {total}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-
-                    <Button
-                        type="button"
-                        disabled={skip <= 0}
-                        onClick={() => {
-                            setSkip((prev) => prev - take)
-                            setPage((prev) => prev - 1)
-                        }}
-                    >
-                        <ArrowLeft></ArrowLeft>
-                    </Button>
-                    <Button
-                        type="button"
-                        disabled={rows.length + skip >= total}
-                        onClick={() => {
-                            setSkip((prev) => prev + take)
-                            setPage((prev) => prev + 1)
-                        }}
-                    >
-                        <ArrowRight></ArrowRight>
-                    </Button>
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    href={
+                                        currentPage === 1
+                                            ? "#"
+                                            : getNextPageLink(-1)
+                                    }
+                                />
+                            </PaginationItem>
+                            <PaginationItem>
+                                {currentPage > 1 && (
+                                    <PaginationLink href={getNextPageLink(-1)}>
+                                        {currentPage - 1}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationLink href="#" isActive>
+                                    {currentPage}
+                                </PaginationLink>
+                            </PaginationItem>
+                            {maxPage > currentPage && (
+                                <PaginationLink href={getNextPageLink(1)}>
+                                    {currentPage + 1}
+                                </PaginationLink>
+                            )}
+                            <PaginationItem></PaginationItem>
+                            <PaginationItem>
+                                <PaginationEllipsis />
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationNext
+                                    href={
+                                        maxPage > currentPage
+                                            ? getNextPageLink(1)
+                                            : "#"
+                                    }
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
                 </CardFooter>
             </Card>
         </main>

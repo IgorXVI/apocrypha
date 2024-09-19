@@ -21,7 +21,7 @@ export default function RootLayout({
             <html lang="pt" className={`${GeistSans.variable}`}>
                 <body className="min-h-screen">
                     {children}
-                    <Toaster position={"bottom-center"}></Toaster>
+                    <Toaster></Toaster>
                 </body>
             </html>
         </ClerkProvider>

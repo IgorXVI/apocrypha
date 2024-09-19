@@ -1,6 +1,6 @@
 "use client"
 
-import { type ZodObject, type ZodRawShape } from "zod"
+import { type ZodTypeAny, type ZodObject, type ZodRawShape } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
     useForm,
@@ -8,8 +8,8 @@ import {
     type ControllerRenderProps,
     type FieldValues,
 } from "react-hook-form"
-import { useRouter } from "next/navigation"
-import React from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import React, { useEffect } from "react"
 
 import { Button } from "~/components/ui/button"
 import {
@@ -52,10 +52,28 @@ export default function CreateOrUpdate<T, K, Z>(props: {
     successMessage: string
 }) {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const pathname = usePathname()
+
+    const fieldNames = Object.keys(props.inputKeyMap)
 
     const form = useForm<ZodRawShape>({
         resolver: zodResolver(props.formSchema),
         defaultValues: async () => {
+            const obj: ZodRawShape = {}
+            let hasAtLeastOne = false
+            fieldNames.forEach((key) => {
+                const paramValue = searchParams.get(key)
+                if (paramValue) {
+                    hasAtLeastOne = true
+                    obj[key] = paramValue as unknown as ZodTypeAny
+                }
+            })
+
+            if (hasAtLeastOne) {
+                return obj
+            }
+
             if (!props.dbGetOne) {
                 return props.defaultValues as ZodRawShape
             }
@@ -67,6 +85,26 @@ export default function CreateOrUpdate<T, K, Z>(props: {
             return props.defaultValues as ZodRawShape
         },
     })
+
+    useEffect(() => {
+        const subscription = form.watch((valueRaw) => {
+            const params = new URLSearchParams(searchParams)
+            fieldNames.forEach((key) => {
+                const value = String(valueRaw[key])
+
+                if (value) {
+                    params.set(key, value)
+                } else {
+                    params.delete(key)
+                }
+            })
+            router.replace(`${pathname}?${params.toString()}`)
+        })
+
+        return () => {
+            subscription.unsubscribe()
+        }
+    }, [fieldNames, form, pathname, router, searchParams])
 
     const onSubmit = async (values: ZodRawShape) => {
         await dbQueryWithToast({
@@ -88,7 +126,7 @@ export default function CreateOrUpdate<T, K, Z>(props: {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="p-5 flex flex-col gap-3"
             >
-                {Object.keys(props.inputKeyMap).map((key, index) => (
+                {fieldNames.map((key, index) => (
                     <FormField
                         key={index}
                         disabled={

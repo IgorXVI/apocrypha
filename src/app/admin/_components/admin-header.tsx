@@ -52,7 +52,7 @@ function MenuSheet() {
 
 export default function AdminHeader() {
     return (
-        <header className="flex flex-row justify-between items-center w-screen text-white bg-black p-2 pr-7 pl-5">
+        <header className="flex flex-row justify-between items-center w-full text-white bg-black p-2 pr-7 pl-5">
             <MenuSheet></MenuSheet>
             <HeaderUserButton></HeaderUserButton>
         </header>
