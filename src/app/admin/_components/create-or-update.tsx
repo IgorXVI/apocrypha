@@ -1,6 +1,6 @@
 "use client"
 
-import { type ZodTypeAny, type ZodObject, type ZodRawShape } from "zod"
+import { type ZodObject, type ZodRawShape } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
     useForm,
@@ -9,7 +9,7 @@ import {
     type FieldValues,
 } from "react-hook-form"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import React from "react"
+import React, { useMemo } from "react"
 
 import { Button } from "~/components/ui/button"
 import {
@@ -55,22 +55,17 @@ export default function CreateOrUpdate<T>(props: {
 
     const fieldNames = Object.keys(props.inputKeyMap)
 
+    const keyForParams = useMemo(
+        () => `${props.paramsPrefix}_values_json`,
+        [props],
+    )
+
     const form = useForm<ZodRawShape>({
         resolver: zodResolver(props.formSchema),
         defaultValues: async () => {
-            const obj: ZodRawShape = {}
-            let hasAtLeastOne = false
-            fieldNames.forEach((key) => {
-                const keyForParams = `${props.paramsPrefix}_${key}`
-                const paramValue = searchParams.get(keyForParams)
-                if (paramValue) {
-                    hasAtLeastOne = true
-                    obj[key] = paramValue as unknown as ZodTypeAny
-                }
-            })
-
-            if (hasAtLeastOne) {
-                return obj
+            const paramValue = searchParams.get(keyForParams)
+            if (paramValue) {
+                return JSON.parse(paramValue) as ZodRawShape
             }
 
             if (!props.dbGetOne) {
@@ -87,23 +82,14 @@ export default function CreateOrUpdate<T>(props: {
 
     const onSubmit = async (values: ZodRawShape) => {
         const params = new URLSearchParams(searchParams)
-        fieldNames.forEach((key) => {
-            const value = String(values[key])
 
-            const keyForParams = `${props.paramsPrefix}_${key}`
-
-            if (value) {
-                params.set(keyForParams, value)
-            } else {
-                params.delete(keyForParams)
-            }
-        })
+        params.set(keyForParams, JSON.stringify(values))
 
         router.replace(`${pathname}?${params.toString()}`)
 
         await dbQueryWithToast({
             dbQuery: () => props.dbMutation(values as T),
-            mutationName: "creating",
+            mutationName: "saving",
             waitingMessage: `Salvando ${props.name}...`,
             successMessage: "Salvo",
         })
@@ -112,7 +98,7 @@ export default function CreateOrUpdate<T>(props: {
     return (
         <Form {...form}>
             <h1 className="text-center p-5 text-2xl font-extrabold">
-                {`Criar ${props.name}`}
+                {`${props.dbGetOne !== undefined ? "Atualizar" : "Criar"} ${props.name}`}
             </h1>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}

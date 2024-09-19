@@ -178,6 +178,17 @@ export default function SearchPage<T extends Record<string, string | number>>(
         [total, currentTake],
     )
 
+    const getChangedPageLink = useCallback(
+        (page: number) => {
+            const params = new URLSearchParams(searchParams)
+
+            params.set("page", page.toString())
+
+            return `${pathname}?${params.toString()}`
+        },
+        [searchParams, pathname, router],
+    )
+
     const getNextPageLink = useCallback(
         (offset: number) => {
             const params = new URLSearchParams(searchParams)
@@ -436,7 +447,23 @@ export default function SearchPage<T extends Record<string, string | number>>(
                                     }
                                 />
                             </PaginationItem>
-                            {currentPage - 3 > 0 && <PaginationEllipsis />}
+
+                            {currentPage - 2 > 1 && (
+                                <>
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            href={getChangedPageLink(1)}
+                                        >
+                                            1
+                                        </PaginationLink>
+                                    </PaginationItem>
+
+                                    {currentPage - 3 !== 1 && (
+                                        <PaginationEllipsis />
+                                    )}
+                                </>
+                            )}
+
                             <PaginationItem>
                                 {currentPage - 2 > 0 && (
                                     <PaginationLink href={getNextPageLink(-2)}>
@@ -467,11 +494,22 @@ export default function SearchPage<T extends Record<string, string | number>>(
                                 </PaginationLink>
                             )}
                             <PaginationItem></PaginationItem>
-                            <PaginationItem>
-                                {maxPage >= currentPage + 3 && (
-                                    <PaginationEllipsis />
-                                )}
-                            </PaginationItem>
+
+                            {maxPage > currentPage + 2 && (
+                                <>
+                                    {currentPage + 3 !== maxPage && (
+                                        <PaginationEllipsis />
+                                    )}
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            href={getChangedPageLink(maxPage)}
+                                        >
+                                            {maxPage}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                </>
+                            )}
+
                             <PaginationItem>
                                 <PaginationNext
                                     href={
