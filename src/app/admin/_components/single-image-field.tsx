@@ -10,6 +10,7 @@ export const { useUploadThing } = generateReactHelpers<OurFileRouter>()
 export default function SingleImageField(props: {
     onChange: (value: string) => void
     value: string
+    disabled?: boolean
 }) {
     const uploadThing = useUploadThing("imageUploader", {
         onUploadError(e) {
@@ -37,6 +38,7 @@ export default function SingleImageField(props: {
             )}
             <Input
                 type="file"
+                disabled={props.disabled}
                 multiple={false}
                 accept="image/*"
                 onChange={async (e) => {

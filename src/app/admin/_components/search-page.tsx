@@ -146,21 +146,6 @@ export default function SearchPage<T extends Record<string, string | number>>(
         [],
     )
 
-    const changeURLParams = useCallback(
-        (key: string, value?: string) => {
-            const params = new URLSearchParams(searchParams)
-
-            if (value) {
-                params.set(key, value)
-            } else {
-                params.delete(key)
-            }
-
-            router.replace(`${pathname}?${params.toString()}`)
-        },
-        [searchParams, pathname, router],
-    )
-
     const currentPage = useMemo(
         () => Number(searchParams.get("page")) || 1,
         [searchParams],
@@ -296,9 +281,12 @@ export default function SearchPage<T extends Record<string, string | number>>(
                 <div>
                     <Select
                         defaultValue={searchParams.get("take")?.toString()}
-                        onValueChange={(value) =>
-                            changeURLParams("take", value)
-                        }
+                        onValueChange={(value) => {
+                            const params = new URLSearchParams(searchParams)
+                            params.set("take", value)
+                            params.set("page", "1")
+                            router.replace(`${pathname}?${params.toString()}`)
+                        }}
                     >
                         <SelectTrigger className="w-24">
                             <SelectValue placeholder="Linhas"></SelectValue>
@@ -437,17 +425,19 @@ export default function SearchPage<T extends Record<string, string | number>>(
                     <Pagination>
                         <PaginationContent>
                             <PaginationItem>
-                                <PaginationPrevious
-                                    href={
-                                        currentPage === 1
-                                            ? "#"
-                                            : getNextPageLink(-1)
-                                    }
-                                />
+                                {currentPage !== 1 && (
+                                    <PaginationPrevious
+                                        href={
+                                            currentPage === 1
+                                                ? "#"
+                                                : getNextPageLink(-1)
+                                        }
+                                    />
+                                )}
                             </PaginationItem>
 
-                            {currentPage - 2 > 1 && (
-                                <>
+                            {currentPage - 5 > 1 && (
+                                <div className="hidden md:flex">
                                     <PaginationItem>
                                         <PaginationLink
                                             href={getChangedPageLink(1)}
@@ -456,46 +446,93 @@ export default function SearchPage<T extends Record<string, string | number>>(
                                         </PaginationLink>
                                     </PaginationItem>
 
-                                    {currentPage - 3 !== 1 && (
+                                    {currentPage - 6 !== 1 && (
                                         <PaginationEllipsis />
                                     )}
-                                </>
+                                </div>
                             )}
 
-                            <PaginationItem>
+                            <PaginationItem className="hidden md:block">
+                                {currentPage - 5 > 0 && (
+                                    <PaginationLink href={getNextPageLink(-5)}>
+                                        {currentPage - 5}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem className="hidden md:block">
+                                {currentPage - 4 > 0 && (
+                                    <PaginationLink href={getNextPageLink(-4)}>
+                                        {currentPage - 4}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem className="hidden md:block">
+                                {currentPage - 3 > 0 && (
+                                    <PaginationLink href={getNextPageLink(-3)}>
+                                        {currentPage - 3}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem className="hidden md:block">
                                 {currentPage - 2 > 0 && (
                                     <PaginationLink href={getNextPageLink(-2)}>
                                         {currentPage - 2}
                                     </PaginationLink>
                                 )}
                             </PaginationItem>
-                            <PaginationItem>
+                            <PaginationItem className="hidden md:block">
                                 {currentPage - 1 > 0 && (
                                     <PaginationLink href={getNextPageLink(-1)}>
                                         {currentPage - 1}
                                     </PaginationLink>
                                 )}
                             </PaginationItem>
+
                             <PaginationItem>
                                 <PaginationLink href="#" isActive>
                                     {currentPage}
                                 </PaginationLink>
                             </PaginationItem>
-                            {maxPage >= currentPage + 1 && (
-                                <PaginationLink href={getNextPageLink(1)}>
-                                    {currentPage + 1}
-                                </PaginationLink>
-                            )}
-                            {maxPage >= currentPage + 2 && (
-                                <PaginationLink href={getNextPageLink(2)}>
-                                    {currentPage + 2}
-                                </PaginationLink>
-                            )}
-                            <PaginationItem></PaginationItem>
 
-                            {maxPage > currentPage + 2 && (
-                                <>
-                                    {currentPage + 3 !== maxPage && (
+                            <PaginationItem className="hidden md:block">
+                                {maxPage >= currentPage + 1 && (
+                                    <PaginationLink href={getNextPageLink(1)}>
+                                        {currentPage + 1}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem className="hidden md:block">
+                                {maxPage >= currentPage + 2 && (
+                                    <PaginationLink href={getNextPageLink(2)}>
+                                        {currentPage + 2}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem className="hidden md:block">
+                                {maxPage >= currentPage + 3 && (
+                                    <PaginationLink href={getNextPageLink(3)}>
+                                        {currentPage + 3}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem className="hidden md:block">
+                                {maxPage >= currentPage + 4 && (
+                                    <PaginationLink href={getNextPageLink(4)}>
+                                        {currentPage + 4}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem className="hidden md:block">
+                                {maxPage >= currentPage + 5 && (
+                                    <PaginationLink href={getNextPageLink(5)}>
+                                        {currentPage + 5}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+
+                            {maxPage > currentPage + 5 && (
+                                <div className="hidden md:flex">
+                                    {currentPage + 6 !== maxPage && (
                                         <PaginationEllipsis />
                                     )}
                                     <PaginationItem>
@@ -505,17 +542,19 @@ export default function SearchPage<T extends Record<string, string | number>>(
                                             {maxPage}
                                         </PaginationLink>
                                     </PaginationItem>
-                                </>
+                                </div>
                             )}
 
                             <PaginationItem>
-                                <PaginationNext
-                                    href={
-                                        maxPage > currentPage
-                                            ? getNextPageLink(1)
-                                            : "#"
-                                    }
-                                />
+                                {currentPage !== maxPage && (
+                                    <PaginationNext
+                                        href={
+                                            maxPage > currentPage
+                                                ? getNextPageLink(1)
+                                                : "#"
+                                        }
+                                    />
+                                )}
                             </PaginationItem>
                         </PaginationContent>
                     </Pagination>
