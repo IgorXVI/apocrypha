@@ -8,7 +8,6 @@ import {
     LoaderCircle,
     CircleX,
 } from "lucide-react"
-import Link from "next/link"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -69,7 +68,6 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "~/components/ui/dialog"
 import DeleteOne from "./delete-page"
 import { type CommonDBReturn } from "~/server/queries"
@@ -186,7 +184,7 @@ export default function SearchPage<T extends Record<string, string | number>>(
 
             return `${pathname}?${params.toString()}`
         },
-        [searchParams, pathname, router],
+        [searchParams, pathname],
     )
 
     const getNextPageLink = useCallback(
@@ -536,47 +534,85 @@ export default function SearchPage<T extends Record<string, string | number>>(
                     }
                 }}
             >
-                <DialogContent>
+                <DialogContent className="overflow-y-scroll max-h-screen scroll-m-1">
                     {searchParams.has(ModalParams.delete) && (
-                        <DeleteOne
-                            name={props.name}
-                            dbMutation={() =>
-                                props.deleteOneQuery(
-                                    searchParams.get(ModalParams.delete) ?? "",
-                                )
-                            }
-                            onConfirm={() => removeModalParamKeys()}
-                        ></DeleteOne>
+                        <>
+                            <DialogHeader>
+                                <DialogTitle>Apagar {props.name}.</DialogTitle>
+                                <DialogDescription>
+                                    Apagar {props.name} com id
+                                    {' "'}
+                                    {searchParams.get(ModalParams.delete)}
+                                    {'"'}.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DeleteOne
+                                waitingMessage={`Apagando ${props.name}...`}
+                                successMessage="Apagado."
+                                dbMutation={() =>
+                                    props.deleteOneQuery(
+                                        searchParams.get(ModalParams.delete) ??
+                                            "",
+                                    )
+                                }
+                                onConfirm={() => removeModalParamKeys()}
+                            ></DeleteOne>
+                        </>
                     )}
                     {searchParams.has(ModalParams.update) && (
-                        <CreateOrUpdate
-                            paramsPrefix="update"
-                            name={props.name}
-                            defaultValues={props.defaultValues}
-                            formSchema={props.formSchema}
-                            inputKeyMap={props.inputKeyMap}
-                            dbMutation={(values) =>
-                                props.updateOneQuery(
-                                    searchParams.get(ModalParams.update) ?? "",
-                                    values,
-                                )
-                            }
-                            dbGetOne={() =>
-                                props.getOneQuery(
-                                    searchParams.get(ModalParams.update) ?? "",
-                                )
-                            }
-                        ></CreateOrUpdate>
+                        <>
+                            <DialogHeader>
+                                <DialogTitle>
+                                    Atualizar {props.name}.
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Atualizar valores de {props.name} com id
+                                    {' "'}
+                                    {searchParams.get(ModalParams.update)}
+                                    {'"'}.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <CreateOrUpdate
+                                paramsPrefix="update"
+                                waitingMessage={`Atualizando ${props.name}...`}
+                                successMessage="Atualizado."
+                                defaultValues={props.defaultValues}
+                                formSchema={props.formSchema}
+                                inputKeyMap={props.inputKeyMap}
+                                dbMutation={(values) =>
+                                    props.updateOneQuery(
+                                        searchParams.get(ModalParams.update) ??
+                                            "",
+                                        values,
+                                    )
+                                }
+                                dbGetOne={() =>
+                                    props.getOneQuery(
+                                        searchParams.get(ModalParams.update) ??
+                                            "",
+                                    )
+                                }
+                            ></CreateOrUpdate>
+                        </>
                     )}
                     {searchParams.has(ModalParams.create) && (
-                        <CreateOrUpdate
-                            paramsPrefix="create"
-                            name={props.name}
-                            defaultValues={props.defaultValues}
-                            formSchema={props.formSchema}
-                            inputKeyMap={props.inputKeyMap}
-                            dbMutation={props.createOneQuery}
-                        ></CreateOrUpdate>
+                        <>
+                            <DialogHeader>
+                                <DialogTitle>Criar {props.name}.</DialogTitle>
+                                <DialogDescription>
+                                    Determine os valores do novo {props.name}.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <CreateOrUpdate
+                                paramsPrefix="create"
+                                waitingMessage={`Criando ${props.name}...`}
+                                successMessage="Criado."
+                                defaultValues={props.defaultValues}
+                                formSchema={props.formSchema}
+                                inputKeyMap={props.inputKeyMap}
+                                dbMutation={props.createOneQuery}
+                            ></CreateOrUpdate>
+                        </>
                     )}
                 </DialogContent>
             </Dialog>

@@ -24,7 +24,6 @@ import {
 import { dbQueryWithToast } from "~/lib/toasting"
 
 export default function CreateOrUpdate<T>(props: {
-    name: string
     paramsPrefix: string
     formSchema: ZodObject<ZodRawShape>
     dbMutation: (values: T) => Promise<{
@@ -48,6 +47,8 @@ export default function CreateOrUpdate<T>(props: {
             description: string | React.ReactNode
         }
     >
+    waitingMessage: string
+    successMessage: string
 }) {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -90,16 +91,13 @@ export default function CreateOrUpdate<T>(props: {
         await dbQueryWithToast({
             dbQuery: () => props.dbMutation(values as T),
             mutationName: "saving",
-            waitingMessage: `Salvando ${props.name}...`,
-            successMessage: "Salvo",
+            waitingMessage: props.waitingMessage,
+            successMessage: props.successMessage,
         })
     }
 
     return (
         <Form {...form}>
-            <h1 className="text-center p-5 text-2xl font-extrabold">
-                {`${props.dbGetOne !== undefined ? "Atualizar" : "Criar"} ${props.name}`}
-            </h1>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="p-5 flex flex-col gap-3"
