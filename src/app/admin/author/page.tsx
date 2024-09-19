@@ -70,39 +70,21 @@ const inputKeyMap: Record<
 
 type ModelAttrsAndId = ModelAttrs | "id"
 
-const searchPageProps = {
-    title: "Autores",
-    description: "Crie, atualize, apague ou busque autores cadastrados.",
-    slug: "author",
-    tableHeaders: ["ID", "Imagem de perfil", "Nome", "Sobre"],
-    tableAttrs: ["id", "imgUrl", "name", "about"] as ModelAttrsAndId[],
-    getManyQuery: authorGetMany,
-    deleteOneQuery: authorDeleteOne,
-}
-
-const updatePageProps = (id: string) => ({
-    title: "Atualizar autor",
-    mutationName: "author-update",
-    waitingMessage: "Atualizando autor...",
-    successMessage: "Autor atualizado",
-    dbMutation: (data: SchemaType) => authorUpdateOne(id, data),
-    dbGetOne: () => authorGetOne(id),
-    defaultValues,
-    formSchema: zodValidationSchema,
-    inputKeyMap,
-})
-
-const createPageProps = {
-    title: "Criar autores",
-    mutationName: "author-create",
-    waitingMessage: "Criando autor...",
-    successMessage: "Autor criado",
-    dbMutation: authorCreateOne,
-    defaultValues,
-    formSchema: zodValidationSchema,
-    inputKeyMap,
-}
-
 export default function MainPage() {
-    return <SearchPage {...searchPageProps}></SearchPage>
+    return (
+        <SearchPage
+            name="autor"
+            namePlural="autores"
+            tableHeaders={["ID", "Imagem de perfil", "Nome", "Sobre"]}
+            tableAttrs={["id", "imgUrl", "name", "about"] as ModelAttrsAndId[]}
+            getManyQuery={authorGetMany}
+            deleteOneQuery={authorDeleteOne}
+            getOneQuery={authorGetOne}
+            createOneQuery={authorCreateOne}
+            updateOneQuery={authorUpdateOne}
+            defaultValues={defaultValues}
+            inputKeyMap={inputKeyMap}
+            formSchema={zodValidationSchema}
+        ></SearchPage>
+    )
 }

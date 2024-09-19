@@ -1,5 +1,6 @@
 "use client"
 
+import * as R from "remeda"
 import {
     MoreHorizontal,
     PlusCircle,
@@ -12,6 +13,12 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useDebouncedCallback } from "use-debounce"
+import {
+    type Path,
+    type ControllerRenderProps,
+    type FieldValues,
+} from "react-hook-form"
+import { type ZodObject, type ZodRawShape } from "zod"
 
 import { Button } from "~/components/ui/button"
 import {
@@ -56,17 +63,24 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "~/components/ui/pagination"
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "~/components/ui/dialog"
 import DeleteOne from "./delete-page"
 import { type CommonDBReturn } from "~/server/queries"
+import CreateOrUpdate from "./create-or-update"
 
 export default function SearchPage<T extends Record<string, string | number>>(
     props: Readonly<{
-        title: string
-        description: string
+        name: string
+        namePlural: string
         tableHeaders: string[]
         tableAttrs: string[]
-        slug: string
         getManyQuery: (input: {
             take: number
             skip: number
@@ -78,6 +92,36 @@ export default function SearchPage<T extends Record<string, string | number>>(
             }>
         >
         deleteOneQuery: (id: string) => Promise<CommonDBReturn<undefined>>
+        updateOneQuery: (
+            id: string,
+            values: T,
+        ) => Promise<{
+            success: boolean
+            errorMessage: string
+            data: T | undefined
+        }>
+        createOneQuery: (values: T) => Promise<{
+            success: boolean
+            errorMessage: string
+            data: T | undefined
+        }>
+        getOneQuery: (id: string) => Promise<{
+            success: boolean
+            errorMessage: string
+            data: T | undefined
+        }>
+        defaultValues: T
+        formSchema: ZodObject<ZodRawShape>
+        inputKeyMap: Record<
+            string,
+            {
+                node: (
+                    field: ControllerRenderProps<FieldValues, Path<T>>,
+                ) => React.ReactNode
+                label: string
+                description: string | React.ReactNode
+            }
+        >
     }>,
 ) {
     const [rows, setRows] = useState<T[]>([])
@@ -180,6 +224,48 @@ export default function SearchPage<T extends Record<string, string | number>>(
         })
     }, [props, currentPage, currentTake, toastDBRowsError, searchParams])
 
+    enum ModalParams {
+        delete = "delete_id",
+        update = "update_id",
+        create = "is_creating",
+    }
+
+    const removeModalParamKeys = useCallback(() => {
+        const params = new URLSearchParams(searchParams)
+        searchParams.forEach((_, key) => {
+            if (
+                key.startsWith("delete_") ||
+                key.startsWith("update_") ||
+                key.startsWith("create_") ||
+                key.startsWith("is_creating")
+            ) {
+                params.delete(key)
+            }
+        })
+        router.replace(`${pathname}?${params.toString()}`)
+    }, [pathname, router, searchParams])
+
+    const setNewModalParams = useCallback(
+        (key: string, value: string) => {
+            const params = new URLSearchParams(searchParams)
+            searchParams.forEach((_, key) => {
+                if (
+                    key.startsWith("delete_") ||
+                    key.startsWith("update_") ||
+                    key.startsWith("create_") ||
+                    key.startsWith("is_creating")
+                ) {
+                    params.delete(key)
+                }
+            })
+
+            params.set(key, value)
+
+            router.replace(`${pathname}?${params.toString()}`)
+        },
+        [pathname, router, searchParams],
+    )
+
     return (
         <main className="flex flex-col p-2 gap-3">
             <div className="flex flex-row items-center p-2 gap-3">
@@ -190,10 +276,12 @@ export default function SearchPage<T extends Record<string, string | number>>(
                         placeholder="Procure..."
                         className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
                         defaultValue={searchParams.get("search")?.toString()}
-                        onChange={useDebouncedCallback(
-                            (e) => changeURLParams("search", e.target.value),
-                            500,
-                        )}
+                        onChange={useDebouncedCallback((e) => {
+                            const params = new URLSearchParams(searchParams)
+                            params.set("search", e.target.value)
+                            params.set("page", "1")
+                            router.replace(`${pathname}?${params.toString()}`)
+                        }, 500)}
                     />
                 </div>
                 <div>
@@ -213,17 +301,22 @@ export default function SearchPage<T extends Record<string, string | number>>(
                         </SelectContent>
                     </Select>
                 </div>
-                <Button className="h-7 p-5">
-                    <Link href={`/admin/${props.slug}/create`}>
-                        <PlusCircle />
-                    </Link>
+                <Button
+                    className="h-7 p-5"
+                    onClick={() =>
+                        setNewModalParams(ModalParams.create, "true")
+                    }
+                >
+                    <PlusCircle />
                 </Button>
             </div>
 
             <Card x-chunk="dashboard-06-chunk-0">
                 <CardHeader>
-                    <CardTitle>{props.title}</CardTitle>
-                    <CardDescription>{props.description}</CardDescription>
+                    <CardTitle>{R.capitalize(props.namePlural)}</CardTitle>
+                    <CardDescription>
+                        Crie, atualize, apague ou busque {props.name}.
+                    </CardDescription>
                 </CardHeader>
                 {!getRowsDone && !showErrorIndicator && (
                     <div className="flex w-full justify-center items-center">
@@ -285,95 +378,44 @@ export default function SearchPage<T extends Record<string, string | number>>(
                                             ),
                                         )}
                                         <TableCell>
-                                            <Dialog
-                                                defaultOpen={
-                                                    searchParams.get(
-                                                        "DDeleteId",
-                                                    ) === row.id ||
-                                                    searchParams.get(
-                                                        "UUpdateId",
-                                                    ) === row.id
-                                                }
-                                                onOpenChange={(open) => {
-                                                    if (open) {
-                                                        return
-                                                    }
-
-                                                    searchParams.forEach(
-                                                        (_, paramKey) => {
-                                                            if (
-                                                                paramKey.startsWith(
-                                                                    "DDelete",
-                                                                ) ||
-                                                                paramKey.startsWith(
-                                                                    "UUpdate",
-                                                                )
-                                                            ) {
-                                                                console.log(
-                                                                    paramKey,
-                                                                )
-                                                                changeURLParams(
-                                                                    paramKey,
-                                                                    undefined,
-                                                                )
-                                                            }
-                                                        },
-                                                    )
-                                                }}
-                                            >
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger
-                                                        asChild
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        aria-haspopup="true"
+                                                        size="icon"
+                                                        variant="ghost"
                                                     >
-                                                        <Button
-                                                            aria-haspopup="true"
-                                                            size="icon"
-                                                            variant="ghost"
-                                                        >
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>
-                                                            Ações
-                                                        </DropdownMenuLabel>
-                                                        <DropdownMenuItem>
-                                                            <Link
-                                                                href={`/admin/${props.slug}/update/${row.id}`}
-                                                            >
-                                                                Atualizar
-                                                            </Link>
-                                                        </DropdownMenuItem>
-
-                                                        <DialogTrigger
-                                                            asChild
-                                                            onClick={() => {
-                                                                changeURLParams(
-                                                                    "DDeleteId",
-                                                                    String(
-                                                                        row.id,
-                                                                    ),
-                                                                )
-                                                            }}
-                                                        >
-                                                            <DropdownMenuItem>
-                                                                Apagar
-                                                            </DropdownMenuItem>
-                                                        </DialogTrigger>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                                <DialogContent>
-                                                    <DeleteOne
-                                                        dbMutation={() =>
-                                                            props.deleteOneQuery(
-                                                                searchParams.get(
-                                                                    "DDeleteId",
-                                                                ) ?? "",
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>
+                                                        Ações
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer"
+                                                        onClick={() =>
+                                                            setNewModalParams(
+                                                                ModalParams.update,
+                                                                row.id as string,
                                                             )
                                                         }
-                                                    ></DeleteOne>
-                                                </DialogContent>
-                                            </Dialog>
+                                                    >
+                                                        Atualizar
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer"
+                                                        onClick={() =>
+                                                            setNewModalParams(
+                                                                ModalParams.delete,
+                                                                row.id as string,
+                                                            )
+                                                        }
+                                                    >
+                                                        Apagar
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -394,8 +436,16 @@ export default function SearchPage<T extends Record<string, string | number>>(
                                     }
                                 />
                             </PaginationItem>
+                            {currentPage - 3 > 0 && <PaginationEllipsis />}
                             <PaginationItem>
-                                {currentPage > 1 && (
+                                {currentPage - 2 > 0 && (
+                                    <PaginationLink href={getNextPageLink(-2)}>
+                                        {currentPage - 2}
+                                    </PaginationLink>
+                                )}
+                            </PaginationItem>
+                            <PaginationItem>
+                                {currentPage - 1 > 0 && (
                                     <PaginationLink href={getNextPageLink(-1)}>
                                         {currentPage - 1}
                                     </PaginationLink>
@@ -406,14 +456,21 @@ export default function SearchPage<T extends Record<string, string | number>>(
                                     {currentPage}
                                 </PaginationLink>
                             </PaginationItem>
-                            {maxPage > currentPage && (
+                            {maxPage >= currentPage + 1 && (
                                 <PaginationLink href={getNextPageLink(1)}>
                                     {currentPage + 1}
                                 </PaginationLink>
                             )}
+                            {maxPage >= currentPage + 2 && (
+                                <PaginationLink href={getNextPageLink(2)}>
+                                    {currentPage + 2}
+                                </PaginationLink>
+                            )}
                             <PaginationItem></PaginationItem>
                             <PaginationItem>
-                                <PaginationEllipsis />
+                                {maxPage >= currentPage + 3 && (
+                                    <PaginationEllipsis />
+                                )}
                             </PaginationItem>
                             <PaginationItem>
                                 <PaginationNext
@@ -428,6 +485,63 @@ export default function SearchPage<T extends Record<string, string | number>>(
                     </Pagination>
                 </CardFooter>
             </Card>
+
+            <Dialog
+                open={
+                    searchParams.has(ModalParams.delete) ||
+                    searchParams.has(ModalParams.update) ||
+                    searchParams.has(ModalParams.create)
+                }
+                onOpenChange={(open) => {
+                    if (!open) {
+                        removeModalParamKeys()
+                    }
+                }}
+            >
+                <DialogContent>
+                    {searchParams.has(ModalParams.delete) && (
+                        <DeleteOne
+                            name={props.name}
+                            dbMutation={() =>
+                                props.deleteOneQuery(
+                                    searchParams.get(ModalParams.delete) ?? "",
+                                )
+                            }
+                            onConfirm={() => removeModalParamKeys()}
+                        ></DeleteOne>
+                    )}
+                    {searchParams.has(ModalParams.update) && (
+                        <CreateOrUpdate
+                            paramsPrefix="update"
+                            name={props.name}
+                            defaultValues={props.defaultValues}
+                            formSchema={props.formSchema}
+                            inputKeyMap={props.inputKeyMap}
+                            dbMutation={(values) =>
+                                props.updateOneQuery(
+                                    searchParams.get(ModalParams.update) ?? "",
+                                    values,
+                                )
+                            }
+                            dbGetOne={() =>
+                                props.getOneQuery(
+                                    searchParams.get(ModalParams.update) ?? "",
+                                )
+                            }
+                        ></CreateOrUpdate>
+                    )}
+                    {searchParams.has(ModalParams.create) && (
+                        <CreateOrUpdate
+                            paramsPrefix="create"
+                            name={props.name}
+                            defaultValues={props.defaultValues}
+                            formSchema={props.formSchema}
+                            inputKeyMap={props.inputKeyMap}
+                            dbMutation={props.createOneQuery}
+                        ></CreateOrUpdate>
+                    )}
+                </DialogContent>
+            </Dialog>
         </main>
     )
 }

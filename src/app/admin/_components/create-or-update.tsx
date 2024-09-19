@@ -9,7 +9,7 @@ import {
     type FieldValues,
 } from "react-hook-form"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import React, { useEffect } from "react"
+import React from "react"
 
 import { Button } from "~/components/ui/button"
 import {
@@ -23,18 +23,20 @@ import {
 } from "~/components/ui/form"
 import { dbQueryWithToast } from "~/lib/toasting"
 
-export default function CreateOrUpdate<T, K, Z>(props: {
+export default function CreateOrUpdate<T>(props: {
+    name: string
+    paramsPrefix: string
     formSchema: ZodObject<ZodRawShape>
     dbMutation: (values: T) => Promise<{
         success: boolean
         errorMessage: string
-        data: K | undefined
+        data: T | undefined
     }>
     defaultValues: T
     dbGetOne?: () => Promise<{
         success: boolean
         errorMessage: string
-        data: Z | undefined
+        data: T | undefined
     }>
     inputKeyMap: Record<
         string,
@@ -46,10 +48,6 @@ export default function CreateOrUpdate<T, K, Z>(props: {
             description: string | React.ReactNode
         }
     >
-    title: string
-    mutationName: string
-    waitingMessage: string
-    successMessage: string
 }) {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -63,7 +61,8 @@ export default function CreateOrUpdate<T, K, Z>(props: {
             const obj: ZodRawShape = {}
             let hasAtLeastOne = false
             fieldNames.forEach((key) => {
-                const paramValue = searchParams.get(key)
+                const keyForParams = `${props.paramsPrefix}_${key}`
+                const paramValue = searchParams.get(keyForParams)
                 if (paramValue) {
                     hasAtLeastOne = true
                     obj[key] = paramValue as unknown as ZodTypeAny
@@ -86,41 +85,34 @@ export default function CreateOrUpdate<T, K, Z>(props: {
         },
     })
 
-    useEffect(() => {
-        const subscription = form.watch((valueRaw) => {
-            const params = new URLSearchParams(searchParams)
-            fieldNames.forEach((key) => {
-                const value = String(valueRaw[key])
+    const onSubmit = async (values: ZodRawShape) => {
+        const params = new URLSearchParams(searchParams)
+        fieldNames.forEach((key) => {
+            const value = String(values[key])
 
-                if (value) {
-                    params.set(key, value)
-                } else {
-                    params.delete(key)
-                }
-            })
-            router.replace(`${pathname}?${params.toString()}`)
+            const keyForParams = `${props.paramsPrefix}_${key}`
+
+            if (value) {
+                params.set(keyForParams, value)
+            } else {
+                params.delete(keyForParams)
+            }
         })
 
-        return () => {
-            subscription.unsubscribe()
-        }
-    }, [fieldNames, form, pathname, router, searchParams])
+        router.replace(`${pathname}?${params.toString()}`)
 
-    const onSubmit = async (values: ZodRawShape) => {
         await dbQueryWithToast({
             dbQuery: () => props.dbMutation(values as T),
-            mutationName: props.mutationName,
-            waitingMessage: props.waitingMessage,
-            successMessage: props.successMessage,
+            mutationName: "creating",
+            waitingMessage: `Salvando ${props.name}...`,
+            successMessage: "Salvo",
         })
-
-        router.back()
     }
 
     return (
         <Form {...form}>
             <h1 className="text-center p-5 text-2xl font-extrabold">
-                {props.title}
+                {`Criar ${props.name}`}
             </h1>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -151,28 +143,17 @@ export default function CreateOrUpdate<T, K, Z>(props: {
                         )}
                     />
                 ))}
-                <div className="flex flex-row items-center justify-center gap-10 mt-10 p-5">
+                <div className="flex flex-row items-center justify-center p-5">
                     <Button
                         disabled={
                             form.formState.isSubmitting ||
                             form.formState.isLoading
                         }
                         type="submit"
-                        className="text-xl p-5 mr-auto"
+                        className="text-xl p-5"
                         variant="destructive"
                     >
                         Salvar
-                    </Button>
-                    <Button
-                        disabled={
-                            form.formState.isSubmitting ||
-                            form.formState.isLoading
-                        }
-                        type="button"
-                        className="text-xl p-5"
-                        onClick={() => router.back()}
-                    >
-                        Cancelar
                     </Button>
                 </div>
             </form>
