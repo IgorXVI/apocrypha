@@ -22,26 +22,19 @@ import {
     FormMessage,
 } from "~/components/ui/form"
 import { dbQueryWithToast } from "~/lib/toasting"
+import { type CommonDBReturn } from "~/server/queries"
 
-export default function CreateOrUpdate<T>(props: {
+export default function CreateOrUpdate<I, D>(props: {
     paramsPrefix: string
     formSchema: ZodObject<ZodRawShape>
-    dbMutation: (values: T) => Promise<{
-        success: boolean
-        errorMessage: string
-        data: T | undefined
-    }>
-    defaultValues: T
-    dbGetOne?: () => Promise<{
-        success: boolean
-        errorMessage: string
-        data: T | undefined
-    }>
+    dbMutation: (values: I) => Promise<CommonDBReturn<undefined>>
+    defaultValues: I
+    dbGetOne?: () => Promise<CommonDBReturn<D>>
     inputKeyMap: Record<
         string,
         {
             node: (
-                field: ControllerRenderProps<FieldValues, Path<T>>,
+                field: ControllerRenderProps<FieldValues, Path<I>>,
             ) => React.ReactNode
             label: string
             description: string | React.ReactNode
@@ -89,7 +82,7 @@ export default function CreateOrUpdate<T>(props: {
         router.replace(`${pathname}?${params.toString()}`)
 
         await dbQueryWithToast({
-            dbQuery: () => props.dbMutation(values as T),
+            dbQuery: () => props.dbMutation(values as I),
             mutationName: "saving",
             waitingMessage: props.waitingMessage,
             successMessage: props.successMessage,
@@ -110,7 +103,7 @@ export default function CreateOrUpdate<T>(props: {
                             form.formState.isLoading
                         }
                         control={form.control}
-                        name={key as Path<T>}
+                        name={key as Path<I>}
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>

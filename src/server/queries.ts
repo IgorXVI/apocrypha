@@ -12,6 +12,9 @@ export type CommonDBReturn<T> = {
     data: T | undefined
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PossibleDBOutput = Record<string, any>
+
 type AnyModel = Prisma.PublisherDelegate<DefaultArgs>
 
 async function errorHandler<T>(

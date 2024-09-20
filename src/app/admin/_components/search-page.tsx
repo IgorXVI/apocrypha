@@ -7,6 +7,7 @@ import {
     Search,
     LoaderCircle,
     CircleX,
+    AlertCircle,
 } from "lucide-react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -70,10 +71,10 @@ import {
     DialogTitle,
 } from "~/components/ui/dialog"
 import DeleteOne from "./delete-page"
-import { type CommonDBReturn } from "~/server/queries"
+import { type PossibleDBOutput, type CommonDBReturn } from "~/server/queries"
 import CreateOrUpdate from "./create-or-update"
 
-export default function SearchPage<T extends Record<string, string | number>>(
+export default function SearchPage<I, D extends PossibleDBOutput>(
     props: Readonly<{
         name: string
         namePlural: string
@@ -86,35 +87,23 @@ export default function SearchPage<T extends Record<string, string | number>>(
         }) => Promise<
             CommonDBReturn<{
                 total: number
-                rows: T[]
+                rows: D[]
             }>
         >
         deleteOneQuery: (id: string) => Promise<CommonDBReturn<undefined>>
         updateOneQuery: (
             id: string,
-            values: T,
-        ) => Promise<{
-            success: boolean
-            errorMessage: string
-            data: T | undefined
-        }>
-        createOneQuery: (values: T) => Promise<{
-            success: boolean
-            errorMessage: string
-            data: T | undefined
-        }>
-        getOneQuery: (id: string) => Promise<{
-            success: boolean
-            errorMessage: string
-            data: T | undefined
-        }>
-        defaultValues: T
+            values: I,
+        ) => Promise<CommonDBReturn<undefined>>
+        createOneQuery: (values: I) => Promise<CommonDBReturn<undefined>>
+        getOneQuery: (id: string) => Promise<CommonDBReturn<D>>
+        defaultValues: I
         formSchema: ZodObject<ZodRawShape>
         inputKeyMap: Record<
             string,
             {
                 node: (
-                    field: ControllerRenderProps<FieldValues, Path<T>>,
+                    field: ControllerRenderProps<FieldValues, Path<I>>,
                 ) => React.ReactNode
                 label: string
                 description: string | React.ReactNode
@@ -122,7 +111,7 @@ export default function SearchPage<T extends Record<string, string | number>>(
         >
     }>,
 ) {
-    const [rows, setRows] = useState<T[]>([])
+    const [rows, setRows] = useState<D[]>([])
     const [total, setTotal] = useState(0)
     const [getRowsDone, setGetRowsDone] = useState(false)
     const [showErrorIndicator, setShowErrorIndicator] = useState(false)
@@ -309,12 +298,6 @@ export default function SearchPage<T extends Record<string, string | number>>(
             </div>
 
             <Card x-chunk="dashboard-06-chunk-0">
-                <CardHeader>
-                    <CardTitle>{R.capitalize(props.namePlural)}</CardTitle>
-                    <CardDescription>
-                        Crie, atualize, apague ou busque {props.name}.
-                    </CardDescription>
-                </CardHeader>
                 {!getRowsDone && !showErrorIndicator && (
                     <div className="flex w-full justify-center items-center">
                         <LoaderCircle
@@ -329,236 +312,294 @@ export default function SearchPage<T extends Record<string, string | number>>(
                         <CircleX width={100} height={100} color="red"></CircleX>
                     </div>
                 )}
-                {getRowsDone && (
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="text-nowrap">
-                                    {props.tableHeaders.map((text, index) => (
-                                        <TableHead key={index}>
-                                            {text}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rows.map((row) => (
-                                    <TableRow key={row.id}>
-                                        {props.tableAttrs.map((attr) =>
-                                            attr.includes("Url") ? (
-                                                <TableCell
-                                                    key={attr}
-                                                    className="table-cell"
-                                                >
-                                                    <Image
-                                                        alt="Product image"
-                                                        className="aspect-square rounded-md object-cover"
-                                                        src={
-                                                            row[attr] as string
-                                                        }
-                                                        height="64"
-                                                        width="64"
-                                                    />
-                                                </TableCell>
-                                            ) : (
-                                                <TableCell key={attr}>
-                                                    {typeof row[attr] ===
-                                                        "string" &&
-                                                    row[attr].length > 20 ? (
-                                                        <FieldTooLong
-                                                            content={row[attr]}
-                                                        ></FieldTooLong>
-                                                    ) : (
-                                                        row[attr]
-                                                    )}
-                                                </TableCell>
+                {getRowsDone && rows.length === 0 && (
+                    <div className="flex flex-col items-center justify-center p-6 text-center">
+                        <AlertCircle className="h-10 w-10 text-yellow-500 mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">
+                            Sem {props.namePlural}
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Parece que não há dados para {props.namePlural}{" "}
+                            cadastrados ainda.
+                        </p>
+                        <Button
+                            onClick={() =>
+                                setNewModalParams(ModalParams.create, "true")
+                            }
+                            className="flex items-center"
+                        >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Criar {props.name}
+                        </Button>
+                    </div>
+                )}
+                {getRowsDone && rows.length !== 0 && (
+                    <>
+                        <CardHeader>
+                            <CardTitle>
+                                {R.capitalize(props.namePlural)}
+                            </CardTitle>
+                            <CardDescription>
+                                Crie, atualize, apague ou busque {props.name}.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="text-nowrap">
+                                        {props.tableHeaders.map(
+                                            (text, index) => (
+                                                <TableHead key={index}>
+                                                    {text}
+                                                </TableHead>
                                             ),
                                         )}
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        aria-haspopup="true"
-                                                        size="icon"
-                                                        variant="ghost"
-                                                    >
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>
-                                                        Ações
-                                                    </DropdownMenuLabel>
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() =>
-                                                            setNewModalParams(
-                                                                ModalParams.update,
-                                                                row.id as string,
-                                                            )
-                                                        }
-                                                    >
-                                                        Atualizar
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() =>
-                                                            setNewModalParams(
-                                                                ModalParams.delete,
-                                                                row.id as string,
-                                                            )
-                                                        }
-                                                    >
-                                                        Apagar
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
+                                </TableHeader>
+                                <TableBody>
+                                    {rows.map((row) => (
+                                        <TableRow key={row.id}>
+                                            {props.tableAttrs.map((attr) =>
+                                                attr.includes("Url") ? (
+                                                    <TableCell
+                                                        key={attr}
+                                                        className="table-cell"
+                                                    >
+                                                        <Image
+                                                            alt="Product image"
+                                                            className="aspect-square rounded-md object-cover"
+                                                            src={row[attr]}
+                                                            height="64"
+                                                            width="64"
+                                                        />
+                                                    </TableCell>
+                                                ) : (
+                                                    <TableCell key={attr}>
+                                                        {typeof row[attr] ===
+                                                            "string" &&
+                                                        row[attr].length >
+                                                            20 ? (
+                                                            <FieldTooLong
+                                                                content={
+                                                                    row[attr]
+                                                                }
+                                                            ></FieldTooLong>
+                                                        ) : (
+                                                            row[attr]
+                                                        )}
+                                                    </TableCell>
+                                                ),
+                                            )}
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger
+                                                        asChild
+                                                    >
+                                                        <Button
+                                                            aria-haspopup="true"
+                                                            size="icon"
+                                                            variant="ghost"
+                                                        >
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>
+                                                            Ações
+                                                        </DropdownMenuLabel>
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer"
+                                                            onClick={() =>
+                                                                setNewModalParams(
+                                                                    ModalParams.update,
+                                                                    row.id as string,
+                                                                )
+                                                            }
+                                                        >
+                                                            Atualizar
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer"
+                                                            onClick={() =>
+                                                                setNewModalParams(
+                                                                    ModalParams.delete,
+                                                                    row.id as string,
+                                                                )
+                                                            }
+                                                        >
+                                                            Apagar
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+
+                        <CardFooter className="flex flex-row gap-2 text-sm justify-between">
+                            <Pagination>
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        {currentPage !== 1 && (
+                                            <PaginationPrevious
+                                                href={
+                                                    currentPage === 1
+                                                        ? "#"
+                                                        : getNextPageLink(-1)
+                                                }
+                                            />
+                                        )}
+                                    </PaginationItem>
+
+                                    {currentPage - 5 > 1 && (
+                                        <div className="hidden md:flex">
+                                            <PaginationItem>
+                                                <PaginationLink
+                                                    href={getChangedPageLink(1)}
+                                                >
+                                                    1
+                                                </PaginationLink>
+                                            </PaginationItem>
+
+                                            {currentPage - 6 !== 1 && (
+                                                <PaginationEllipsis />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <PaginationItem className="hidden md:block">
+                                        {currentPage - 5 > 0 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(-5)}
+                                            >
+                                                {currentPage - 5}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                    <PaginationItem className="hidden md:block">
+                                        {currentPage - 4 > 0 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(-4)}
+                                            >
+                                                {currentPage - 4}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                    <PaginationItem className="hidden md:block">
+                                        {currentPage - 3 > 0 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(-3)}
+                                            >
+                                                {currentPage - 3}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                    <PaginationItem className="hidden md:block">
+                                        {currentPage - 2 > 0 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(-2)}
+                                            >
+                                                {currentPage - 2}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                    <PaginationItem className="hidden md:block">
+                                        {currentPage - 1 > 0 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(-1)}
+                                            >
+                                                {currentPage - 1}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+
+                                    <PaginationItem>
+                                        <PaginationLink href="#" isActive>
+                                            {currentPage}
+                                        </PaginationLink>
+                                    </PaginationItem>
+
+                                    <PaginationItem className="hidden md:block">
+                                        {maxPage >= currentPage + 1 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(1)}
+                                            >
+                                                {currentPage + 1}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                    <PaginationItem className="hidden md:block">
+                                        {maxPage >= currentPage + 2 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(2)}
+                                            >
+                                                {currentPage + 2}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                    <PaginationItem className="hidden md:block">
+                                        {maxPage >= currentPage + 3 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(3)}
+                                            >
+                                                {currentPage + 3}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                    <PaginationItem className="hidden md:block">
+                                        {maxPage >= currentPage + 4 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(4)}
+                                            >
+                                                {currentPage + 4}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                    <PaginationItem className="hidden md:block">
+                                        {maxPage >= currentPage + 5 && (
+                                            <PaginationLink
+                                                href={getNextPageLink(5)}
+                                            >
+                                                {currentPage + 5}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+
+                                    {maxPage > currentPage + 5 && (
+                                        <div className="hidden md:flex">
+                                            {currentPage + 6 !== maxPage && (
+                                                <PaginationEllipsis />
+                                            )}
+                                            <PaginationItem>
+                                                <PaginationLink
+                                                    href={getChangedPageLink(
+                                                        maxPage,
+                                                    )}
+                                                >
+                                                    {maxPage}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        </div>
+                                    )}
+
+                                    <PaginationItem>
+                                        {currentPage !== maxPage && (
+                                            <PaginationNext
+                                                href={
+                                                    maxPage > currentPage
+                                                        ? getNextPageLink(1)
+                                                        : "#"
+                                                }
+                                            />
+                                        )}
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        </CardFooter>
+                    </>
                 )}
-
-                <CardFooter className="flex flex-row gap-2 text-sm justify-between">
-                    <Pagination>
-                        <PaginationContent>
-                            <PaginationItem>
-                                {currentPage !== 1 && (
-                                    <PaginationPrevious
-                                        href={
-                                            currentPage === 1
-                                                ? "#"
-                                                : getNextPageLink(-1)
-                                        }
-                                    />
-                                )}
-                            </PaginationItem>
-
-                            {currentPage - 5 > 1 && (
-                                <div className="hidden md:flex">
-                                    <PaginationItem>
-                                        <PaginationLink
-                                            href={getChangedPageLink(1)}
-                                        >
-                                            1
-                                        </PaginationLink>
-                                    </PaginationItem>
-
-                                    {currentPage - 6 !== 1 && (
-                                        <PaginationEllipsis />
-                                    )}
-                                </div>
-                            )}
-
-                            <PaginationItem className="hidden md:block">
-                                {currentPage - 5 > 0 && (
-                                    <PaginationLink href={getNextPageLink(-5)}>
-                                        {currentPage - 5}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-                            <PaginationItem className="hidden md:block">
-                                {currentPage - 4 > 0 && (
-                                    <PaginationLink href={getNextPageLink(-4)}>
-                                        {currentPage - 4}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-                            <PaginationItem className="hidden md:block">
-                                {currentPage - 3 > 0 && (
-                                    <PaginationLink href={getNextPageLink(-3)}>
-                                        {currentPage - 3}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-                            <PaginationItem className="hidden md:block">
-                                {currentPage - 2 > 0 && (
-                                    <PaginationLink href={getNextPageLink(-2)}>
-                                        {currentPage - 2}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-                            <PaginationItem className="hidden md:block">
-                                {currentPage - 1 > 0 && (
-                                    <PaginationLink href={getNextPageLink(-1)}>
-                                        {currentPage - 1}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-
-                            <PaginationItem>
-                                <PaginationLink href="#" isActive>
-                                    {currentPage}
-                                </PaginationLink>
-                            </PaginationItem>
-
-                            <PaginationItem className="hidden md:block">
-                                {maxPage >= currentPage + 1 && (
-                                    <PaginationLink href={getNextPageLink(1)}>
-                                        {currentPage + 1}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-                            <PaginationItem className="hidden md:block">
-                                {maxPage >= currentPage + 2 && (
-                                    <PaginationLink href={getNextPageLink(2)}>
-                                        {currentPage + 2}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-                            <PaginationItem className="hidden md:block">
-                                {maxPage >= currentPage + 3 && (
-                                    <PaginationLink href={getNextPageLink(3)}>
-                                        {currentPage + 3}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-                            <PaginationItem className="hidden md:block">
-                                {maxPage >= currentPage + 4 && (
-                                    <PaginationLink href={getNextPageLink(4)}>
-                                        {currentPage + 4}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-                            <PaginationItem className="hidden md:block">
-                                {maxPage >= currentPage + 5 && (
-                                    <PaginationLink href={getNextPageLink(5)}>
-                                        {currentPage + 5}
-                                    </PaginationLink>
-                                )}
-                            </PaginationItem>
-
-                            {maxPage > currentPage + 5 && (
-                                <div className="hidden md:flex">
-                                    {currentPage + 6 !== maxPage && (
-                                        <PaginationEllipsis />
-                                    )}
-                                    <PaginationItem>
-                                        <PaginationLink
-                                            href={getChangedPageLink(maxPage)}
-                                        >
-                                            {maxPage}
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                </div>
-                            )}
-
-                            <PaginationItem>
-                                {currentPage !== maxPage && (
-                                    <PaginationNext
-                                        href={
-                                            maxPage > currentPage
-                                                ? getNextPageLink(1)
-                                                : "#"
-                                        }
-                                    />
-                                )}
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                </CardFooter>
             </Card>
 
             <Dialog
