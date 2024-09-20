@@ -4,11 +4,13 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { bookGetMany, bookGetOne, bookCreateOne, bookUpdateOne, bookDeleteOne } from "~/server/book-queries"
+import { bookGetMany, bookGetOne, bookCreateOne, bookUpdateOne, bookDeleteOne, getCategorySuggestions } from "~/server/book-queries"
 import { type BookGetManyOneRowOutput } from "~/server/types"
 
 import SearchPage from "~/app/admin/_components/search-page"
 import { DatePicker } from "../_components/date-picker"
+import MultipleImageField from "../_components/multiple-image-field"
+import IdInput from "../_components/id-input"
 
 const zodValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }),
@@ -199,53 +201,58 @@ const inputKeyMap: Record<
     },
     categoryId: {
         node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
+            <IdInput
+                label="categoria"
+                getSuggestions={getCategorySuggestions}
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Categoria",
+        description: "Escolha a categoria do livro.",
     },
     publisherId: {
         node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
+            <IdInput
+                label="editora"
+                getSuggestions={getCategorySuggestions}
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Editora",
+        description: "Escolha a editora do livro.",
     },
     languageId: {
         node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
+            <IdInput
+                label="língua"
+                getSuggestions={getCategorySuggestions}
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Língua",
+        description: "Escolha a língua do livro.",
     },
     seriesId: {
         node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
+            <IdInput
+                label="série"
+                getSuggestions={getCategorySuggestions}
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Série",
+        description: "Escolha a série do livro.",
     },
     currencyId: {
         node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
+            <IdInput
+                label="moeda"
+                getSuggestions={getCategorySuggestions}
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Moeda",
+        description: "Escolha a moeda do livro.",
     },
     authorIds: {
         node: (field) => (
@@ -268,12 +275,7 @@ const inputKeyMap: Record<
         description: "Esse é o nome do Tradutor.",
     },
     imagesArr: {
-        node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
-                {...field}
-            />
-        ),
+        node: (field) => <MultipleImageField {...field}></MultipleImageField>,
         label: "Nome",
         description: "Esse é o nome do Tradutor.",
     },

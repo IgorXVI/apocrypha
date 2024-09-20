@@ -47,3 +47,8 @@ export type BookGetManyOneRowOutput = {
     mainAuthorName: string
     mainTranslatorName: string
 }
+
+export type CommonSuggestion = {
+    id: string
+    name: string
+}

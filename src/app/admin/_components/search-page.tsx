@@ -285,6 +285,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                                     <TableCell key={attr}>
                                                         {typeof row[attr] === "string" && row[attr].length > 20 ? (
                                                             <FieldTooLong content={row[attr]}></FieldTooLong>
+                                                        ) : !row[attr] ? (
+                                                            "N/A"
                                                         ) : (
                                                             row[attr]
                                                         )}

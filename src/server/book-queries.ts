@@ -261,3 +261,16 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
             rows,
         }
     })
+
+export const getCategorySuggestions = async () =>
+    errorHandler(async () => {
+        const categories = await db.category.findMany({
+            select: {
+                id: true,
+                name: true,
+            },
+            take: 10,
+        })
+
+        return categories
+    })
