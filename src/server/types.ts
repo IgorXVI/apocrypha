@@ -23,7 +23,7 @@ export type GetManyOutput<T> = {
     rows: T[]
 }
 
-export type BookGetManyOutput = {
+export type BookGetManyOneRowOutput = {
     id: string
     price: number
     amount: number

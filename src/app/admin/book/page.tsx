@@ -5,9 +5,10 @@ import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
 import { bookGetMany, bookGetOne, bookCreateOne, bookUpdateOne, bookDeleteOne } from "~/server/book-queries"
-import { type BookGetManyOutput } from "~/server/types"
+import { type BookGetManyOneRowOutput } from "~/server/types"
 
 import SearchPage from "~/app/admin/_components/search-page"
+import { DatePicker } from "../_components/date-picker"
 
 const zodValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }),
@@ -74,132 +75,127 @@ const inputKeyMap: Record<
     price: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                type="number"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Preço",
+        description: "Esse é o preço do livro.",
     },
     amount: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                type="number"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Quantidade em Estoque",
+        description: "Esse é a quantidade em estoque do livro.",
     },
     title: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                placeholder="As duas Torres"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Título",
+        description: "Esse é o título do livro.",
     },
     descriptionTitle: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                placeholder="Resenha de As duas torres"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Título da Descrição",
+        description: "Esse é o título da descrição do livro.",
     },
     description: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                placeholder="O livro é muito bom pois ele fala sobre..."
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Descrição",
+        description: "Esse é a descrição do livro.",
     },
     pages: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                type="number"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Quantidade de Páginas",
+        description: "Esse é a quantidade de páginas do livro.",
     },
     publicationDate: {
-        node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
-                {...field}
-            />
-        ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        node: (field) => <DatePicker {...field} />,
+        label: "Data de Publicação",
+        description: "Esse é a data de publicação do livro.",
     },
     isbn10Code: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                placeholder="1234567890..."
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Código ISBN-10",
+        description: "Esse é o código ISBN-10 do livro.",
     },
     isbn13Code: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                placeholder="1234567890..."
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Código ISBN-13",
+        description: "Esse é o código ISBN-13 do livro.",
     },
     width: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                type="number"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Largura",
+        description: "Esse é a largura do livro.",
     },
     height: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                type="number"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Altura",
+        description: "Esse é a altura do livro.",
     },
     length: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                type="number"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Comprimento",
+        description: "Esse é o comprimento do livro.",
     },
     edition: {
         node: (field) => (
             <Input
-                placeholder="Rogério da Silva"
+                placeholder="Edição português"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Edição",
+        description: "Esse é a edição do livro.",
     },
     categoryId: {
         node: (field) => (
@@ -283,7 +279,7 @@ const inputKeyMap: Record<
     },
 }
 
-type GetManyAttrs = keyof BookGetManyOutput
+type BookAttrs = keyof BookGetManyOneRowOutput
 
 export default function MainPage() {
     return (
@@ -294,7 +290,7 @@ export default function MainPage() {
                 "ID",
                 "Imagem",
                 "Preço",
-                "Quantidade",
+                "Quantidade em Estoque",
                 "Stripe ID",
                 "Título",
                 "Descrição",
@@ -337,7 +333,7 @@ export default function MainPage() {
                     "seriesName",
                     "mainAuthorName",
                     "mainTranslatorName",
-                ] as GetManyAttrs[]
+                ] as BookAttrs[]
             }
             getManyQuery={bookGetMany}
             deleteOneQuery={bookDeleteOne}

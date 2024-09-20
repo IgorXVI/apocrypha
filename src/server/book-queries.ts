@@ -7,7 +7,7 @@ import { db } from "~/server/db"
 import { errorHandler } from "./generic-queries"
 
 import { deleteOne } from "./generic-queries"
-import { type BookGetManyOutput, type AnyModel, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
+import { type BookGetManyOneRowOutput, type AnyModel, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
 
 export const bookDeleteOne = async (id: string) => deleteOne(db.book as unknown as AnyModel, "book")(id)
 
@@ -151,7 +151,7 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
         }
     })
 
-export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<GetManyOutput<BookGetManyOutput>>> =>
+export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<GetManyOutput<BookGetManyOneRowOutput>>> =>
     errorHandler(async () => {
         const [rowsResult, totalResult] = await Promise.allSettled([
             db.book.findMany({
