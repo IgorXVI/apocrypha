@@ -164,8 +164,8 @@ const inputKeyMap: Record<
                 {...field}
             />
         ),
-        label: "Largura",
-        description: "Esse é a largura do livro.",
+        label: "Largura (mm)",
+        description: "Esse é a largura do livro em milímetros.",
     },
     height: {
         node: (field) => (
@@ -174,8 +174,8 @@ const inputKeyMap: Record<
                 {...field}
             />
         ),
-        label: "Altura",
-        description: "Esse é a altura do livro.",
+        label: "Altura (mm)",
+        description: "Esse é a altura do livro em milímetros.",
     },
     length: {
         node: (field) => (
@@ -184,8 +184,8 @@ const inputKeyMap: Record<
                 {...field}
             />
         ),
-        label: "Comprimento",
-        description: "Esse é o comprimento do livro.",
+        label: "Comprimento (mm)",
+        description: "Esse é o comprimento do livro em milímetros.",
     },
     edition: {
         node: (field) => (
@@ -298,9 +298,9 @@ export default function MainPage() {
                 "Data de Publicação",
                 "ISBN-10",
                 "ISBN-13",
-                "Largura",
-                "Altura",
-                "Comprimento",
+                "Largura (mm)",
+                "Altura (mm)",
+                "Comprimento (mm)",
                 "Edição",
                 "Idioma",
                 "Moeda",
