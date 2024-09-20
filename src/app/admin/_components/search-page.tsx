@@ -28,7 +28,7 @@ import {
 } from "~/components/ui/pagination"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import DeleteOne from "./delete-page"
-import { type PossibleDBOutput, type CommonDBReturn } from "~/server/queries"
+import { type PossibleDBOutput, type CommonDBReturn } from "~/server/types"
 import CreateOrUpdate from "./create-or-update"
 
 export default function SearchPage<I, D extends PossibleDBOutput>(

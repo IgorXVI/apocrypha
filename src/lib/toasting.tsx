@@ -1,6 +1,6 @@
 import { toast } from "sonner"
 import { LoaderCircle } from "lucide-react"
-import { type CommonDBReturn } from "~/server/queries"
+import { type CommonDBReturn } from "~/server/types"
 
 export async function dbQueryWithToast<T>({
     dbQuery,

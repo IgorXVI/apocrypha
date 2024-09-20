@@ -4,7 +4,8 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { bookGetMany, bookGetOne, bookCreateOne, bookUpdateOne, bookDeleteOne, BookGetManyOutput } from "~/server/queries"
+import { bookGetMany, bookGetOne, bookCreateOne, bookUpdateOne, bookDeleteOne } from "~/server/book-queries"
+import { type BookGetManyOutput } from "~/server/types"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
