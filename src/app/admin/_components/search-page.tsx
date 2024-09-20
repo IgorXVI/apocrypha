@@ -1,59 +1,22 @@
 "use client"
 
 import * as R from "remeda"
-import {
-    MoreHorizontal,
-    PlusCircle,
-    Search,
-    LoaderCircle,
-    CircleX,
-    AlertCircle,
-} from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, LoaderCircle, CircleX, AlertCircle } from "lucide-react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useDebouncedCallback } from "use-debounce"
-import {
-    type Path,
-    type ControllerRenderProps,
-    type FieldValues,
-} from "react-hook-form"
+import { type Path, type ControllerRenderProps, type FieldValues } from "react-hook-form"
 import { type ZodObject, type ZodRawShape } from "zod"
 
 import { Button } from "~/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "~/components/ui/card"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "~/components/ui/dropdown-menu"
 import { Input } from "~/components/ui/input"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "~/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
 import FieldTooLong from "./field-too-long"
 import Image from "next/image"
-import {
-    Select,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-} from "~/components/ui/select"
+import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "~/components/ui/select"
 import {
     Pagination,
     PaginationContent,
@@ -63,13 +26,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "~/components/ui/pagination"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "~/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import DeleteOne from "./delete-page"
 import { type PossibleDBOutput, type CommonDBReturn } from "~/server/queries"
 import CreateOrUpdate from "./create-or-update"
@@ -80,21 +37,14 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         namePlural: string
         tableHeaders: string[]
         tableAttrs: string[]
-        getManyQuery: (input: {
-            take: number
-            skip: number
-            searchTerm: string
-        }) => Promise<
+        getManyQuery: (input: { take: number; skip: number; searchTerm: string }) => Promise<
             CommonDBReturn<{
                 total: number
                 rows: D[]
             }>
         >
         deleteOneQuery: (id: string) => Promise<CommonDBReturn<undefined>>
-        updateOneQuery: (
-            id: string,
-            values: I,
-        ) => Promise<CommonDBReturn<undefined>>
+        updateOneQuery: (id: string, values: I) => Promise<CommonDBReturn<undefined>>
         createOneQuery: (values: I) => Promise<CommonDBReturn<undefined>>
         getOneQuery: (id: string) => Promise<CommonDBReturn<D>>
         defaultValues: I
@@ -102,9 +52,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         inputKeyMap: Record<
             string,
             {
-                node: (
-                    field: ControllerRenderProps<FieldValues, Path<I>>,
-                ) => React.ReactNode
+                node: (field: ControllerRenderProps<FieldValues, Path<I>>) => React.ReactNode
                 label: string
                 description: string | React.ReactNode
             }
@@ -120,35 +68,18 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
     const pathname = usePathname()
     const router = useRouter()
 
-    const toastDBRowsError = useCallback(
-        (errorMessage: string | React.ReactNode) => {
-            setShowErrorIndicator(true)
-            toast(
-                <span className="text-red-500">
-                    Erro ao tentar buscar linhas: {errorMessage}
-                </span>,
-                {
-                    duration: 5000,
-                },
-            )
-        },
-        [],
-    )
+    const toastDBRowsError = useCallback((errorMessage: string | React.ReactNode) => {
+        setShowErrorIndicator(true)
+        toast(<span className="text-red-500">Erro ao tentar buscar linhas: {errorMessage}</span>, {
+            duration: 5000,
+        })
+    }, [])
 
-    const currentPage = useMemo(
-        () => Number(searchParams.get("page")) || 1,
-        [searchParams],
-    )
+    const currentPage = useMemo(() => Number(searchParams.get("page")) || 1, [searchParams])
 
-    const currentTake = useMemo(
-        () => Number(searchParams.get("take")) || 10,
-        [searchParams],
-    )
+    const currentTake = useMemo(() => Number(searchParams.get("take")) || 10, [searchParams])
 
-    const maxPage = useMemo(
-        () => Math.ceil(total / currentTake),
-        [total, currentTake],
-    )
+    const maxPage = useMemo(() => Math.ceil(total / currentTake), [total, currentTake])
 
     const getChangedPageLink = useCallback(
         (page: number) => {
@@ -216,12 +147,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
     const removeModalParamKeys = useCallback(() => {
         const params = new URLSearchParams(searchParams)
         searchParams.forEach((_, key) => {
-            if (
-                key.startsWith("delete_") ||
-                key.startsWith("update_") ||
-                key.startsWith("create_") ||
-                key.startsWith("is_creating")
-            ) {
+            if (key.startsWith("delete_") || key.startsWith("update_") || key.startsWith("create_") || key.startsWith("is_creating")) {
                 params.delete(key)
             }
         })
@@ -232,12 +158,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         (key: string, value: string) => {
             const params = new URLSearchParams(searchParams)
             searchParams.forEach((_, key) => {
-                if (
-                    key.startsWith("delete_") ||
-                    key.startsWith("update_") ||
-                    key.startsWith("create_") ||
-                    key.startsWith("is_creating")
-                ) {
+                if (key.startsWith("delete_") || key.startsWith("update_") || key.startsWith("create_") || key.startsWith("is_creating")) {
                     params.delete(key)
                 }
             })
@@ -289,9 +210,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                 </div>
                 <Button
                     className="h-7 p-5"
-                    onClick={() =>
-                        setNewModalParams(ModalParams.create, "true")
-                    }
+                    onClick={() => setNewModalParams(ModalParams.create, "true")}
                 >
                     <PlusCircle />
                 </Button>
@@ -309,23 +228,20 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                 )}
                 {showErrorIndicator && (
                     <div className="flex w-full justify-center items-center">
-                        <CircleX width={100} height={100} color="red"></CircleX>
+                        <CircleX
+                            width={100}
+                            height={100}
+                            color="red"
+                        ></CircleX>
                     </div>
                 )}
                 {getRowsDone && rows.length === 0 && (
                     <div className="flex flex-col items-center justify-center p-6 text-center">
                         <AlertCircle className="h-10 w-10 text-yellow-500 mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">
-                            Sem {props.namePlural}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-4">
-                            Parece que não há dados para {props.namePlural}{" "}
-                            cadastrados ainda.
-                        </p>
+                        <h3 className="text-lg font-semibold mb-2">Sem {props.namePlural}</h3>
+                        <p className="text-sm text-gray-500 mb-4">Parece que não há dados para {props.namePlural} cadastrados ainda.</p>
                         <Button
-                            onClick={() =>
-                                setNewModalParams(ModalParams.create, "true")
-                            }
+                            onClick={() => setNewModalParams(ModalParams.create, "true")}
                             className="flex items-center"
                         >
                             <PlusCircle className="mr-2 h-4 w-4" />
@@ -336,24 +252,16 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                 {getRowsDone && rows.length !== 0 && (
                     <>
                         <CardHeader>
-                            <CardTitle>
-                                {R.capitalize(props.namePlural)}
-                            </CardTitle>
-                            <CardDescription>
-                                Crie, atualize, apague ou busque {props.name}.
-                            </CardDescription>
+                            <CardTitle>{R.capitalize(props.namePlural)}</CardTitle>
+                            <CardDescription>Crie, atualize, apague ou busque {props.name}.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Table>
                                 <TableHeader>
                                     <TableRow className="text-nowrap">
-                                        {props.tableHeaders.map(
-                                            (text, index) => (
-                                                <TableHead key={index}>
-                                                    {text}
-                                                </TableHead>
-                                            ),
-                                        )}
+                                        {props.tableHeaders.map((text, index) => (
+                                            <TableHead key={index}>{text}</TableHead>
+                                        ))}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -375,15 +283,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                                     </TableCell>
                                                 ) : (
                                                     <TableCell key={attr}>
-                                                        {typeof row[attr] ===
-                                                            "string" &&
-                                                        row[attr].length >
-                                                            20 ? (
-                                                            <FieldTooLong
-                                                                content={
-                                                                    row[attr]
-                                                                }
-                                                            ></FieldTooLong>
+                                                        {typeof row[attr] === "string" && row[attr].length > 20 ? (
+                                                            <FieldTooLong content={row[attr]}></FieldTooLong>
                                                         ) : (
                                                             row[attr]
                                                         )}
@@ -392,9 +293,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                             )}
                                             <TableCell>
                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger
-                                                        asChild
-                                                    >
+                                                    <DropdownMenuTrigger asChild>
                                                         <Button
                                                             aria-haspopup="true"
                                                             size="icon"
@@ -404,28 +303,16 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>
-                                                            Ações
-                                                        </DropdownMenuLabel>
+                                                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
                                                         <DropdownMenuItem
                                                             className="cursor-pointer"
-                                                            onClick={() =>
-                                                                setNewModalParams(
-                                                                    ModalParams.update,
-                                                                    row.id as string,
-                                                                )
-                                                            }
+                                                            onClick={() => setNewModalParams(ModalParams.update, row.id as string)}
                                                         >
                                                             Atualizar
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             className="cursor-pointer"
-                                                            onClick={() =>
-                                                                setNewModalParams(
-                                                                    ModalParams.delete,
-                                                                    row.id as string,
-                                                                )
-                                                            }
+                                                            onClick={() => setNewModalParams(ModalParams.delete, row.id as string)}
                                                         >
                                                             Apagar
                                                         </DropdownMenuItem>
@@ -442,158 +329,71 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
-                                        {currentPage !== 1 && (
-                                            <PaginationPrevious
-                                                href={
-                                                    currentPage === 1
-                                                        ? "#"
-                                                        : getNextPageLink(-1)
-                                                }
-                                            />
-                                        )}
+                                        {currentPage !== 1 && <PaginationPrevious href={currentPage === 1 ? "#" : getNextPageLink(-1)} />}
                                     </PaginationItem>
 
                                     {currentPage - 5 > 1 && (
                                         <div className="hidden md:flex">
                                             <PaginationItem>
-                                                <PaginationLink
-                                                    href={getChangedPageLink(1)}
-                                                >
-                                                    1
-                                                </PaginationLink>
+                                                <PaginationLink href={getChangedPageLink(1)}>1</PaginationLink>
                                             </PaginationItem>
 
-                                            {currentPage - 6 !== 1 && (
-                                                <PaginationEllipsis />
-                                            )}
+                                            {currentPage - 6 !== 1 && <PaginationEllipsis />}
                                         </div>
                                     )}
 
                                     <PaginationItem className="hidden md:block">
-                                        {currentPage - 5 > 0 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(-5)}
-                                            >
-                                                {currentPage - 5}
-                                            </PaginationLink>
-                                        )}
+                                        {currentPage - 5 > 0 && <PaginationLink href={getNextPageLink(-5)}>{currentPage - 5}</PaginationLink>}
                                     </PaginationItem>
                                     <PaginationItem className="hidden md:block">
-                                        {currentPage - 4 > 0 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(-4)}
-                                            >
-                                                {currentPage - 4}
-                                            </PaginationLink>
-                                        )}
+                                        {currentPage - 4 > 0 && <PaginationLink href={getNextPageLink(-4)}>{currentPage - 4}</PaginationLink>}
                                     </PaginationItem>
                                     <PaginationItem className="hidden md:block">
-                                        {currentPage - 3 > 0 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(-3)}
-                                            >
-                                                {currentPage - 3}
-                                            </PaginationLink>
-                                        )}
+                                        {currentPage - 3 > 0 && <PaginationLink href={getNextPageLink(-3)}>{currentPage - 3}</PaginationLink>}
                                     </PaginationItem>
                                     <PaginationItem className="hidden md:block">
-                                        {currentPage - 2 > 0 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(-2)}
-                                            >
-                                                {currentPage - 2}
-                                            </PaginationLink>
-                                        )}
+                                        {currentPage - 2 > 0 && <PaginationLink href={getNextPageLink(-2)}>{currentPage - 2}</PaginationLink>}
                                     </PaginationItem>
                                     <PaginationItem className="hidden md:block">
-                                        {currentPage - 1 > 0 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(-1)}
-                                            >
-                                                {currentPage - 1}
-                                            </PaginationLink>
-                                        )}
+                                        {currentPage - 1 > 0 && <PaginationLink href={getNextPageLink(-1)}>{currentPage - 1}</PaginationLink>}
                                     </PaginationItem>
 
                                     <PaginationItem>
-                                        <PaginationLink href="#" isActive>
+                                        <PaginationLink
+                                            href="#"
+                                            isActive
+                                        >
                                             {currentPage}
                                         </PaginationLink>
                                     </PaginationItem>
 
                                     <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 1 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(1)}
-                                            >
-                                                {currentPage + 1}
-                                            </PaginationLink>
-                                        )}
+                                        {maxPage >= currentPage + 1 && <PaginationLink href={getNextPageLink(1)}>{currentPage + 1}</PaginationLink>}
                                     </PaginationItem>
                                     <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 2 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(2)}
-                                            >
-                                                {currentPage + 2}
-                                            </PaginationLink>
-                                        )}
+                                        {maxPage >= currentPage + 2 && <PaginationLink href={getNextPageLink(2)}>{currentPage + 2}</PaginationLink>}
                                     </PaginationItem>
                                     <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 3 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(3)}
-                                            >
-                                                {currentPage + 3}
-                                            </PaginationLink>
-                                        )}
+                                        {maxPage >= currentPage + 3 && <PaginationLink href={getNextPageLink(3)}>{currentPage + 3}</PaginationLink>}
                                     </PaginationItem>
                                     <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 4 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(4)}
-                                            >
-                                                {currentPage + 4}
-                                            </PaginationLink>
-                                        )}
+                                        {maxPage >= currentPage + 4 && <PaginationLink href={getNextPageLink(4)}>{currentPage + 4}</PaginationLink>}
                                     </PaginationItem>
                                     <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 5 && (
-                                            <PaginationLink
-                                                href={getNextPageLink(5)}
-                                            >
-                                                {currentPage + 5}
-                                            </PaginationLink>
-                                        )}
+                                        {maxPage >= currentPage + 5 && <PaginationLink href={getNextPageLink(5)}>{currentPage + 5}</PaginationLink>}
                                     </PaginationItem>
 
                                     {maxPage > currentPage + 5 && (
                                         <div className="hidden md:flex">
-                                            {currentPage + 6 !== maxPage && (
-                                                <PaginationEllipsis />
-                                            )}
+                                            {currentPage + 6 !== maxPage && <PaginationEllipsis />}
                                             <PaginationItem>
-                                                <PaginationLink
-                                                    href={getChangedPageLink(
-                                                        maxPage,
-                                                    )}
-                                                >
-                                                    {maxPage}
-                                                </PaginationLink>
+                                                <PaginationLink href={getChangedPageLink(maxPage)}>{maxPage}</PaginationLink>
                                             </PaginationItem>
                                         </div>
                                     )}
 
                                     <PaginationItem>
-                                        {currentPage !== maxPage && (
-                                            <PaginationNext
-                                                href={
-                                                    maxPage > currentPage
-                                                        ? getNextPageLink(1)
-                                                        : "#"
-                                                }
-                                            />
-                                        )}
+                                        {currentPage !== maxPage && <PaginationNext href={maxPage > currentPage ? getNextPageLink(1) : "#"} />}
                                     </PaginationItem>
                                 </PaginationContent>
                             </Pagination>
@@ -603,11 +403,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
             </Card>
 
             <Dialog
-                open={
-                    searchParams.has(ModalParams.delete) ||
-                    searchParams.has(ModalParams.update) ||
-                    searchParams.has(ModalParams.create)
-                }
+                open={searchParams.has(ModalParams.delete) || searchParams.has(ModalParams.update) || searchParams.has(ModalParams.create)}
                 onOpenChange={(open) => {
                     if (!open) {
                         removeModalParamKeys()
@@ -629,12 +425,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                             <DeleteOne
                                 waitingMessage={`Apagando ${props.name}...`}
                                 successMessage="Apagado."
-                                dbMutation={() =>
-                                    props.deleteOneQuery(
-                                        searchParams.get(ModalParams.delete) ??
-                                            "",
-                                    )
-                                }
+                                dbMutation={() => props.deleteOneQuery(searchParams.get(ModalParams.delete) ?? "")}
                                 onConfirm={() => removeModalParamKeys()}
                             ></DeleteOne>
                         </>
@@ -642,9 +433,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                     {searchParams.has(ModalParams.update) && (
                         <>
                             <DialogHeader>
-                                <DialogTitle>
-                                    Atualizar {props.name}.
-                                </DialogTitle>
+                                <DialogTitle>Atualizar {props.name}.</DialogTitle>
                                 <DialogDescription>
                                     Atualizar valores de {props.name} com id
                                     {' "'}
@@ -659,19 +448,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                 defaultValues={props.defaultValues}
                                 formSchema={props.formSchema}
                                 inputKeyMap={props.inputKeyMap}
-                                dbMutation={(values) =>
-                                    props.updateOneQuery(
-                                        searchParams.get(ModalParams.update) ??
-                                            "",
-                                        values,
-                                    )
-                                }
-                                dbGetOne={() =>
-                                    props.getOneQuery(
-                                        searchParams.get(ModalParams.update) ??
-                                            "",
-                                    )
-                                }
+                                dbMutation={(values) => props.updateOneQuery(searchParams.get(ModalParams.update) ?? "", values)}
+                                dbGetOne={() => props.getOneQuery(searchParams.get(ModalParams.update) ?? "")}
                             ></CreateOrUpdate>
                         </>
                     )}
@@ -679,9 +457,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                         <>
                             <DialogHeader>
                                 <DialogTitle>Criar {props.name}.</DialogTitle>
-                                <DialogDescription>
-                                    Determine os valores do novo {props.name}.
-                                </DialogDescription>
+                                <DialogDescription>Determine os valores do novo {props.name}.</DialogDescription>
                             </DialogHeader>
                             <CreateOrUpdate
                                 paramsPrefix="create"

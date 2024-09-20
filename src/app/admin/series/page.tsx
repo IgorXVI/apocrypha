@@ -4,13 +4,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import {
-    seriesGetMany,
-    seriesGetOne,
-    seriesCreateOne,
-    seriesUpdateOne,
-    seriesDeleteOne,
-} from "~/server/queries"
+import { seriesGetMany, seriesGetOne, seriesCreateOne, seriesUpdateOne, seriesDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
@@ -31,15 +25,18 @@ type ModelAttrs = keyof SchemaType
 const inputKeyMap: Record<
     ModelAttrs,
     {
-        node: (
-            field: ControllerRenderProps<FieldValues, ModelAttrs>,
-        ) => React.ReactNode
+        node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
     }
 > = {
     name: {
-        node: (field) => <Input placeholder="Senhor dos Anéis" {...field} />,
+        node: (field) => (
+            <Input
+                placeholder="Senhor dos Anéis"
+                {...field}
+            />
+        ),
         label: "Nome",
         description: "Esse é o nome da Série.",
     },

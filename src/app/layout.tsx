@@ -13,12 +13,13 @@ export const metadata: Metadata = {
     icons: [{ rel: "icon", url: "/favicon.ico" }],
 }
 
-export default function RootLayout({
-    children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <ClerkProvider localization={ptBR}>
-            <html lang="pt" className={`${GeistSans.variable}`}>
+            <html
+                lang="pt"
+                className={`${GeistSans.variable}`}
+            >
                 <body className="min-h-screen">
                     {children}
                     <Toaster></Toaster>

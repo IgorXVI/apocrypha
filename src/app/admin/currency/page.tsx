@@ -4,13 +4,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import {
-    currencyGetMany,
-    currencyGetOne,
-    currencyCreateOne,
-    currencyUpdateOne,
-    currencyDeleteOne,
-} from "~/server/queries"
+import { currencyGetMany, currencyGetOne, currencyCreateOne, currencyUpdateOne, currencyDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
@@ -45,21 +39,28 @@ type ModelAttrs = keyof SchemaType
 const inputKeyMap: Record<
     ModelAttrs,
     {
-        node: (
-            field: ControllerRenderProps<FieldValues, ModelAttrs>,
-        ) => React.ReactNode
+        node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
     }
 > = {
     label: {
-        node: (field) => <Input placeholder="$" {...field} />,
+        node: (field) => (
+            <Input
+                placeholder="$"
+                {...field}
+            />
+        ),
         label: "Prefixo",
-        description:
-            "Esse é o préfixo que vai aparecer antes do valor monetário.",
+        description: "Esse é o préfixo que vai aparecer antes do valor monetário.",
     },
     iso4217Code: {
-        node: (field) => <Input placeholder="EUR" {...field} />,
+        node: (field) => (
+            <Input
+                placeholder="EUR"
+                {...field}
+            />
+        ),
         label: "Código ISO 4217",
         description: (
             <>

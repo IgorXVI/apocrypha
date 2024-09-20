@@ -4,13 +4,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import {
-    categoryGetMany,
-    categoryGetOne,
-    categoryCreateOne,
-    categoryUpdateOne,
-    categoryDeleteOne,
-} from "~/server/queries"
+import { categoryGetMany, categoryGetOne, categoryCreateOne, categoryUpdateOne, categoryDeleteOne } from "~/server/queries"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "~/app/admin/_components/search-page"
 
@@ -33,9 +27,7 @@ type ModelAttrs = keyof SchemaType
 const inputKeyMap: Record<
     ModelAttrs,
     {
-        node: (
-            field: ControllerRenderProps<FieldValues, ModelAttrs>,
-        ) => React.ReactNode
+        node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
     }
@@ -46,7 +38,12 @@ const inputKeyMap: Record<
         description: "Escolha imagem para servir como ícone da categoria.",
     },
     name: {
-        node: (field) => <Input placeholder="Fanstasia" {...field} />,
+        node: (field) => (
+            <Input
+                placeholder="Fanstasia"
+                {...field}
+            />
+        ),
         label: "Nome",
         description: "Esse é o nome da categoria.",
     },

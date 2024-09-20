@@ -7,21 +7,12 @@ import { toast } from "sonner"
 
 export const { useUploadThing } = generateReactHelpers<OurFileRouter>()
 
-export default function SingleImageField(props: {
-    onChange: (value: string) => void
-    value: string
-    disabled?: boolean
-}) {
+export default function SingleImageField(props: { onChange: (value: string) => void; value: string; disabled?: boolean }) {
     const uploadThing = useUploadThing("imageUploader", {
         onUploadError(e) {
-            toast.error(
-                <span className="text-lg text-red-500">
-                    Erro durante upload: {e.message}
-                </span>,
-                {
-                    duration: 5000,
-                },
-            )
+            toast.error(<span className="text-lg text-red-500">Erro durante upload: {e.message}</span>, {
+                duration: 5000,
+            })
         },
     })
 

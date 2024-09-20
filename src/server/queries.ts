@@ -17,9 +17,7 @@ export type PossibleDBOutput = Record<string, any>
 
 type AnyModel = Prisma.PublisherDelegate<DefaultArgs>
 
-async function errorHandler<T>(
-    fun: () => Promise<T>,
-): Promise<CommonDBReturn<T>> {
+async function errorHandler<T>(fun: () => Promise<T>): Promise<CommonDBReturn<T>> {
     try {
         const result = await fun()
 
@@ -148,32 +146,7 @@ const getMany =
             }
         })
 
-class AdminQueries<T, F extends string, C, U> {
-    constructor(
-        private model: AnyModel,
-        private slug: string,
-        private searchAttrs: F[],
-    ) {}
-
-    getMany = getMany<T>({
-        attrs: this.searchAttrs,
-        model: this.model,
-    })
-
-    getOne = getOne<T>(this.model)
-
-    createOne = createOne<C>(this.model, this.slug)
-
-    updateOne = updateOne<U>(this.model, this.slug)
-
-    deleteOne = deleteOne(this.model, this.slug)
-}
-
-const createAdminQueries = <T, F extends string, C, U>(
-    model: AnyModel,
-    slug: string,
-    searchAttrs: F[],
-) => ({
+const createAdminQueries = <T, F extends string, C, U>(model: AnyModel, slug: string, searchAttrs: F[]) => ({
     getMany: getMany<T>({
         attrs: searchAttrs,
         model,
@@ -190,11 +163,11 @@ const currencyAdminQueries = createAdminQueries<
     Prisma.CurrencyCreateInput,
     Prisma.CurrencyUpdateInput
 >(db.currency as unknown as AnyModel, "currency", ["iso4217Code", "label"])
-export const currencyGetMany = currencyAdminQueries.getMany
-export const currencyGetOne = currencyAdminQueries.getOne
-export const currencyCreateOne = currencyAdminQueries.createOne
-export const currencyUpdateOne = currencyAdminQueries.updateOne
-export const currencyDeleteOne = currencyAdminQueries.deleteOne
+export const currencyGetMany = async (...args: Parameters<typeof currencyAdminQueries.getMany>) => currencyAdminQueries.getMany(...args)
+export const currencyGetOne = async (...args: Parameters<typeof currencyAdminQueries.getOne>) => currencyAdminQueries.getOne(...args)
+export const currencyCreateOne = async (...args: Parameters<typeof currencyAdminQueries.createOne>) => currencyAdminQueries.createOne(...args)
+export const currencyUpdateOne = async (...args: Parameters<typeof currencyAdminQueries.updateOne>) => currencyAdminQueries.updateOne(...args)
+export const currencyDeleteOne = async (...args: Parameters<typeof currencyAdminQueries.deleteOne>) => currencyAdminQueries.deleteOne(...args)
 
 const authorAdminQueries = createAdminQueries<
     Prisma.AuthorGetPayload<Prisma.AuthorDefaultArgs>,
@@ -202,11 +175,11 @@ const authorAdminQueries = createAdminQueries<
     Prisma.AuthorCreateInput,
     Prisma.AuthorUpdateInput
 >(db.author as unknown as AnyModel, "author", ["about", "name"])
-export const authorGetMany = authorAdminQueries.getMany
-export const authorGetOne = authorAdminQueries.getOne
-export const authorCreateOne = authorAdminQueries.createOne
-export const authorUpdateOne = authorAdminQueries.updateOne
-export const authorDeleteOne = authorAdminQueries.deleteOne
+export const authorGetMany = async (...args: Parameters<typeof authorAdminQueries.getMany>) => authorAdminQueries.getMany(...args)
+export const authorGetOne = async (...args: Parameters<typeof authorAdminQueries.getOne>) => authorAdminQueries.getOne(...args)
+export const authorCreateOne = async (...args: Parameters<typeof authorAdminQueries.createOne>) => authorAdminQueries.createOne(...args)
+export const authorUpdateOne = async (...args: Parameters<typeof authorAdminQueries.updateOne>) => authorAdminQueries.updateOne(...args)
+export const authorDeleteOne = async (...args: Parameters<typeof authorAdminQueries.deleteOne>) => authorAdminQueries.deleteOne(...args)
 
 const translatorAdminQueries = createAdminQueries<
     Prisma.TranslatorGetPayload<Prisma.TranslatorDefaultArgs>,
@@ -214,11 +187,11 @@ const translatorAdminQueries = createAdminQueries<
     Prisma.TranslatorCreateInput,
     Prisma.TranslatorUpdateInput
 >(db.translator as unknown as AnyModel, "translator", ["name"])
-export const translatorGetMany = translatorAdminQueries.getMany
-export const translatorGetOne = translatorAdminQueries.getOne
-export const translatorCreateOne = translatorAdminQueries.createOne
-export const translatorUpdateOne = translatorAdminQueries.updateOne
-export const translatorDeleteOne = translatorAdminQueries.deleteOne
+export const translatorGetMany = async (...args: Parameters<typeof translatorAdminQueries.getMany>) => translatorAdminQueries.getMany(...args)
+export const translatorGetOne = async (...args: Parameters<typeof translatorAdminQueries.getOne>) => translatorAdminQueries.getOne(...args)
+export const translatorCreateOne = async (...args: Parameters<typeof translatorAdminQueries.createOne>) => translatorAdminQueries.createOne(...args)
+export const translatorUpdateOne = async (...args: Parameters<typeof translatorAdminQueries.updateOne>) => translatorAdminQueries.updateOne(...args)
+export const translatorDeleteOne = async (...args: Parameters<typeof translatorAdminQueries.deleteOne>) => translatorAdminQueries.deleteOne(...args)
 
 const publisherAdminQueries = createAdminQueries<
     Prisma.PublisherGetPayload<Prisma.PublisherDefaultArgs>,
@@ -226,11 +199,11 @@ const publisherAdminQueries = createAdminQueries<
     Prisma.PublisherCreateInput,
     Prisma.PublisherUpdateInput
 >(db.publisher as unknown as AnyModel, "publisher", ["name"])
-export const publisherGetMany = publisherAdminQueries.getMany
-export const publisherGetOne = publisherAdminQueries.getOne
-export const publisherCreateOne = publisherAdminQueries.createOne
-export const publisherUpdateOne = publisherAdminQueries.updateOne
-export const publisherDeleteOne = publisherAdminQueries.deleteOne
+export const publisherGetMany = async (...args: Parameters<typeof publisherAdminQueries.getMany>) => publisherAdminQueries.getMany(...args)
+export const publisherGetOne = async (...args: Parameters<typeof publisherAdminQueries.getOne>) => publisherAdminQueries.getOne(...args)
+export const publisherCreateOne = async (...args: Parameters<typeof publisherAdminQueries.createOne>) => publisherAdminQueries.createOne(...args)
+export const publisherUpdateOne = async (...args: Parameters<typeof publisherAdminQueries.updateOne>) => publisherAdminQueries.updateOne(...args)
+export const publisherDeleteOne = async (...args: Parameters<typeof publisherAdminQueries.deleteOne>) => publisherAdminQueries.deleteOne(...args)
 
 const seriesAdminQueries = createAdminQueries<
     Prisma.SeriesGetPayload<Prisma.SeriesDefaultArgs>,
@@ -238,11 +211,11 @@ const seriesAdminQueries = createAdminQueries<
     Prisma.SeriesCreateInput,
     Prisma.SeriesUpdateInput
 >(db.series as unknown as AnyModel, "series", ["name"])
-export const seriesGetMany = seriesAdminQueries.getMany
-export const seriesGetOne = seriesAdminQueries.getOne
-export const seriesCreateOne = seriesAdminQueries.createOne
-export const seriesUpdateOne = seriesAdminQueries.updateOne
-export const seriesDeleteOne = seriesAdminQueries.deleteOne
+export const seriesGetMany = async (...args: Parameters<typeof seriesAdminQueries.getMany>) => seriesAdminQueries.getMany(...args)
+export const seriesGetOne = async (...args: Parameters<typeof seriesAdminQueries.getOne>) => seriesAdminQueries.getOne(...args)
+export const seriesCreateOne = async (...args: Parameters<typeof seriesAdminQueries.createOne>) => seriesAdminQueries.createOne(...args)
+export const seriesUpdateOne = async (...args: Parameters<typeof seriesAdminQueries.updateOne>) => seriesAdminQueries.updateOne(...args)
+export const seriesDeleteOne = async (...args: Parameters<typeof seriesAdminQueries.deleteOne>) => seriesAdminQueries.deleteOne(...args)
 
 const categoryAdminQueries = createAdminQueries<
     Prisma.CategoryGetPayload<Prisma.CategoryDefaultArgs>,
@@ -250,48 +223,35 @@ const categoryAdminQueries = createAdminQueries<
     Prisma.CategoryCreateInput,
     Prisma.CategoryUpdateInput
 >(db.category as unknown as AnyModel, "category", ["name"])
-export const categoryGetMany = categoryAdminQueries.getMany
-export const categoryGetOne = categoryAdminQueries.getOne
-export const categoryCreateOne = categoryAdminQueries.createOne
-export const categoryUpdateOne = categoryAdminQueries.updateOne
-export const categoryDeleteOne = categoryAdminQueries.deleteOne
+export const categoryGetMany = async (...args: Parameters<typeof categoryAdminQueries.getMany>) => categoryAdminQueries.getMany(...args)
+export const categoryGetOne = async (...args: Parameters<typeof categoryAdminQueries.getOne>) => categoryAdminQueries.getOne(...args)
+export const categoryCreateOne = async (...args: Parameters<typeof categoryAdminQueries.createOne>) => categoryAdminQueries.createOne(...args)
+export const categoryUpdateOne = async (...args: Parameters<typeof categoryAdminQueries.updateOne>) => categoryAdminQueries.updateOne(...args)
+export const categoryDeleteOne = async (...args: Parameters<typeof categoryAdminQueries.deleteOne>) => categoryAdminQueries.deleteOne(...args)
 
 const languageAdminQueries = createAdminQueries<
     Prisma.LanguageGetPayload<Prisma.LanguageDefaultArgs>,
     Prisma.LanguageScalarFieldEnum,
     Prisma.LanguageCreateInput,
     Prisma.LanguageUpdateInput
->(db.language as unknown as AnyModel, "language", [
-    "name",
-    "iso6391Code",
-    "iso6392Code",
-])
-export const languageGetMany = languageAdminQueries.getMany
-export const languageGetOne = languageAdminQueries.getOne
-export const languageCreateOne = languageAdminQueries.createOne
-export const languageUpdateOne = languageAdminQueries.updateOne
-export const languageDeleteOne = languageAdminQueries.deleteOne
+>(db.language as unknown as AnyModel, "language", ["name", "iso6391Code", "iso6392Code"])
+export const languageGetMany = async (...args: Parameters<typeof languageAdminQueries.getMany>) => languageAdminQueries.getMany(...args)
+export const languageGetOne = async (...args: Parameters<typeof languageAdminQueries.getOne>) => languageAdminQueries.getOne(...args)
+export const languageCreateOne = async (...args: Parameters<typeof languageAdminQueries.createOne>) => languageAdminQueries.createOne(...args)
+export const languageUpdateOne = async (...args: Parameters<typeof languageAdminQueries.updateOne>) => languageAdminQueries.updateOne(...args)
+export const languageDeleteOne = async (...args: Parameters<typeof languageAdminQueries.deleteOne>) => languageAdminQueries.deleteOne(...args)
 
 const bookAdminQueries = createAdminQueries<
     Prisma.BookGetPayload<Prisma.BookDefaultArgs>,
     Prisma.BookScalarFieldEnum,
     Prisma.BookCreateInput,
     Prisma.BookUpdateInput
->(db.book as unknown as AnyModel, "book", [
-    "title",
-    "description",
-    "edition",
-    "isbn10Code",
-    "isbn13Code",
-    "descriptionTitle",
-    "seriesId",
-])
-export const bookGetMany = bookAdminQueries.getMany
-export const bookGetOne = bookAdminQueries.getOne
-export const bookUpdateOne = bookAdminQueries.updateOne
-export const bookDeleteOne = bookAdminQueries.deleteOne
+>(db.book as unknown as AnyModel, "book", ["title", "description", "edition", "isbn10Code", "isbn13Code", "descriptionTitle", "seriesId"])
+export const bookGetMany = async (...args: Parameters<typeof bookAdminQueries.getMany>) => bookAdminQueries.getMany(...args)
+export const bookGetOne = async (...args: Parameters<typeof bookAdminQueries.getOne>) => bookAdminQueries.getOne(...args)
+export const bookDeleteOne = async (...args: Parameters<typeof bookAdminQueries.deleteOne>) => bookAdminQueries.deleteOne(...args)
 
-export const bookCreateOne = async (data: {
+type BookDataInput = {
     price: number
     amount: number
     title: string
@@ -313,33 +273,60 @@ export const bookCreateOne = async (data: {
     imagesArr: string[]
     authorIds: string[]
     translatorIds: string[]
-}) => {
+}
+
+const transformBookData = (data: BookDataInput) => {
     const displayImages = data.imagesArr.map((image, index) => ({
         url: image,
         order: index,
     }))
 
-    const AuthorOnBook = data.authorIds.map((authorId, index) => ({
+    const authors = data.authorIds.map((authorId, index) => ({
         authorId,
         main: index === 0,
     }))
 
-    const TranslatorOnBook = data.translatorIds.map((translatorId, index) => ({
+    const translators = data.translatorIds.map((translatorId, index) => ({
         translatorId,
         main: index === 0,
     }))
+
+    return {
+        displayImages,
+        authors,
+        translators,
+    }
+}
+
+export const bookCreateOne = async (data: BookDataInput) => {
+    const { authors, displayImages, translators } = transformBookData(data)
 
     const stripeId = "UM ID"
 
     return bookAdminQueries.createOne({
         ...data,
         DisplayImage: { createMany: { data: displayImages } },
-        AuthorOnBook: { createMany: { data: AuthorOnBook } },
-        TranslatorOnBook: { createMany: { data: TranslatorOnBook } },
+        AuthorOnBook: { createMany: { data: authors } },
+        TranslatorOnBook: { createMany: { data: translators } },
         Category: { connect: { id: data.categoryId } },
         Publisher: { connect: { id: data.publisherId } },
         Language: { connect: { id: data.languageId } },
         currency: { connect: { id: data.currencyId } },
         stripeId,
+    })
+}
+
+export const bookUpdateOne = async (id: string, data: BookDataInput) => {
+    const { authors, displayImages, translators } = transformBookData(data)
+
+    return bookAdminQueries.updateOne(id, {
+        ...data,
+        DisplayImage: { createMany: { data: displayImages } },
+        AuthorOnBook: { createMany: { data: authors } },
+        TranslatorOnBook: { createMany: { data: translators } },
+        Category: { connect: { id: data.categoryId } },
+        Publisher: { connect: { id: data.publisherId } },
+        Language: { connect: { id: data.languageId } },
+        currency: { connect: { id: data.currencyId } },
     })
 }

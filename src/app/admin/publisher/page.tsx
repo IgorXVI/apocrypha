@@ -4,13 +4,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import {
-    publisherGetMany,
-    publisherGetOne,
-    publisherCreateOne,
-    publisherUpdateOne,
-    publisherDeleteOne,
-} from "~/server/queries"
+import { publisherGetMany, publisherGetOne, publisherCreateOne, publisherUpdateOne, publisherDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
@@ -31,16 +25,17 @@ type ModelAttrs = keyof SchemaType
 const inputKeyMap: Record<
     ModelAttrs,
     {
-        node: (
-            field: ControllerRenderProps<FieldValues, ModelAttrs>,
-        ) => React.ReactNode
+        node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
     }
 > = {
     name: {
         node: (field) => (
-            <Input placeholder="Editora Campos Sales" {...field} />
+            <Input
+                placeholder="Editora Campos Sales"
+                {...field}
+            />
         ),
         label: "Nome",
         description: "Esse é o nome da Editora.",

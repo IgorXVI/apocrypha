@@ -29,9 +29,7 @@ export default function DeleteOne(props: {
 
     return (
         <div className="flex flex-col items-center gap-10 justify-center p-5">
-            <h1 className="text-4xl text-center font-extrabold">
-                Tem certeza que quer apagar?
-            </h1>
+            <h1 className="text-4xl text-center font-extrabold">Tem certeza que quer apagar?</h1>
             <Button
                 disabled={inputDisabled}
                 onClick={clickedYes}

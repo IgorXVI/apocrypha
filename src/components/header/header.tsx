@@ -27,9 +27,7 @@ export default function Header() {
                     <MapPin className="h-6 w-6"></MapPin>
                     <div className="flex leading-tight text-xs">
                         <span>Olá</span>
-                        <span className="font-bold pl-1">
-                            Selecione o endereço
-                        </span>
+                        <span className="font-bold pl-1">Selecione o endereço</span>
                     </div>
                 </div>
             </div>

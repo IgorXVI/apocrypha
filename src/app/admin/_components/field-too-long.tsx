@@ -1,11 +1,7 @@
 import { CopyIcon } from "lucide-react"
 import CopyToClipboard from "react-copy-to-clipboard"
 import { toast } from "sonner"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "~/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
 
 export default function FieldTooLong(props: { content: string }) {
     return (
@@ -21,11 +17,7 @@ export default function FieldTooLong(props: { content: string }) {
                     <CopyToClipboard
                         text={props.content}
                         onCopy={() => {
-                            toast(
-                                <span className="text-green-500">
-                                    Copiado!
-                                </span>,
-                            )
+                            toast(<span className="text-green-500">Copiado!</span>)
                         }}
                     >
                         <button

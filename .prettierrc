@@ -1,6 +1,7 @@
 {
-  "tabWidth": 4,
-  "useTabs": false,
-  "semi": false,
-  "singleAttributePerLine": false
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": false,
+    "singleAttributePerLine": true,
+    "printWidth": 150
 }

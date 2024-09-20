@@ -6,13 +6,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import {
-    languageGetMany,
-    languageGetOne,
-    languageCreateOne,
-    languageUpdateOne,
-    languageDeleteOne,
-} from "~/server/queries"
+import { languageGetMany, languageGetOne, languageCreateOne, languageUpdateOne, languageDeleteOne } from "~/server/queries"
 
 const zodValidationSchema = z.object({
     name: z.string().min(3, {
@@ -39,20 +33,28 @@ type ModelAttrs = keyof SchemaType
 const inputKeyMap: Record<
     ModelAttrs,
     {
-        node: (
-            field: ControllerRenderProps<FieldValues, ModelAttrs>,
-        ) => React.ReactNode
+        node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
     }
 > = {
     name: {
-        node: (field) => <Input placeholder="Inglês" {...field} />,
+        node: (field) => (
+            <Input
+                placeholder="Inglês"
+                {...field}
+            />
+        ),
         label: "Nome",
         description: "Esse é o nome da língua.",
     },
     iso6391Code: {
-        node: (field) => <Input placeholder="pt" {...field} />,
+        node: (field) => (
+            <Input
+                placeholder="pt"
+                {...field}
+            />
+        ),
         label: "Código ISO 6391",
         description: (
             <>
@@ -68,7 +70,12 @@ const inputKeyMap: Record<
         ),
     },
     iso6392Code: {
-        node: (field) => <Input placeholder="eng" {...field} />,
+        node: (field) => (
+            <Input
+                placeholder="eng"
+                {...field}
+            />
+        ),
         label: "Código ISO 6392",
         description: (
             <>
@@ -93,14 +100,7 @@ export default function MainPage() {
             name="moeda"
             namePlural="moedas"
             tableHeaders={["ID", "Nome", "Código ISO 6391", "Código ISO 6392"]}
-            tableAttrs={
-                [
-                    "id",
-                    "name",
-                    "iso6391Code",
-                    "iso6392Code",
-                ] as ModelAttrsAndId[]
-            }
+            tableAttrs={["id", "name", "iso6391Code", "iso6392Code"] as ModelAttrsAndId[]}
             getManyQuery={languageGetMany}
             deleteOneQuery={languageDeleteOne}
             getOneQuery={languageGetOne}

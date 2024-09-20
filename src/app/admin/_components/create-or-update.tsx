@@ -2,25 +2,12 @@
 
 import { type ZodObject, type ZodRawShape } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-    useForm,
-    type Path,
-    type ControllerRenderProps,
-    type FieldValues,
-} from "react-hook-form"
+import { useForm, type Path, type ControllerRenderProps, type FieldValues } from "react-hook-form"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import React, { useMemo } from "react"
 
 import { Button } from "~/components/ui/button"
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "~/components/ui/form"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 import { dbQueryWithToast } from "~/lib/toasting"
 import { type CommonDBReturn } from "~/server/queries"
 
@@ -33,9 +20,7 @@ export default function CreateOrUpdate<I, D>(props: {
     inputKeyMap: Record<
         string,
         {
-            node: (
-                field: ControllerRenderProps<FieldValues, Path<I>>,
-            ) => React.ReactNode
+            node: (field: ControllerRenderProps<FieldValues, Path<I>>) => React.ReactNode
             label: string
             description: string | React.ReactNode
         }
@@ -49,10 +34,7 @@ export default function CreateOrUpdate<I, D>(props: {
 
     const fieldNames = Object.keys(props.inputKeyMap)
 
-    const keyForParams = useMemo(
-        () => `${props.paramsPrefix}_values_json`,
-        [props],
-    )
+    const keyForParams = useMemo(() => `${props.paramsPrefix}_values_json`, [props])
 
     const form = useForm<ZodRawShape>({
         resolver: zodResolver(props.formSchema),
@@ -98,23 +80,14 @@ export default function CreateOrUpdate<I, D>(props: {
                 {fieldNames.map((key, index) => (
                     <FormField
                         key={index}
-                        disabled={
-                            form.formState.isSubmitting ||
-                            form.formState.isLoading
-                        }
+                        disabled={form.formState.isSubmitting || form.formState.isLoading}
                         control={form.control}
                         name={key as Path<I>}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>
-                                    {props.inputKeyMap[key]?.label}
-                                </FormLabel>
-                                <FormControl>
-                                    {props.inputKeyMap[key]?.node(field)}
-                                </FormControl>
-                                <FormDescription>
-                                    {props.inputKeyMap[key]?.description}
-                                </FormDescription>
+                                <FormLabel>{props.inputKeyMap[key]?.label}</FormLabel>
+                                <FormControl>{props.inputKeyMap[key]?.node(field)}</FormControl>
+                                <FormDescription>{props.inputKeyMap[key]?.description}</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -122,10 +95,7 @@ export default function CreateOrUpdate<I, D>(props: {
                 ))}
                 <div className="flex flex-row items-center justify-center p-2">
                     <Button
-                        disabled={
-                            form.formState.isSubmitting ||
-                            form.formState.isLoading
-                        }
+                        disabled={form.formState.isSubmitting || form.formState.isLoading}
                         type="submit"
                         className="text-xl p-5"
                         variant="destructive"

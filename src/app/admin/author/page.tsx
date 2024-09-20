@@ -4,13 +4,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import {
-    authorGetMany,
-    authorGetOne,
-    authorCreateOne,
-    authorUpdateOne,
-    authorDeleteOne,
-} from "~/server/queries"
+import { authorGetMany, authorGetOne, authorCreateOne, authorUpdateOne, authorDeleteOne } from "~/server/queries"
 import { Textarea } from "~/components/ui/textarea"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "../_components/search-page"
@@ -38,9 +32,7 @@ type ModelAttrs = keyof SchemaType
 const inputKeyMap: Record<
     ModelAttrs,
     {
-        node: (
-            field: ControllerRenderProps<FieldValues, ModelAttrs>,
-        ) => React.ReactNode
+        node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
     }
@@ -51,7 +43,12 @@ const inputKeyMap: Record<
         description: "Escolha a foto para o perfil do autor.",
     },
     name: {
-        node: (field) => <Input placeholder="Fulano da Silva" {...field} />,
+        node: (field) => (
+            <Input
+                placeholder="Fulano da Silva"
+                {...field}
+            />
+        ),
         label: "Nome",
         description: "Esse é o nome do autor.",
     },

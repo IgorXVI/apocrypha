@@ -2,13 +2,7 @@ import Link from "next/link"
 
 import { Home, Menu, Crown } from "lucide-react"
 
-import {
-    Sheet,
-    SheetTrigger,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from "../ui/sheet"
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet"
 
 import { Button } from "../ui/button"
 
@@ -16,12 +10,18 @@ export default function MenuSheet() {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button size="icon" variant="ghost">
+                <Button
+                    size="icon"
+                    variant="ghost"
+                >
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Menu</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="sm:max-w-xs">
+            <SheetContent
+                side="left"
+                className="sm:max-w-xs"
+            >
                 <SheetHeader>
                     <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
