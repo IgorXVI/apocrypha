@@ -148,6 +148,27 @@ const getMany =
             }
         })
 
+class AdminQueries<T, F extends string, C, U> {
+    constructor(
+        private model: AnyModel,
+        private slug: string,
+        private searchAttrs: F[],
+    ) {}
+
+    getMany = getMany<T>({
+        attrs: this.searchAttrs,
+        model: this.model,
+    })
+
+    getOne = getOne<T>(this.model)
+
+    createOne = createOne<C>(this.model, this.slug)
+
+    updateOne = updateOne<U>(this.model, this.slug)
+
+    deleteOne = deleteOne(this.model, this.slug)
+}
+
 const createAdminQueries = <T, F extends string, C, U>(
     model: AnyModel,
     slug: string,
@@ -267,6 +288,58 @@ const bookAdminQueries = createAdminQueries<
 ])
 export const bookGetMany = bookAdminQueries.getMany
 export const bookGetOne = bookAdminQueries.getOne
-export const bookCreateOne = bookAdminQueries.createOne
 export const bookUpdateOne = bookAdminQueries.updateOne
 export const bookDeleteOne = bookAdminQueries.deleteOne
+
+export const bookCreateOne = async (data: {
+    price: number
+    amount: number
+    title: string
+    descriptionTitle: string
+    description: string
+    pages: number
+    publicationDate: Date
+    isbn10Code: string
+    isbn13Code: string
+    width: number
+    height: number
+    length: number
+    edition?: string
+    categoryId: string
+    publisherId: string
+    languageId: string
+    currencyId: string
+    seriesId?: string
+    imagesArr: string[]
+    authorIds: string[]
+    translatorIds: string[]
+}) => {
+    const displayImages = data.imagesArr.map((image, index) => ({
+        url: image,
+        order: index,
+    }))
+
+    const AuthorOnBook = data.authorIds.map((authorId, index) => ({
+        authorId,
+        main: index === 0,
+    }))
+
+    const TranslatorOnBook = data.translatorIds.map((translatorId, index) => ({
+        translatorId,
+        main: index === 0,
+    }))
+
+    const stripeId = "UM ID"
+
+    return bookAdminQueries.createOne({
+        ...data,
+        DisplayImage: { createMany: { data: displayImages } },
+        AuthorOnBook: { createMany: { data: AuthorOnBook } },
+        TranslatorOnBook: { createMany: { data: TranslatorOnBook } },
+        Category: { connect: { id: data.categoryId } },
+        Publisher: { connect: { id: data.publisherId } },
+        Language: { connect: { id: data.languageId } },
+        currency: { connect: { id: data.currencyId } },
+        stripeId,
+    })
+}
