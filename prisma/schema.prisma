@@ -37,7 +37,7 @@ model Book {
     DisplayImage     DisplayImage[]
     Series           Series?            @relation(fields: [seriesId], references: [id])
     seriesId         String?            @db.Uuid
-    currency         Currency           @relation(fields: [currencyId], references: [id])
+    Currency         Currency           @relation(fields: [currencyId], references: [id])
     currencyId       String             @db.Uuid
 }
 

@@ -46,7 +46,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         deleteOneQuery: (id: string) => Promise<CommonDBReturn<undefined>>
         updateOneQuery: (id: string, values: I) => Promise<CommonDBReturn<undefined>>
         createOneQuery: (values: I) => Promise<CommonDBReturn<undefined>>
-        getOneQuery: (id: string) => Promise<CommonDBReturn<D>>
+        getOneQuery: (id: string) => Promise<CommonDBReturn<I>>
         defaultValues: I
         formSchema: ZodObject<ZodRawShape>
         inputKeyMap: Record<

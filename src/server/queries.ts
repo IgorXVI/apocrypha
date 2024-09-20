@@ -95,9 +95,20 @@ const getOne =
             return row as T
         })
 
+type GetManyInput = {
+    take: number
+    skip: number
+    searchTerm: string
+}
+
+type GetManyOutput<T> = {
+    total: number
+    rows: T[]
+}
+
 const getMany =
     <T>({ attrs, model }: { attrs: string[]; model: AnyModel }) =>
-    (input: { take: number; skip: number; searchTerm: string }) =>
+    (input: GetManyInput): Promise<CommonDBReturn<GetManyOutput<T>>> =>
         errorHandler(async () => {
             const whereClause = {
                 OR: attrs.reduce(
@@ -241,15 +252,7 @@ export const languageCreateOne = async (...args: Parameters<typeof languageAdmin
 export const languageUpdateOne = async (...args: Parameters<typeof languageAdminQueries.updateOne>) => languageAdminQueries.updateOne(...args)
 export const languageDeleteOne = async (...args: Parameters<typeof languageAdminQueries.deleteOne>) => languageAdminQueries.deleteOne(...args)
 
-const bookAdminQueries = createAdminQueries<
-    Prisma.BookGetPayload<Prisma.BookDefaultArgs>,
-    Prisma.BookScalarFieldEnum,
-    Prisma.BookCreateInput,
-    Prisma.BookUpdateInput
->(db.book as unknown as AnyModel, "book", ["title", "description", "edition", "isbn10Code", "isbn13Code", "descriptionTitle", "seriesId"])
-export const bookGetMany = async (...args: Parameters<typeof bookAdminQueries.getMany>) => bookAdminQueries.getMany(...args)
-export const bookGetOne = async (...args: Parameters<typeof bookAdminQueries.getOne>) => bookAdminQueries.getOne(...args)
-export const bookDeleteOne = async (...args: Parameters<typeof bookAdminQueries.deleteOne>) => bookAdminQueries.deleteOne(...args)
+export const bookDeleteOne = async (id: string) => deleteOne(db.book as unknown as AnyModel, "book")(id)
 
 type BookDataInput = {
     price: number
@@ -275,7 +278,7 @@ type BookDataInput = {
     translatorIds: string[]
 }
 
-const transformBookData = (data: BookDataInput) => {
+const transformBookInput = (data: BookDataInput) => {
     const displayImages = data.imagesArr.map((image, index) => ({
         url: image,
         order: index,
@@ -292,41 +295,237 @@ const transformBookData = (data: BookDataInput) => {
     }))
 
     return {
-        displayImages,
-        authors,
-        translators,
+        amount: data.amount,
+        title: data.title,
+        descriptionTitle: data.descriptionTitle,
+        description: data.description,
+        pages: data.pages,
+        publicationDate: data.publicationDate,
+        isbn10Code: data.isbn10Code,
+        isbn13Code: data.isbn13Code,
+        width: data.width,
+        height: data.height,
+        length: data.length,
+        price: data.price,
+        DisplayImage: { createMany: { data: displayImages } },
+        AuthorOnBook: { createMany: { data: authors } },
+        TranslatorOnBook: { createMany: { data: translators } },
+        Category: { connect: { id: data.categoryId } },
+        Publisher: { connect: { id: data.publisherId } },
+        Language: { connect: { id: data.languageId } },
+        Currency: { connect: { id: data.currencyId } },
     }
 }
 
-export const bookCreateOne = async (data: BookDataInput) => {
-    const { authors, displayImages, translators } = transformBookData(data)
+export const bookCreateOne = async (data: BookDataInput) =>
+    errorHandler(async () => {
+        const dataForDB = transformBookInput(data)
 
-    const stripeId = "UM ID"
+        const stripeId = "UM ID"
 
-    return bookAdminQueries.createOne({
-        ...data,
-        DisplayImage: { createMany: { data: displayImages } },
-        AuthorOnBook: { createMany: { data: authors } },
-        TranslatorOnBook: { createMany: { data: translators } },
-        Category: { connect: { id: data.categoryId } },
-        Publisher: { connect: { id: data.publisherId } },
-        Language: { connect: { id: data.languageId } },
-        currency: { connect: { id: data.currencyId } },
-        stripeId,
+        await db.book.create({
+            data: {
+                ...dataForDB,
+                stripeId,
+            },
+        })
+
+        revalidatePath(`/admin/book`)
+
+        return undefined
     })
+
+export const bookUpdateOne = async (id: string, data: BookDataInput) =>
+    errorHandler(async () => {
+        const dataForDB = transformBookInput(data)
+
+        await db.book.update({
+            where: {
+                id,
+            },
+            data: dataForDB,
+        })
+
+        revalidatePath(`/admin/book`)
+
+        return undefined
+    })
+
+export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInput>> =>
+    errorHandler(async () => {
+        const row = await db.book.findUnique({
+            where: {
+                id,
+            },
+            include: {
+                AuthorOnBook: {
+                    select: {
+                        authorId: true,
+                    },
+                },
+                TranslatorOnBook: {
+                    select: {
+                        bookId: true,
+                    },
+                },
+                DisplayImage: {
+                    orderBy: {
+                        order: "asc",
+                    },
+                    select: {
+                        url: true,
+                    },
+                },
+            },
+        })
+
+        if (!row) {
+            throw new Error("Not found")
+        }
+
+        return {
+            ...row,
+            authorIds: row.AuthorOnBook.map((author) => author.authorId),
+            translatorIds: row.TranslatorOnBook.map((translator) => translator.bookId),
+            imagesArr: row.DisplayImage.map((image) => image.url),
+            price: row.price.toNumber(),
+            edition: row.edition ?? undefined,
+            seriesId: row.seriesId ?? undefined,
+        }
+    })
+
+export type BookGetManyOutput = {
+    id: string
+    price: number
+    amount: number
+    title: string
+    descriptionTitle: string
+    description: string
+    pages: number
+    publicationDate: Date
+    isbn10Code: string
+    isbn13Code: string
+    width: number
+    height: number
+    length: number
+    edition?: string
+    categoryName: string
+    publisherName: string
+    languageName: string
+    currencyLabel: string
+    seriesName?: string
+    mainImageUrl: string
+    mainAuthorName: string
+    mainTranslatorName: string
 }
 
-export const bookUpdateOne = async (id: string, data: BookDataInput) => {
-    const { authors, displayImages, translators } = transformBookData(data)
+export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<GetManyOutput<BookGetManyOutput>>> =>
+    errorHandler(async () => {
+        const [rowsResult, totalResult] = await Promise.allSettled([
+            db.book.findMany({
+                take: input.take,
+                skip: input.skip,
+                where: {
+                    title: {
+                        startsWith: input.searchTerm,
+                    },
+                },
+                include: {
+                    AuthorOnBook: {
+                        where: {
+                            main: true,
+                        },
+                        select: {
+                            Author: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                    TranslatorOnBook: {
+                        where: {
+                            main: true,
+                        },
+                        select: {
+                            Translator: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
 
-    return bookAdminQueries.updateOne(id, {
-        ...data,
-        DisplayImage: { createMany: { data: displayImages } },
-        AuthorOnBook: { createMany: { data: authors } },
-        TranslatorOnBook: { createMany: { data: translators } },
-        Category: { connect: { id: data.categoryId } },
-        Publisher: { connect: { id: data.publisherId } },
-        Language: { connect: { id: data.languageId } },
-        currency: { connect: { id: data.currencyId } },
+                    DisplayImage: {
+                        orderBy: {
+                            order: "asc",
+                        },
+                        select: {
+                            url: true,
+                        },
+                        take: 1,
+                    },
+
+                    Category: {
+                        select: {
+                            name: true,
+                        },
+                    },
+
+                    Publisher: {
+                        select: {
+                            name: true,
+                        },
+                    },
+
+                    Language: {
+                        select: {
+                            name: true,
+                        },
+                    },
+
+                    Currency: {
+                        select: {
+                            label: true,
+                        },
+                    },
+                },
+            }),
+
+            db.book.count({
+                where: {
+                    title: {
+                        startsWith: input.searchTerm,
+                    },
+                },
+            }),
+        ])
+
+        if (rowsResult.status === "rejected") {
+            throw rowsResult.reason
+        }
+
+        if (totalResult.status === "rejected") {
+            throw totalResult.reason
+        }
+
+        const total = totalResult.value
+        const rows = rowsResult.value.map((row) => ({
+            ...row,
+            price: row.price.toNumber(),
+            edition: row.edition ?? undefined,
+            seriesId: row.seriesId ?? undefined,
+            mainImageUrl: row.DisplayImage[0]?.url ?? "",
+            mainAuthorName: row.AuthorOnBook[0]?.Author.name ?? "",
+            mainTranslatorName: row.TranslatorOnBook[0]?.Translator.name ?? "",
+            categoryName: row.Category.name,
+            publisherName: row.Publisher.name,
+            languageName: row.Language.name,
+            currencyLabel: row.Currency.label,
+        }))
+
+        return {
+            total,
+            rows,
+        }
     })
-}

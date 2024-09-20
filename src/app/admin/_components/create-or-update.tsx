@@ -11,12 +11,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { dbQueryWithToast } from "~/lib/toasting"
 import { type CommonDBReturn } from "~/server/queries"
 
-export default function CreateOrUpdate<I, D>(props: {
+export default function CreateOrUpdate<I>(props: {
     paramsPrefix: string
     formSchema: ZodObject<ZodRawShape>
     dbMutation: (values: I) => Promise<CommonDBReturn<undefined>>
     defaultValues: I
-    dbGetOne?: () => Promise<CommonDBReturn<D>>
+    dbGetOne?: () => Promise<CommonDBReturn<I>>
     inputKeyMap: Record<
         string,
         {
