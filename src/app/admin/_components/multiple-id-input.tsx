@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckIcon, AArrowDown, Loader2Icon } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, Loader2Icon } from "lucide-react"
 import { useState } from "react"
 import { Button } from "~/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command"
@@ -18,8 +18,23 @@ export default function MultipleIdInput(props: {
     label: string
 }) {
     const [suggestions, setSuggestions] = useState<CommonSuggestion[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
     const [open, setOpen] = useState(false)
+
+    const handleSuggestionsSearch = useDebouncedCallback(async (searchTerm: string) => {
+        setIsLoading(true)
+        const suggestions = await dbQueryWithToast({
+            dbQuery: () => props.getSuggestions(searchTerm),
+            mutationName: "get-suggestions",
+            waitingMessage: "Buscando...",
+            successMessage: "Busca concluída",
+        })
+        setIsLoading(false)
+
+        if (suggestions) {
+            setSuggestions(suggestions)
+        }
+    }, 500)
 
     return (
         <Popover
@@ -31,31 +46,19 @@ export default function MultipleIdInput(props: {
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-[200px] justify-between"
+                    className="ml-2 justify-between"
+                    onClick={() => suggestions.length === 0 && handleSuggestionsSearch("")}
                 >
-                    {props.value ? suggestions.find((s) => s.id === props.value[0])?.name : `Selecione ${props.label}...`}
-                    <AArrowDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    {props.value && props.value.length > 0 ? suggestions.find((s) => s.id === props.value[0])?.name : `Selecione ${props.label}...`}
+                    <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent>
                 <Command>
                     <CommandInput
                         placeholder={`Pesquise ${props.label}...`}
                         className="h-9"
-                        onInput={useDebouncedCallback(async (e) => {
-                            const suggestions = await dbQueryWithToast({
-                                dbQuery: () => props.getSuggestions(e.target.value),
-                                mutationName: "get-suggestions",
-                                waitingMessage: "Buscando sugestões...",
-                                successMessage: "Sugestões encontradas",
-                            })
-
-                            setIsLoading(false)
-
-                            if (suggestions) {
-                                setSuggestions(suggestions)
-                            }
-                        }, 300)}
+                        onInput={(e: React.ChangeEvent<HTMLInputElement>) => handleSuggestionsSearch(e.target.value)}
                     />
 
                     <CommandList>

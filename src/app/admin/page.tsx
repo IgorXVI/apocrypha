@@ -4,7 +4,7 @@ export default function Admin() {
             <h1>OI ADEMIR</h1>
             <nav className="underline flex flex-col gap-3">
                 <li>
-                    <a href="/admin/books">Livros</a>
+                    <a href="/admin/book">Livros</a>
                 </li>
                 <li>
                     <a href="/admin/author">Autores</a>

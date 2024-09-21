@@ -23,6 +23,7 @@ export default function CreateOrUpdate<I>(props: {
             node: (field: ControllerRenderProps<FieldValues, Path<I>>) => React.ReactNode
             label: string
             description: string | React.ReactNode
+            className?: string
         }
     >
     waitingMessage: string
@@ -75,7 +76,7 @@ export default function CreateOrUpdate<I>(props: {
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col gap-3"
+                className="flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-6"
             >
                 {fieldNames.map((key, index) => (
                     <FormField
@@ -84,7 +85,7 @@ export default function CreateOrUpdate<I>(props: {
                         control={form.control}
                         name={key as Path<I>}
                         render={({ field }) => (
-                            <FormItem>
+                            <FormItem className={props.inputKeyMap[key]?.className ?? "flex flex-col justify-center"}>
                                 <FormLabel>{props.inputKeyMap[key]?.label}</FormLabel>
                                 <FormControl>{props.inputKeyMap[key]?.node(field)}</FormControl>
                                 <FormDescription>{props.inputKeyMap[key]?.description}</FormDescription>
@@ -93,7 +94,7 @@ export default function CreateOrUpdate<I>(props: {
                         )}
                     />
                 ))}
-                <div className="flex flex-row items-center justify-center p-2">
+                <div className="flex flex-row items-center justify-center p-2 md:col-span-2">
                     <Button
                         disabled={form.formState.isSubmitting || form.formState.isLoading}
                         type="submit"

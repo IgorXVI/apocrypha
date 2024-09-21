@@ -35,12 +35,14 @@ const inputKeyMap: Record<
         node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
+        className?: string
     }
 > = {
     imgUrl: {
         node: (field) => <SingleImageField {...field}></SingleImageField>,
         label: "Imagem de perfil",
         description: "Escolha a foto para o perfil do autor.",
+        className: "md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%]",
     },
     name: {
         node: (field) => (

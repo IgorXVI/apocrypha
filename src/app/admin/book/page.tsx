@@ -25,6 +25,8 @@ import { DatePicker } from "../_components/date-picker"
 import MultipleImageField from "../_components/multiple-image-field"
 import IdInput from "../_components/id-input"
 import MultipleIdInput from "../_components/multiple-id-input"
+import { Textarea } from "~/components/ui/textarea"
+import NumberInput from "../_components/number-input"
 
 const zodValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }),
@@ -86,28 +88,9 @@ const inputKeyMap: Record<
         node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
+        className?: string
     }
 > = {
-    price: {
-        node: (field) => (
-            <Input
-                type="number"
-                {...field}
-            />
-        ),
-        label: "Preço",
-        description: "Esse é o preço do livro.",
-    },
-    amount: {
-        node: (field) => (
-            <Input
-                type="number"
-                {...field}
-            />
-        ),
-        label: "Quantidade em Estoque",
-        description: "Esse é a quantidade em estoque do livro.",
-    },
     title: {
         node: (field) => (
             <Input
@@ -130,7 +113,8 @@ const inputKeyMap: Record<
     },
     description: {
         node: (field) => (
-            <Input
+            <Textarea
+                className="h-[25vh]"
                 placeholder="O livro é muito bom pois ele fala sobre..."
                 {...field}
             />
@@ -138,13 +122,29 @@ const inputKeyMap: Record<
         label: "Descrição",
         description: "Esse é a descrição do livro.",
     },
-    pages: {
+    currencyId: {
         node: (field) => (
-            <Input
-                type="number"
+            <IdInput
+                label="moeda"
+                getSuggestions={getCurrencySuggestions}
                 {...field}
             />
         ),
+        label: "Moeda",
+        description: "Escolha a moeda do livro.",
+    },
+    price: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Preço",
+        description: "Esse é o preço do livro.",
+    },
+    amount: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Quantidade em Estoque",
+        description: "Esse é a quantidade em estoque do livro.",
+    },
+    pages: {
+        node: (field) => <NumberInput {...field} />,
         label: "Quantidade de Páginas",
         description: "Esse é a quantidade de páginas do livro.",
     },
@@ -174,32 +174,17 @@ const inputKeyMap: Record<
         description: "Esse é o código ISBN-13 do livro.",
     },
     width: {
-        node: (field) => (
-            <Input
-                type="number"
-                {...field}
-            />
-        ),
+        node: (field) => <NumberInput {...field} />,
         label: "Largura (mm)",
         description: "Esse é a largura do livro em milímetros.",
     },
     height: {
-        node: (field) => (
-            <Input
-                type="number"
-                {...field}
-            />
-        ),
+        node: (field) => <NumberInput {...field} />,
         label: "Altura (mm)",
         description: "Esse é a altura do livro em milímetros.",
     },
     length: {
-        node: (field) => (
-            <Input
-                type="number"
-                {...field}
-            />
-        ),
+        node: (field) => <NumberInput {...field} />,
         label: "Comprimento (mm)",
         description: "Esse é o comprimento do livro em milímetros.",
     },
@@ -257,17 +242,6 @@ const inputKeyMap: Record<
         label: "Série",
         description: "Escolha a série do livro.",
     },
-    currencyId: {
-        node: (field) => (
-            <IdInput
-                label="moeda"
-                getSuggestions={getCurrencySuggestions}
-                {...field}
-            />
-        ),
-        label: "Moeda",
-        description: "Escolha a moeda do livro.",
-    },
     authorIds: {
         node: (field) => (
             <MultipleIdInput
@@ -292,8 +266,9 @@ const inputKeyMap: Record<
     },
     imagesArr: {
         node: (field) => <MultipleImageField {...field}></MultipleImageField>,
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Imagens",
+        description: "Selecione as imagens para o anúncio do livro.",
+        className: "md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%]",
     },
 }
 
@@ -308,7 +283,8 @@ export default function MainPage() {
                 "ID",
                 "Imagem",
                 "Preço",
-                "Quantidade em Estoque",
+                "Moeda",
+                "Estoque",
                 "Stripe ID",
                 "Título",
                 "Descrição",
@@ -321,7 +297,7 @@ export default function MainPage() {
                 "Comprimento (mm)",
                 "Edição",
                 "Idioma",
-                "Moeda",
+                "Categoria",
                 "Editora",
                 "Série",
                 "Autor",
@@ -332,6 +308,7 @@ export default function MainPage() {
                     "id",
                     "mainImageUrl",
                     "price",
+                    "currencyLabel",
                     "amount",
                     "stripeId",
                     "title",
@@ -345,7 +322,6 @@ export default function MainPage() {
                     "length",
                     "edition",
                     "languageName",
-                    "currencyLabel",
                     "categoryName",
                     "publisherName",
                     "seriesName",
@@ -359,7 +335,8 @@ export default function MainPage() {
             createOneQuery={bookCreateOne}
             updateOneQuery={bookUpdateOne}
             defaultValues={defaultValues}
-            inputKeyMap={inputKeyMap}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            inputKeyMap={inputKeyMap as any}
             formSchema={zodValidationSchema}
         ></SearchPage>
     )

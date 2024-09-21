@@ -55,6 +55,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                 node: (field: ControllerRenderProps<FieldValues, Path<I>>) => React.ReactNode
                 label: string
                 description: string | React.ReactNode
+                className?: string
             }
         >
     }>,
@@ -287,6 +288,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                                             <FieldTooLong content={row[attr]}></FieldTooLong>
                                                         ) : !row[attr] ? (
                                                             "N/A"
+                                                        ) : row[attr] instanceof Date ? (
+                                                            row[attr].toLocaleDateString()
                                                         ) : (
                                                             row[attr]
                                                         )}
@@ -412,7 +415,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                     }
                 }}
             >
-                <DialogContent className="overflow-y-scroll max-h-full scrollbar-none">
+                <DialogContent className="overflow-y-scroll max-h-full scrollbar-none md:max-w-[60vw]">
                     {searchParams.has(ModalParams.delete) && (
                         <>
                             <DialogHeader>
