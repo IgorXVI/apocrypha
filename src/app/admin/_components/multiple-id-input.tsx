@@ -33,7 +33,7 @@ export default function MultipleIdInput(props: {
                     aria-expanded={open}
                     className="w-[200px] justify-between"
                 >
-                    {props.value ? suggestions.find((s) => s.id === props.value)?.name : `Selecione ${props.label}...`}
+                    {props.value ? suggestions.find((s) => s.id === props.value[0])?.name : `Selecione ${props.label}...`}
                     <AArrowDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
@@ -67,17 +67,18 @@ export default function MultipleIdInput(props: {
                                 </CommandItem>
                             )}
                             {!isLoading &&
+                                suggestions.length > 0 &&
                                 suggestions.map((s) => (
                                     <CommandItem
                                         key={s.id}
                                         value={s.id}
                                         onSelect={(currentValue) => {
-                                            props.onChange(currentValue)
+                                            props.onChange((props.value || []).concat(currentValue))
                                             setOpen(false)
                                         }}
                                     >
                                         {s.name}
-                                        <CheckIcon className={cn("ml-auto h-4 w-4", props.value === s.id ? "opacity-100" : "opacity-0")} />
+                                        <CheckIcon className={cn("ml-auto h-4 w-4", props.value.includes(s.id) ? "opacity-100" : "opacity-0")} />
                                     </CommandItem>
                                 ))}
                         </CommandGroup>

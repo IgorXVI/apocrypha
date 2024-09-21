@@ -15,6 +15,8 @@ import {
     getLanguageSuggestions,
     getSeriesSuggestions,
     getCurrencySuggestions,
+    getAuthorSuggestions,
+    getTranslatorSuggestions,
 } from "~/server/book-queries"
 import { type BookGetManyOneRowOutput } from "~/server/types"
 
@@ -22,6 +24,7 @@ import SearchPage from "~/app/admin/_components/search-page"
 import { DatePicker } from "../_components/date-picker"
 import MultipleImageField from "../_components/multiple-image-field"
 import IdInput from "../_components/id-input"
+import MultipleIdInput from "../_components/multiple-id-input"
 
 const zodValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }),
@@ -267,23 +270,25 @@ const inputKeyMap: Record<
     },
     authorIds: {
         node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
+            <MultipleIdInput
+                getSuggestions={getAuthorSuggestions}
+                label="autores"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Autores",
+        description: "Escolha os autores do livro.",
     },
     translatorIds: {
         node: (field) => (
-            <Input
-                placeholder="Rogério da Silva"
+            <MultipleIdInput
+                getSuggestions={getTranslatorSuggestions}
+                label="tradutores"
                 {...field}
             />
         ),
-        label: "Nome",
-        description: "Esse é o nome do Tradutor.",
+        label: "Tradutores",
+        description: "Escolha os tradutores do livro.",
     },
     imagesArr: {
         node: (field) => <MultipleImageField {...field}></MultipleImageField>,

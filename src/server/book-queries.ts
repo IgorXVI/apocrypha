@@ -354,3 +354,39 @@ export const getCurrencySuggestions = async (searchTerm: string) =>
             name: s.iso4217Code,
         }))
     })
+
+export const getAuthorSuggestions = async (searchTerm: string) =>
+    errorHandler(async () => {
+        const suggestions = await db.author.findMany({
+            where: {
+                name: {
+                    startsWith: searchTerm,
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            take: 5,
+        })
+
+        return suggestions
+    })
+
+export const getTranslatorSuggestions = async (searchTerm: string) =>
+    errorHandler(async () => {
+        const suggestions = await db.translator.findMany({
+            where: {
+                name: {
+                    startsWith: searchTerm,
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            take: 5,
+        })
+
+        return suggestions
+    })
