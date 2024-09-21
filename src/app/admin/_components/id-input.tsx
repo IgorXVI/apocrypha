@@ -1,18 +1,17 @@
 "use client"
 
 import { CheckIcon, ChevronsUpDownIcon, Loader2Icon } from "lucide-react"
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Button } from "~/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
-import { dbQueryWithToast } from "~/lib/toasting"
 import { type CommonDBReturn, type CommonSuggestion } from "~/server/types"
 import { cn } from "~/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
 
 export default function IdInput(props: {
     onChange: (value: string) => void
-    value: string
+    value?: string
     disabled?: boolean
     getSuggestions: (searchTerm: string) => Promise<CommonDBReturn<CommonSuggestion[]>>
     label: string
@@ -21,20 +20,24 @@ export default function IdInput(props: {
     const [isLoading, setIsLoading] = useState(false)
     const [open, setOpen] = useState(false)
 
-    const handleSuggestionsSearch = useDebouncedCallback(async (searchTerm: string) => {
-        setIsLoading(true)
-        const suggestions = await dbQueryWithToast({
-            dbQuery: () => props.getSuggestions(searchTerm),
-            mutationName: "get-suggestions",
-            waitingMessage: "Buscando...",
-            successMessage: "Busca concluída",
-        })
-        setIsLoading(false)
+    const searchSuggestions = useCallback(
+        async (searchTerm: string) => {
+            setIsLoading(true)
+            const suggestions = await props.getSuggestions(searchTerm)
+            setIsLoading(false)
 
-        if (suggestions) {
-            setSuggestions(suggestions)
-        }
-    }, 500)
+            if (suggestions.data) {
+                setSuggestions(suggestions.data)
+            }
+        },
+        [props],
+    )
+
+    useEffect(() => {
+        searchSuggestions("").catch((error) => console.log(error))
+    }, [searchSuggestions])
+
+    const handleSuggestionsSearch = useDebouncedCallback(searchSuggestions, 500)
 
     return (
         <Popover
@@ -47,7 +50,6 @@ export default function IdInput(props: {
                     role="combobox"
                     aria-expanded={open}
                     className="ml-2 justify-between"
-                    onClick={() => suggestions.length === 0 && handleSuggestionsSearch("")}
                 >
                     {props.value && props.value !== "" ? suggestions.find((s) => s.id === props.value)?.name : `Selecione ${props.label}...`}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />

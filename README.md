@@ -7,3 +7,4 @@
 -   [x] Criar página de admin para books
 -   [ ] Melhorar input de data do calendário
 -   [ ] Melhorar input de várias imagens
+-   [ ] Melhorar input de vários ids
