@@ -48,6 +48,7 @@ export default function IdInput(props: {
                     role="combobox"
                     aria-expanded={open}
                     className="ml-2 justify-between"
+                    disabled={props.disabled}
                 >
                     {props.value && props.value !== "" ? suggestions.find((s) => s.id === props.value)?.name : `Selecione ${props.label}...`}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />

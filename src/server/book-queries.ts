@@ -8,6 +8,7 @@ import { errorHandler } from "./generic-queries"
 
 import { deleteOne } from "./generic-queries"
 import { type BookGetManyOneRowOutput, type AnyModel, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
+import { archiveProduct, createProduct } from "./stripe-api"
 
 export const bookDeleteOne = async (id: string) => deleteOne(db.book as unknown as AnyModel, "book")(id)
 
@@ -81,11 +82,40 @@ const transformBookInput = (data: BookDataInput) => {
     }
 }
 
+const createStripeProduct = async (data: BookDataInput) => {
+    const currency = await db.currency.findUnique({
+        where: {
+            id: data.currencyId,
+        },
+        select: {
+            iso4217Code: true,
+        },
+    })
+
+    if (!currency) {
+        throw new Error("Currency not found")
+    }
+
+    const stripeResponse = await createProduct({
+        name: data.title,
+        price: data.price,
+        currency: currency.iso4217Code,
+        mainImg: data.mainImgUrl,
+    })
+
+    if (!stripeResponse.success) {
+        throw new Error(stripeResponse.message)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return stripeResponse.productId
+}
+
 export const bookCreateOne = async (data: BookDataInput) =>
     errorHandler(async () => {
-        const dataForDB = transformBookInput(data)
+        const stripeId = await createStripeProduct(data)
 
-        const stripeId = "UM ID" + Math.random().toString(36).substring(2, 15)
+        const dataForDB = transformBookInput(data)
 
         await db.book.create({
             data: {
@@ -101,16 +131,28 @@ export const bookCreateOne = async (data: BookDataInput) =>
 
 export const bookUpdateOne = async (id: string, data: BookDataInput) =>
     errorHandler(async () => {
-        const dataForDB = transformBookInput(data)
-
-        const authorIds = dataForDB.AuthorOnBook.createMany.data.map((author) => author.authorId)
-        const translatorIds = dataForDB.TranslatorOnBook.createMany.data.map((translator) => translator.translatorId)
+        const authorIds = [data.authorId]
+        const translatorIds = [data.translatorId]
 
         const bookDBData = await db.book.findUnique({
             where: {
                 id,
             },
             include: {
+                Currency: {
+                    select: {
+                        id: true,
+                    },
+                },
+                DisplayImage: {
+                    take: 1,
+                    where: {
+                        order: 0,
+                    },
+                    select: {
+                        url: true,
+                    },
+                },
                 AuthorOnBook: {
                     where: {
                         authorId: {
@@ -134,17 +176,38 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
             },
         })
 
-        const deleteAuthorOnBook =
-            bookDBData?.AuthorOnBook.map((author) => ({
-                bookId: id,
-                authorId: author.authorId,
-            })) ?? []
+        if (!bookDBData) {
+            throw new Error("Book not found")
+        }
 
-        const deleteTranslatorOnBook =
-            bookDBData?.TranslatorOnBook.map((translator) => ({
-                bookId: id,
-                translatorId: translator.translatorId,
-            })) ?? []
+        let stripeId = bookDBData.stripeId
+
+        if (
+            data.title !== bookDBData.title ||
+            data.price !== bookDBData.price.toNumber() ||
+            data.currencyId !== bookDBData.Currency.id ||
+            data.mainImgUrl !== bookDBData.DisplayImage[0]?.url
+        ) {
+            const archiveProductResponse = await archiveProduct(bookDBData.stripeId)
+
+            if (!archiveProductResponse.success && !archiveProductResponse.message.includes("No such product")) {
+                throw new Error(archiveProductResponse.message)
+            }
+
+            stripeId = await createStripeProduct(data)
+        }
+
+        const deleteAuthorOnBook = bookDBData?.AuthorOnBook.map((author) => ({
+            bookId: id,
+            authorId: author.authorId,
+        }))
+
+        const deleteTranslatorOnBook = bookDBData?.TranslatorOnBook.map((translator) => ({
+            bookId: id,
+            translatorId: translator.translatorId,
+        }))
+
+        const dataForDB = transformBookInput(data)
 
         await db.book.update({
             where: {
@@ -152,6 +215,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
             },
             data: {
                 ...dataForDB,
+                stripeId,
                 DisplayImage: {
                     updateMany: dataForDB.DisplayImage.createMany.data.map((image) => ({
                         where: {

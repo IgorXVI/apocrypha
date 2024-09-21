@@ -49,9 +49,14 @@ export default function CreateOrUpdate<I>(props: {
                 return props.defaultValues as ZodRawShape
             }
 
-            const dbResult = await props.dbGetOne()
-            if (dbResult && dbResult.success && dbResult.data) {
-                return dbResult.data as ZodRawShape
+            const dbResult = await dbQueryWithToast({
+                dbQuery: props.dbGetOne,
+                mutationName: "getting",
+                waitingMessage: "Buscando dados...",
+                successMessage: "Busca realizada com sucesso",
+            })
+            if (dbResult) {
+                return dbResult as ZodRawShape
             }
             return props.defaultValues as ZodRawShape
         },
