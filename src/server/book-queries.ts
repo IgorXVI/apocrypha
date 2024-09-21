@@ -78,7 +78,7 @@ const transformBookInput = (data: BookDataInput) => {
         Publisher: { connect: { id: data.publisherId } },
         Language: { connect: { id: data.languageId } },
         Currency: { connect: { id: data.currencyId } },
-        Series: { connect: { id: data.seriesId } },
+        Series: data.seriesId ? { connect: { id: data.seriesId } } : undefined,
     }
 }
 
@@ -227,7 +227,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                     })),
                 },
                 AuthorOnBook: {
-                    deleteMany: deleteAuthorOnBook,
+                    deleteMany: deleteAuthorOnBook.length > 0 ? deleteAuthorOnBook : undefined,
                     connectOrCreate:
                         authorIds.length > 0
                             ? authorIds.map((authorId) => ({
@@ -245,7 +245,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                             : undefined,
                 },
                 TranslatorOnBook: {
-                    deleteMany: deleteTranslatorOnBook,
+                    deleteMany: deleteTranslatorOnBook.length > 0 ? deleteTranslatorOnBook : undefined,
                     connectOrCreate:
                         translatorIds.length > 0
                             ? translatorIds.map((translatorId) => ({
