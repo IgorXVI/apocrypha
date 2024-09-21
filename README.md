@@ -6,5 +6,6 @@
 -   [x] Melhorar scroll dos modais
 -   [x] Criar página de admin para books
 -   [ ] Melhorar input de data do calendário
--   [ ] Melhorar input de várias imagens
+-   [x] Melhorar input de várias imagens
 -   [ ] Melhorar input de vários ids
+-   [ ] Arrumar bug ao atualizar relações N->N

@@ -30,26 +30,31 @@ type BookDataInput = {
     languageId: string
     currencyId: string
     seriesId?: string
-    imagesArr: string[]
-    authorIds: string[]
-    translatorIds: string[]
+    mainImgUrl: string
+    authorId: string
+    translatorId: string
+    imgUrls: string[]
 }
 
 const transformBookInput = (data: BookDataInput) => {
-    const displayImages = data.imagesArr.map((image, index) => ({
+    const displayImages = [data.mainImgUrl].concat(data.imgUrls).map((image, index) => ({
         url: image,
         order: index,
     }))
 
-    const authors = data.authorIds.map((authorId, index) => ({
-        authorId,
-        main: index === 0,
-    }))
+    const authors = [
+        {
+            authorId: data.authorId,
+            main: true,
+        },
+    ]
 
-    const translators = data.translatorIds.map((translatorId, index) => ({
-        translatorId,
-        main: index === 0,
-    }))
+    const translators = [
+        {
+            translatorId: data.translatorId,
+            main: true,
+        },
+    ]
 
     return {
         amount: data.amount,
@@ -78,7 +83,7 @@ export const bookCreateOne = async (data: BookDataInput) =>
     errorHandler(async () => {
         const dataForDB = transformBookInput(data)
 
-        const stripeId = "UM ID"
+        const stripeId = "UM ID" + Math.random().toString(36).substring(2, 15)
 
         await db.book.create({
             data: {
@@ -140,11 +145,14 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
             throw new Error("Not found")
         }
 
+        const allImgUrls = row.DisplayImage.map((image) => image.url)
+
         return {
             ...row,
-            authorIds: row.AuthorOnBook.map((author) => author.authorId),
-            translatorIds: row.TranslatorOnBook.map((translator) => translator.bookId),
-            imagesArr: row.DisplayImage.map((image) => image.url),
+            authorId: row.AuthorOnBook[0]?.authorId ?? "",
+            translatorId: row.TranslatorOnBook[0]?.bookId ?? "",
+            mainImgUrl: allImgUrls[0] ?? "",
+            imgUrls: allImgUrls.slice(1),
             price: row.price.toNumber(),
             edition: row.edition ?? undefined,
             seriesId: row.seriesId ?? undefined,

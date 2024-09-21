@@ -37,8 +37,6 @@ export default function IdInput(props: {
         searchSuggestions("").catch((error) => console.log(error))
     }, [searchSuggestions])
 
-    const handleSuggestionsSearch = useDebouncedCallback(searchSuggestions, 500)
-
     return (
         <Popover
             open={open}
@@ -60,7 +58,7 @@ export default function IdInput(props: {
                     <CommandInput
                         placeholder={`Pesquise ${props.label}...`}
                         className="h-9"
-                        onInput={(e: React.ChangeEvent<HTMLInputElement>) => handleSuggestionsSearch(e.target.value)}
+                        onInput={useDebouncedCallback((e: React.ChangeEvent<HTMLInputElement>) => searchSuggestions(e.target.value), 500)}
                     />
 
                     <CommandList>

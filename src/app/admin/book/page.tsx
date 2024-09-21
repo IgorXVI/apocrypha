@@ -24,9 +24,9 @@ import SearchPage from "~/app/admin/_components/search-page"
 import { DatePicker } from "../_components/date-picker"
 import MultipleImageField from "../_components/multiple-image-field"
 import IdInput from "../_components/id-input"
-import MultipleIdInput from "../_components/multiple-id-input"
 import { Textarea } from "~/components/ui/textarea"
 import NumberInput from "../_components/number-input"
+import SingleImageField from "../_components/single-image-field"
 
 const zodValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }),
@@ -49,9 +49,10 @@ const zodValidationSchema = z.object({
     languageId: z.string().uuid({ message: "O ID do idioma é inválido." }),
     currencyId: z.string().uuid({ message: "O ID da moeda é inválido." }),
     seriesId: z.string().uuid({ message: "O ID da série é inválido." }).optional(),
-    imagesArr: z.array(z.string().url({ message: "URL da imagem inválida." })),
-    authorIds: z.array(z.string().uuid({ message: "ID do autor inválido." })),
-    translatorIds: z.array(z.string().uuid({ message: "ID do tradutor inválido." })),
+    imgUrls: z.array(z.string().url({ message: "URL da imagem inválida." })),
+    mainImgUrl: z.string().url({ message: "URL da imagem inválida." }),
+    authorId: z.string().uuid({ message: "ID do autor inválido." }),
+    translatorId: z.string().uuid({ message: "ID do tradutor inválido." }),
 })
 
 type SchemaType = z.infer<typeof zodValidationSchema>
@@ -75,9 +76,10 @@ const defaultValues: SchemaType = {
     languageId: "",
     seriesId: "",
     currencyId: "",
-    authorIds: [],
-    translatorIds: [],
-    imagesArr: [],
+    authorId: "",
+    translatorId: "",
+    imgUrls: [],
+    mainImgUrl: "",
 }
 
 type ModelAttrs = keyof SchemaType
@@ -91,6 +93,18 @@ const inputKeyMap: Record<
         className?: string
     }
 > = {
+    mainImgUrl: {
+        node: (field) => <SingleImageField {...field} />,
+        label: "Imagem Principal",
+        description: "Selecione a imagem principal do livro.",
+        className: "md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%]",
+    },
+    imgUrls: {
+        node: (field) => <MultipleImageField {...field}></MultipleImageField>,
+        label: "Imagens",
+        description: "Selecione as imagens para o anúncio do livro.",
+        className: "md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%]",
+    },
     title: {
         node: (field) => (
             <Input
@@ -110,6 +124,11 @@ const inputKeyMap: Record<
         ),
         label: "Título da Descrição",
         description: "Esse é o título da descrição do livro.",
+    },
+    pages: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Quantidade de Páginas",
+        description: "Esse é a quantidade de páginas do livro.",
     },
     description: {
         node: (field) => (
@@ -132,6 +151,7 @@ const inputKeyMap: Record<
         ),
         label: "Moeda",
         description: "Escolha a moeda do livro.",
+        className: "max-w-[250px]",
     },
     price: {
         node: (field) => <NumberInput {...field} />,
@@ -142,11 +162,6 @@ const inputKeyMap: Record<
         node: (field) => <NumberInput {...field} />,
         label: "Quantidade em Estoque",
         description: "Esse é a quantidade em estoque do livro.",
-    },
-    pages: {
-        node: (field) => <NumberInput {...field} />,
-        label: "Quantidade de Páginas",
-        description: "Esse é a quantidade de páginas do livro.",
     },
     publicationDate: {
         node: (field) => <DatePicker {...field} />,
@@ -242,33 +257,28 @@ const inputKeyMap: Record<
         label: "Série",
         description: "Escolha a série do livro.",
     },
-    authorIds: {
+    authorId: {
         node: (field) => (
-            <MultipleIdInput
+            <IdInput
                 getSuggestions={getAuthorSuggestions}
-                label="autores"
+                label="autor"
                 {...field}
             />
         ),
-        label: "Autores",
-        description: "Escolha os autores do livro.",
+        label: "Autor",
+        description: "Escolha o autor do livro.",
     },
-    translatorIds: {
+
+    translatorId: {
         node: (field) => (
-            <MultipleIdInput
+            <IdInput
                 getSuggestions={getTranslatorSuggestions}
-                label="tradutores"
+                label="tradutor"
                 {...field}
             />
         ),
-        label: "Tradutores",
-        description: "Escolha os tradutores do livro.",
-    },
-    imagesArr: {
-        node: (field) => <MultipleImageField {...field}></MultipleImageField>,
-        label: "Imagens",
-        description: "Selecione as imagens para o anúncio do livro.",
-        className: "md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%]",
+        label: "Tradutor",
+        description: "Escolha o tradutor do livro.",
     },
 }
 
