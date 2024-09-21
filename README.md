@@ -10,3 +10,4 @@
 -   [ ] Melhorar input de vários ids
 -   [x] Arrumar bug ao atualizar relações N->N
 -   [ ] Arrumar bug no input de id
+-   [ ] Adicionar cadastro de livros no stripe
