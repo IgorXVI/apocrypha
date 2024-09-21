@@ -101,11 +101,102 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
     errorHandler(async () => {
         const dataForDB = transformBookInput(data)
 
+        const authorIds = dataForDB.AuthorOnBook.createMany.data.map((author) => author.authorId)
+        const translatorIds = dataForDB.TranslatorOnBook.createMany.data.map((translator) => translator.translatorId)
+
+        const bookDBData = await db.book.findUnique({
+            where: {
+                id,
+            },
+            include: {
+                AuthorOnBook: {
+                    where: {
+                        authorId: {
+                            notIn: authorIds,
+                        },
+                    },
+                    select: {
+                        authorId: true,
+                    },
+                },
+                TranslatorOnBook: {
+                    where: {
+                        translatorId: {
+                            notIn: translatorIds,
+                        },
+                    },
+                    select: {
+                        translatorId: true,
+                    },
+                },
+            },
+        })
+
+        const deleteAuthorOnBook =
+            bookDBData?.AuthorOnBook.map((author) => ({
+                bookId: id,
+                authorId: author.authorId,
+            })) ?? []
+
+        const deleteTranslatorOnBook =
+            bookDBData?.TranslatorOnBook.map((translator) => ({
+                bookId: id,
+                translatorId: translator.translatorId,
+            })) ?? []
+
         await db.book.update({
             where: {
                 id,
             },
-            data: dataForDB,
+            data: {
+                ...dataForDB,
+                DisplayImage: {
+                    updateMany: dataForDB.DisplayImage.createMany.data.map((image) => ({
+                        where: {
+                            order: image.order,
+                        },
+                        data: {
+                            url: image.url,
+                        },
+                    })),
+                },
+                AuthorOnBook: {
+                    deleteMany: deleteAuthorOnBook,
+                    connectOrCreate:
+                        authorIds.length > 0
+                            ? authorIds.map((authorId) => ({
+                                  where: {
+                                      bookId_authorId: {
+                                          bookId: id,
+                                          authorId,
+                                      },
+                                  },
+                                  create: {
+                                      authorId,
+                                      main: true,
+                                  },
+                              }))
+                            : undefined,
+                },
+                TranslatorOnBook: {
+                    deleteMany: deleteTranslatorOnBook,
+                    connectOrCreate:
+                        translatorIds.length > 0
+                            ? translatorIds.map((translatorId) => ({
+                                  where: {
+                                      bookId_translatorId: {
+                                          bookId: id,
+                                          translatorId,
+                                      },
+                                  },
+                                  create: {
+                                      translatorId,
+                                      main: true,
+                                  },
+                              }))
+                            : undefined,
+                },
+            },
         })
 
         revalidatePath(`/admin/book`)
@@ -127,7 +218,7 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
                 },
                 TranslatorOnBook: {
                     select: {
-                        bookId: true,
+                        translatorId: true,
                     },
                 },
                 DisplayImage: {
@@ -150,7 +241,7 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
         return {
             ...row,
             authorId: row.AuthorOnBook[0]?.authorId ?? "",
-            translatorId: row.TranslatorOnBook[0]?.bookId ?? "",
+            translatorId: row.TranslatorOnBook[0]?.translatorId ?? "",
             mainImgUrl: allImgUrls[0] ?? "",
             imgUrls: allImgUrls.slice(1),
             price: row.price.toNumber(),

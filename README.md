@@ -8,4 +8,4 @@
 -   [ ] Melhorar input de data do calendário
 -   [x] Melhorar input de várias imagens
 -   [ ] Melhorar input de vários ids
--   [ ] Arrumar bug ao atualizar relações N->N
+-   [x] Arrumar bug ao atualizar relações N->N
