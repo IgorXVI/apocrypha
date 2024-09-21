@@ -74,8 +74,12 @@ export default function MainPage() {
         <SearchPage
             name="autor"
             namePlural="autores"
-            tableHeaders={["ID", "Imagem de perfil", "Nome", "Sobre"]}
-            tableAttrs={["id", "imgUrl", "name", "about"] as ModelAttrsAndId[]}
+            tableHeaders={{
+                id: "ID",
+                imgUrl: "Imagem de perfil",
+                name: "Nome",
+                about: "Sobre",
+            }}
             getManyQuery={authorGetMany}
             deleteOneQuery={authorDeleteOne}
             getOneQuery={authorGetOne}

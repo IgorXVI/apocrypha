@@ -18,7 +18,6 @@ import {
     getAuthorSuggestions,
     getTranslatorSuggestions,
 } from "~/server/book-queries"
-import { type BookGetManyOneRowOutput } from "~/server/types"
 
 import SearchPage from "~/app/admin/_components/search-page"
 import { DatePicker } from "../_components/date-picker"
@@ -282,63 +281,36 @@ const inputKeyMap: Record<
     },
 }
 
-type BookAttrs = keyof BookGetManyOneRowOutput
-
 export default function MainPage() {
     return (
         <SearchPage
             name="livro"
             namePlural="livros"
-            tableHeaders={[
-                "ID",
-                "Imagem",
-                "Preço",
-                "Moeda",
-                "Estoque",
-                "Stripe ID",
-                "Título",
-                "Descrição",
-                "Páginas",
-                "Data de Publicação",
-                "ISBN-10",
-                "ISBN-13",
-                "Largura (mm)",
-                "Altura (mm)",
-                "Comprimento (mm)",
-                "Edição",
-                "Idioma",
-                "Categoria",
-                "Editora",
-                "Série",
-                "Autor",
-                "Tradutor",
-            ]}
-            tableAttrs={
-                [
-                    "id",
-                    "mainImageUrl",
-                    "price",
-                    "currencyLabel",
-                    "amount",
-                    "stripeId",
-                    "title",
-                    "description",
-                    "pages",
-                    "publicationDate",
-                    "isbn10Code",
-                    "isbn13Code",
-                    "width",
-                    "height",
-                    "length",
-                    "edition",
-                    "languageName",
-                    "categoryName",
-                    "publisherName",
-                    "seriesName",
-                    "mainAuthorName",
-                    "mainTranslatorName",
-                ] as BookAttrs[]
-            }
+            tableHeaders={{
+                id: "ID",
+                mainImageUrl: "Imagem",
+                price: "Preço",
+                currencyLabel: "Moeda",
+                amount: "Estoque",
+                stripeId: "Stripe ID",
+                title: "Título",
+                descriptionTitle: "Título da Descrição",
+                description: "Descrição",
+                pages: "Páginas",
+                publicationDate: "Data de Publicação",
+                isbn10Code: "ISBN-10",
+                isbn13Code: "ISBN-13",
+                width: "Largura (mm)",
+                height: "Altura (mm)",
+                length: "Comprimento (mm)",
+                edition: "Edição",
+                languageName: "Idioma",
+                categoryName: "Categoria",
+                publisherName: "Editora",
+                seriesName: "Série",
+                mainAuthorName: "Autor",
+                mainTranslatorName: "Tradutor",
+            }}
             getManyQuery={bookGetMany}
             deleteOneQuery={bookDeleteOne}
             getOneQuery={bookGetOne}

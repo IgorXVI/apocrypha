@@ -49,15 +49,16 @@ const inputKeyMap: Record<
     },
 }
 
-type ModelAttrsAndId = ModelAttrs | "id"
-
 export default function MainPage() {
     return (
         <SearchPage
             name="categoria"
             namePlural="categorias"
-            tableHeaders={["Ícone", "Nome"]}
-            tableAttrs={["iconUrl", "name"] as ModelAttrsAndId[]}
+            tableHeaders={{
+                id: "ID",
+                iconUrl: "Ícone",
+                name: "Nome",
+            }}
             getManyQuery={categoryGetMany}
             deleteOneQuery={categoryDeleteOne}
             getOneQuery={categoryGetOne}

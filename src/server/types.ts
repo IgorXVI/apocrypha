@@ -46,6 +46,7 @@ export type BookGetManyOneRowOutput = {
     mainImageUrl: string
     mainAuthorName: string
     mainTranslatorName: string
+    stripeId: string
 }
 
 export type CommonSuggestion = {

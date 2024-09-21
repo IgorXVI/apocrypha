@@ -49,8 +49,10 @@ export default function MainPage() {
         <SearchPage
             name="tradutor"
             namePlural="tradutores"
-            tableHeaders={["ID", "Nome"]}
-            tableAttrs={["id", "name"] as ModelAttrsAndId[]}
+            tableHeaders={{
+                id: "ID",
+                name: "Nome",
+            }}
             getManyQuery={translatorGetMany}
             deleteOneQuery={translatorDeleteOne}
             getOneQuery={translatorGetOne}

@@ -35,8 +35,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
     props: Readonly<{
         name: string
         namePlural: string
-        tableHeaders: string[]
-        tableAttrs: string[]
+        tableHeaders: Record<keyof D, string>
         getManyQuery: (input: { take: number; skip: number; searchTerm: string }) => Promise<
             CommonDBReturn<{
                 total: number
@@ -260,7 +259,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                             <Table>
                                 <TableHeader>
                                     <TableRow className="text-nowrap">
-                                        {props.tableHeaders.map((text, index) => (
+                                        {Object.values(props.tableHeaders).map((text, index) => (
                                             <TableHead key={index}>{text}</TableHead>
                                         ))}
                                     </TableRow>
@@ -268,7 +267,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                 <TableBody>
                                     {rows.map((row) => (
                                         <TableRow key={row.id}>
-                                            {props.tableAttrs.map((attr) =>
+                                            {Object.keys(props.tableHeaders).map((attr) =>
                                                 attr.includes("Url") ? (
                                                     <TableCell
                                                         key={attr}

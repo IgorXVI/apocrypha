@@ -49,8 +49,10 @@ export default function MainPage() {
         <SearchPage
             name="série"
             namePlural="séries"
-            tableHeaders={["ID", "Nome"]}
-            tableAttrs={["id", "name"] as ModelAttrsAndId[]}
+            tableHeaders={{
+                id: "ID",
+                name: "Nome",
+            }}
             getManyQuery={seriesGetMany}
             deleteOneQuery={seriesDeleteOne}
             getOneQuery={seriesGetOne}

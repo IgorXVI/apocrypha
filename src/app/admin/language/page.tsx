@@ -92,15 +92,17 @@ const inputKeyMap: Record<
     },
 }
 
-type ModelAttrsAndId = ModelAttrs | "id"
-
 export default function MainPage() {
     return (
         <SearchPage
             name="moeda"
             namePlural="moedas"
-            tableHeaders={["ID", "Nome", "Código ISO 6391", "Código ISO 6392"]}
-            tableAttrs={["id", "name", "iso6391Code", "iso6392Code"] as ModelAttrsAndId[]}
+            tableHeaders={{
+                id: "ID",
+                name: "Nome",
+                iso6391Code: "Código ISO 6391",
+                iso6392Code: "Código ISO 6392",
+            }}
             getManyQuery={languageGetMany}
             deleteOneQuery={languageDeleteOne}
             getOneQuery={languageGetOne}

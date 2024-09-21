@@ -84,8 +84,11 @@ export default function MainPage() {
         <SearchPage
             name="moeda"
             namePlural="moedas"
-            tableHeaders={["ID", "Prefixo", "Código"]}
-            tableAttrs={["id", "label", "iso4217Code"] as ModelAttrsAndId[]}
+            tableHeaders={{
+                id: "ID",
+                label: "Prefixo",
+                iso4217Code: "Código",
+            }}
             getManyQuery={currencyGetMany}
             deleteOneQuery={currencyDeleteOne}
             getOneQuery={currencyGetOne}
