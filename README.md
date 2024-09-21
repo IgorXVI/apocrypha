@@ -10,4 +10,9 @@
 -   [ ] Melhorar input de vários ids
 -   [x] Arrumar bug ao atualizar relações N->N
 -   [ ] Arrumar bug no input de id
--   [ ] Adicionar cadastro de livros no stripe
+-   [x] Adicionar cadastro de livros no stripe
+-   [ ] Adicionar listagem de livros
+-   [ ] Adicionar funcionalidade do carrinho de compras
+-   [ ] Adicionar funcionalidade de checkout com stripe
+-   [ ] Adicionar busca de livros
+-   [ ] Limitar acesso às páginas de admin
