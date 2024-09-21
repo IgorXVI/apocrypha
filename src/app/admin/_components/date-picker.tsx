@@ -1,35 +1,18 @@
 "use client"
 
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-
-import { cn } from "~/lib/utils"
-import { Button } from "~/components/ui/button"
-import { Calendar } from "~/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
+import React from "react"
+import { DateTimePicker } from "~/components/ui/datetime-picker"
+import { ptBR } from "date-fns/locale"
 
 export function DatePicker(props: { onChange: (value: Date | undefined) => void; value: Date | undefined; disabled?: boolean }) {
     return (
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button
-                    disabled={props.disabled}
-                    variant={"outline"}
-                    className={cn("w-[280px] justify-start text-left font-normal", !props.value && "text-muted-foreground")}
-                >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {props.value ? format(props.value, "PPP") : <span>Escolha uma data</span>}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Calendar
-                    disabled={props.disabled}
-                    mode="single"
-                    selected={props.value}
-                    onSelect={props.onChange}
-                    initialFocus
-                />
-            </PopoverContent>
-        </Popover>
+        <div className="flex w-72 flex-col gap-3">
+            <DateTimePicker
+                locale={ptBR}
+                disabled={props.disabled}
+                value={props.value}
+                onChange={(value) => props.onChange(value)}
+            />
+        </div>
     )
 }

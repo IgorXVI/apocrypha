@@ -69,6 +69,7 @@ const transformBookInput = (data: BookDataInput) => {
         height: data.height,
         length: data.length,
         price: data.price,
+        edition: data.edition,
         DisplayImage: { createMany: { data: displayImages } },
         AuthorOnBook: { createMany: { data: authors } },
         TranslatorOnBook: { createMany: { data: translators } },
@@ -76,6 +77,7 @@ const transformBookInput = (data: BookDataInput) => {
         Publisher: { connect: { id: data.publisherId } },
         Language: { connect: { id: data.languageId } },
         Currency: { connect: { id: data.currencyId } },
+        Series: { connect: { id: data.seriesId } },
     }
 }
 
@@ -320,6 +322,12 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                             label: true,
                         },
                     },
+
+                    Series: {
+                        select: {
+                            name: true,
+                        },
+                    },
                 },
             }),
 
@@ -345,7 +353,6 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
             ...row,
             price: row.price.toNumber(),
             edition: row.edition ?? undefined,
-            seriesId: row.seriesId ?? undefined,
             mainImageUrl: row.DisplayImage[0]?.url ?? "",
             mainAuthorName: row.AuthorOnBook[0]?.Author.name ?? "",
             mainTranslatorName: row.TranslatorOnBook[0]?.Translator.name ?? "",
@@ -353,6 +360,7 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
             publisherName: row.Publisher.name,
             languageName: row.Language.name,
             currencyLabel: row.Currency.label,
+            seriesName: row.Series?.name ?? undefined,
         }))
 
         return {
