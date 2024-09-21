@@ -262,15 +262,95 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
         }
     })
 
-export const getCategorySuggestions = async () =>
+export const getCategorySuggestions = async (searchTerm: string) =>
     errorHandler(async () => {
-        const categories = await db.category.findMany({
+        const suggestions = await db.category.findMany({
+            where: {
+                name: {
+                    startsWith: searchTerm,
+                },
+            },
             select: {
                 id: true,
                 name: true,
             },
-            take: 10,
+            take: 5,
         })
 
-        return categories
+        return suggestions
+    })
+
+export const getPublisherSuggestions = async (searchTerm: string) =>
+    errorHandler(async () => {
+        const suggestions = await db.publisher.findMany({
+            where: {
+                name: {
+                    startsWith: searchTerm,
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            take: 5,
+        })
+
+        return suggestions
+    })
+
+export const getLanguageSuggestions = async (searchTerm: string) =>
+    errorHandler(async () => {
+        const suggestions = await db.language.findMany({
+            where: {
+                name: {
+                    startsWith: searchTerm,
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            take: 5,
+        })
+
+        return suggestions
+    })
+
+export const getSeriesSuggestions = async (searchTerm: string) =>
+    errorHandler(async () => {
+        const suggestions = await db.series.findMany({
+            where: {
+                name: {
+                    startsWith: searchTerm,
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+            },
+            take: 5,
+        })
+
+        return suggestions
+    })
+
+export const getCurrencySuggestions = async (searchTerm: string) =>
+    errorHandler(async () => {
+        const suggestions = await db.currency.findMany({
+            where: {
+                iso4217Code: {
+                    startsWith: searchTerm,
+                },
+            },
+            select: {
+                id: true,
+                iso4217Code: true,
+            },
+            take: 5,
+        })
+
+        return suggestions.map((s) => ({
+            ...s,
+            name: s.iso4217Code,
+        }))
     })

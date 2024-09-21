@@ -10,9 +10,9 @@ import { type CommonDBReturn, type CommonSuggestion } from "~/server/types"
 import { cn } from "~/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
 
-export default function IdInput(props: {
-    onChange: (value: string) => void
-    value: string
+export default function MultipleIdInput(props: {
+    onChange: (value: string[]) => void
+    value: string[]
     disabled?: boolean
     getSuggestions: (searchTerm: string) => Promise<CommonDBReturn<CommonSuggestion[]>>
     label: string
