@@ -95,11 +95,6 @@ export const getMany =
                                     startsWith: input.searchTerm,
                                 },
                             },
-                            {
-                                [attr]: {
-                                    endsWith: input.searchTerm,
-                                },
-                            },
                         ]),
                     [] as Record<string, Record<string, string>>[],
                 ),
