@@ -1,10 +1,10 @@
 "use client"
 
 import { CheckIcon, ChevronsUpDownIcon, Loader2Icon } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "~/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
+import { Input } from "~/components/ui/input"
 import { type CommonDBReturn, type CommonSuggestion } from "~/server/types"
 import { cn } from "~/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
@@ -19,23 +19,24 @@ export default function IdInput(props: {
     const [suggestions, setSuggestions] = useState<CommonSuggestion[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [open, setOpen] = useState(false)
+    const [searchTerm, setSearchTerm] = useState("")
 
-    const searchSuggestions = useCallback(
-        async (searchTerm: string) => {
+    const { getSuggestions } = props
+
+    useEffect(() => {
+        const searchSuggestions = async (searchTerm: string) => {
+            setSearchTerm(searchTerm)
             setIsLoading(true)
-            const suggestions = await props.getSuggestions(searchTerm)
+            const suggestions = await getSuggestions(searchTerm)
             setIsLoading(false)
 
             if (suggestions.data) {
                 setSuggestions(suggestions.data)
             }
-        },
-        [props],
-    )
+        }
 
-    useEffect(() => {
-        searchSuggestions("").catch((error) => console.log(error))
-    }, [searchSuggestions])
+        searchSuggestions(searchTerm).catch((error) => console.log(error))
+    }, [getSuggestions, searchTerm])
 
     return (
         <Popover
@@ -44,6 +45,7 @@ export default function IdInput(props: {
         >
             <PopoverTrigger asChild>
                 <Button
+                    type="button"
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
@@ -55,38 +57,30 @@ export default function IdInput(props: {
                 </Button>
             </PopoverTrigger>
             <PopoverContent>
-                <Command>
-                    <CommandInput
+                <div className="flex flex-col gap-3">
+                    <Input
+                        type="text"
                         placeholder={`Pesquise ${props.label}...`}
                         className="h-9"
-                        onInput={useDebouncedCallback((e: React.ChangeEvent<HTMLInputElement>) => searchSuggestions(e.target.value), 500)}
+                        onChange={useDebouncedCallback((e) => setSearchTerm(e.target.value), 500)}
                     />
 
-                    <CommandList>
-                        <CommandEmpty>{`Nenhum dado de ${props.label} encontrado`}</CommandEmpty>
-                        <CommandGroup>
-                            {isLoading && (
-                                <CommandItem>
-                                    <Loader2Icon className="animate-spin" />
-                                </CommandItem>
-                            )}
-                            {!isLoading &&
-                                suggestions.map((s) => (
-                                    <CommandItem
-                                        key={s.id}
-                                        value={s.id}
-                                        onSelect={(currentValue) => {
-                                            props.onChange(currentValue)
-                                            setOpen(false)
-                                        }}
-                                    >
-                                        {s.name}
-                                        <CheckIcon className={cn("ml-auto h-4 w-4", props.value === s.id ? "opacity-100" : "opacity-0")} />
-                                    </CommandItem>
-                                ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
+                    {isLoading && <Loader2Icon className="animate-spin" />}
+                    {!isLoading &&
+                        suggestions.map((s) => (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                key={s.id}
+                                onClick={() => {
+                                    props.onChange(s.id)
+                                    setOpen(false)
+                                }}
+                            >
+                                {s.name} <CheckIcon className={cn("ml-auto h-4 w-4", props.value === s.id ? "opacity-100" : "opacity-0")} />
+                            </Button>
+                        ))}
+                </div>
             </PopoverContent>
         </Popover>
     )

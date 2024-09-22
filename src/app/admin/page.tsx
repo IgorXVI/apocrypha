@@ -1,31 +1,33 @@
+import Link from "next/link"
+
 export default function Admin() {
     return (
         <main className="flex text-xl gap-3 flex-col items-center justify-center h-screen">
             <h1>OI ADEMIR</h1>
             <nav className="underline flex flex-col gap-3">
                 <li>
-                    <a href="/admin/book">Livros</a>
+                    <Link href="/admin/book">Livros</Link>
                 </li>
                 <li>
-                    <a href="/admin/author">Autores</a>
+                    <Link href="/admin/author">Autores</Link>
                 </li>
                 <li>
-                    <a href="/admin/translator">Tradutores</a>
+                    <Link href="/admin/translator">Tradutores</Link>
                 </li>
                 <li>
-                    <a href="/admin/publisher">Editoras</a>
+                    <Link href="/admin/publisher">Editoras</Link>
                 </li>
                 <li>
-                    <a href="/admin/series">Séries</a>
+                    <Link href="/admin/series">Séries</Link>
                 </li>
                 <li>
-                    <a href="/admin/category">Categorias</a>
+                    <Link href="/admin/category">Categorias</Link>
                 </li>
                 <li>
-                    <a href="/admin/language">Línguas</a>
+                    <Link href="/admin/language">Línguas</Link>
                 </li>
                 <li>
-                    <a href="/admin/currency">Moedas</a>
+                    <Link href="/admin/currency">Moedas</Link>
                 </li>
             </nav>
         </main>

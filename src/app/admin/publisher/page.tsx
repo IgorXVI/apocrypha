@@ -42,8 +42,6 @@ const inputKeyMap: Record<
     },
 }
 
-type ModelAttrsAndId = ModelAttrs | "id"
-
 export default function MainPage() {
     return (
         <SearchPage
