@@ -160,8 +160,26 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
             }
         })
         router.replace(`${pathname}?${params.toString()}`)
-        router.refresh()
-    }, [pathname, router, searchParams])
+        toast(
+            <div className="flex flex-row items-center gap-4">
+                <LoaderCircle className="animate-spin"></LoaderCircle>
+                <span className="text-lg">Buscando novos dados...</span>
+            </div>,
+            {
+                duration: 100000,
+                id: "refresh-rows",
+            },
+        )
+        getRows()
+            .then(() => {
+                toast.dismiss("refresh-rows")
+                toast(<span className="text-lg text-green-500">Busca realizada com sucesso.</span>)
+            })
+            .catch((error) => {
+                toast.dismiss("refresh-rows")
+                toastDBRowsError((error as Error).message)
+            })
+    }, [getRows, pathname, router, searchParams, toastDBRowsError])
 
     const setNewModalParams = useCallback(
         (key: string, value: string) => {
