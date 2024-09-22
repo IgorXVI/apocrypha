@@ -209,61 +209,68 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
 
         const dataForDB = transformBookInput(data)
 
-        await db.book.update({
-            where: {
-                id,
-            },
-            data: {
-                ...dataForDB,
-                stripeId,
-                DisplayImage: {
-                    updateMany: dataForDB.DisplayImage.createMany.data.map((image) => ({
-                        where: {
-                            order: image.order,
-                        },
-                        data: {
-                            url: image.url,
-                        },
-                    })),
+        await db.book
+            .update({
+                where: {
+                    id,
                 },
-                AuthorOnBook: {
-                    deleteMany: deleteAuthorOnBook.length > 0 ? deleteAuthorOnBook : undefined,
-                    connectOrCreate:
-                        authorIds.length > 0
-                            ? authorIds.map((authorId) => ({
-                                  where: {
-                                      bookId_authorId: {
-                                          bookId: id,
+                data: {
+                    ...dataForDB,
+                    stripeId,
+                    DisplayImage: {
+                        updateMany: dataForDB.DisplayImage.createMany.data.map((image) => ({
+                            where: {
+                                order: image.order,
+                            },
+                            data: {
+                                url: image.url,
+                            },
+                        })),
+                    },
+                    AuthorOnBook: {
+                        deleteMany: deleteAuthorOnBook.length > 0 ? deleteAuthorOnBook : undefined,
+                        connectOrCreate:
+                            authorIds.length > 0
+                                ? authorIds.map((authorId) => ({
+                                      where: {
+                                          bookId_authorId: {
+                                              bookId: id,
+                                              authorId,
+                                          },
+                                      },
+                                      create: {
                                           authorId,
+                                          main: true,
                                       },
-                                  },
-                                  create: {
-                                      authorId,
-                                      main: true,
-                                  },
-                              }))
-                            : undefined,
-                },
-                TranslatorOnBook: {
-                    deleteMany: deleteTranslatorOnBook.length > 0 ? deleteTranslatorOnBook : undefined,
-                    connectOrCreate:
-                        translatorIds.length > 0
-                            ? translatorIds.map((translatorId) => ({
-                                  where: {
-                                      bookId_translatorId: {
-                                          bookId: id,
+                                  }))
+                                : undefined,
+                    },
+                    TranslatorOnBook: {
+                        deleteMany: deleteTranslatorOnBook.length > 0 ? deleteTranslatorOnBook : undefined,
+                        connectOrCreate:
+                            translatorIds.length > 0
+                                ? translatorIds.map((translatorId) => ({
+                                      where: {
+                                          bookId_translatorId: {
+                                              bookId: id,
+                                              translatorId,
+                                          },
+                                      },
+                                      create: {
                                           translatorId,
+                                          main: true,
                                       },
-                                  },
-                                  create: {
-                                      translatorId,
-                                      main: true,
-                                  },
-                              }))
-                            : undefined,
+                                  }))
+                                : undefined,
+                    },
                 },
-            },
-        })
+            })
+            .catch((error) => {
+                if (bookDBData.stripeId !== stripeId) {
+                    archiveProduct(stripeId).catch((e) => console.error(e))
+                }
+                throw error
+            })
 
         revalidatePath(`/admin/book`)
 
