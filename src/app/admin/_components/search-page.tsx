@@ -27,7 +27,7 @@ import {
     PaginationPrevious,
 } from "~/components/ui/pagination"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog"
-import DeleteOne from "./delete-page"
+import DeleteOne from "./delete-one"
 import { type PossibleDBOutput, type CommonDBReturn } from "~/server/types"
 import CreateOrUpdate from "./create-or-update"
 
@@ -75,6 +75,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         })
     }, [])
 
+    const currentSearchTerm = useMemo(() => searchParams.get("search") ?? "", [searchParams])
+
     const currentPage = useMemo(() => Number(searchParams.get("page")) || 1, [searchParams])
 
     const currentTake = useMemo(() => Number(searchParams.get("take")) || 10, [searchParams])
@@ -109,34 +111,32 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         [searchParams, pathname, currentPage],
     )
 
-    useEffect(() => {
-        const getRows = async () => {
-            const searchTerm = searchParams.get("search") ?? ""
+    const { getManyQuery } = props
 
-            const result = await props.getManyQuery({
-                take: currentTake,
-                skip: currentTake * (currentPage - 1),
-                searchTerm,
-            })
+    const getRows = useCallback(async () => {
+        const result = await getManyQuery({
+            take: currentTake,
+            skip: currentTake * (currentPage - 1),
+            searchTerm: currentSearchTerm,
+        })
 
-            if (!result.success) {
-                toastDBRowsError(result.errorMessage)
-                return
-            }
-
-            setGetRowsDone(true)
-
-            if (result.data) {
-                setShowErrorIndicator(false)
-                setRows(result.data.rows)
-                setTotal(result.data.total)
-            }
+        if (!result.success) {
+            toastDBRowsError(result.errorMessage)
+            return
         }
 
-        getRows().catch((e) => {
-            toastDBRowsError((e as Error).message)
-        })
-    }, [props, currentPage, currentTake, toastDBRowsError, searchParams])
+        setGetRowsDone(true)
+
+        if (result.data) {
+            setShowErrorIndicator(false)
+            setRows(result.data.rows)
+            setTotal(result.data.total)
+        }
+    }, [getManyQuery, currentTake, currentPage, currentSearchTerm])
+
+    useEffect(() => {
+        getRows().catch((e) => toastDBRowsError((e as Error).message))
+    }, [getRows, toastDBRowsError])
 
     enum ModalParams {
         delete = "delete_id",
@@ -169,6 +169,15 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         },
         [pathname, router, searchParams],
     )
+
+    const hasModalParams = useCallback(() => {
+        return searchParams.has(ModalParams.delete) || searchParams.has(ModalParams.update) || searchParams.has(ModalParams.create)
+    }, [searchParams])
+
+    const closeModal = useCallback(() => {
+        removeModalParamKeys()
+        getRows().catch((e) => toastDBRowsError((e as Error).message))
+    }, [removeModalParamKeys, getRows, toastDBRowsError])
 
     return (
         <main className="flex flex-col p-2 gap-3">
@@ -407,10 +416,10 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
             </Card>
 
             <Dialog
-                open={searchParams.has(ModalParams.delete) || searchParams.has(ModalParams.update) || searchParams.has(ModalParams.create)}
+                open={hasModalParams()}
                 onOpenChange={(open) => {
                     if (!open) {
-                        removeModalParamKeys()
+                        closeModal()
                     }
                 }}
             >
@@ -430,7 +439,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                 waitingMessage={`Apagando ${props.name}...`}
                                 successMessage="Apagado."
                                 dbMutation={() => props.deleteOneQuery(searchParams.get(ModalParams.delete) ?? "")}
-                                onConfirm={() => removeModalParamKeys()}
+                                onConfirm={() => closeModal()}
                             ></DeleteOne>
                         </>
                     )}

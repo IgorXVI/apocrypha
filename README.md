@@ -16,4 +16,4 @@
 -   [ ] Adicionar funcionalidade de checkout com stripe
 -   [ ] Adicionar busca de livros
 -   [ ] Limitar acesso às páginas de admin
--   [ ] Arrumar queries excessivas nas páginas de admin
+-   [x] Arrumar queries excessivas nas páginas de admin

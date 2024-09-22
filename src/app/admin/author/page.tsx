@@ -42,7 +42,7 @@ const inputKeyMap: Record<
         node: (field) => <SingleImageField {...field}></SingleImageField>,
         label: "Imagem de perfil",
         description: "Escolha a foto para o perfil do autor.",
-        className: "md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%]",
+        className: "admin-input-md-center",
     },
     name: {
         node: (field) => (
@@ -53,6 +53,7 @@ const inputKeyMap: Record<
         ),
         label: "Nome",
         description: "Esse é o nome do autor.",
+        className: "admin-input-md-center",
     },
     about: {
         node: (field) => (
@@ -64,6 +65,7 @@ const inputKeyMap: Record<
         ),
         label: "Sobre",
         description: "Campo para descrever quem é o autor.",
+        className: "admin-input-md-center",
     },
 }
 

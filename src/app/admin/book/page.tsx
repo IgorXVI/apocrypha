@@ -93,13 +93,13 @@ const inputKeyMap: Record<
         node: (field) => <SingleImageField {...field} />,
         label: "Imagem Principal",
         description: "Selecione a imagem principal do livro.",
-        className: "md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%]",
+        className: "admin-input-md-center",
     },
     imgUrls: {
         node: (field) => <MultipleImageField {...field}></MultipleImageField>,
         label: "Imagens",
         description: "Selecione as imagens para o anúncio do livro.",
-        className: "md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%]",
+        className: "admin-input-md-center",
     },
     title: {
         node: (field) => (
