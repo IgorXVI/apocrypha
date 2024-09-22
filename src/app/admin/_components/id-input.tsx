@@ -26,7 +26,7 @@ export default function IdInput(props: {
     useEffect(() => {
         const searchSuggestions = async (searchTerm: string) => {
             setIsLoading(true)
-            const suggestions = await getSuggestions(searchTerm, props.value)
+            const suggestions = await getSuggestions(searchTerm, value)
             setIsLoading(false)
 
             if (suggestions.data) {
@@ -49,7 +49,7 @@ export default function IdInput(props: {
                     role="combobox"
                     aria-expanded={open}
                     className="ml-2 justify-between"
-                    disabled={props.disabled || isLoading}
+                    disabled={props.disabled ?? isLoading}
                 >
                     {props.value && props.value !== "" ? suggestions.find((s) => s.id === props.value)?.name : `Selecione ${props.label}...`}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />

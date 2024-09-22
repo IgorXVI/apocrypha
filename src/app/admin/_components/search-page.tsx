@@ -141,8 +141,10 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
     }, [getManyQuery, currentTake, currentPage, currentSearchTerm, toastDBRowsError])
 
     useEffect(() => {
-        getRows()
-    }, [getRows])
+        getRows().catch((error) => {
+            toastDBRowsError((error as Error).message)
+        })
+    }, [getRows, toastDBRowsError])
 
     enum ModalParams {
         delete = "delete_id",
@@ -158,8 +160,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
             }
         })
         router.replace(`${pathname}?${params.toString()}`)
-        getRows()
-    }, [pathname, router, searchParams, getRows])
+        router.refresh()
+    }, [pathname, router, searchParams])
 
     const setNewModalParams = useCallback(
         (key: string, value: string) => {
