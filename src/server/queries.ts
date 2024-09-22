@@ -3,8 +3,17 @@
 import { type Prisma } from "prisma/prisma-client"
 
 import { db } from "./db"
-import { createAdminQueries } from "./generic-queries"
-import { type AnyModel } from "./types"
+import { createAdminQueries, getSuggestions } from "./generic-queries"
+import {
+    type AuthorPayload,
+    type CategoryPayload,
+    type CurrencyPayload,
+    type LanguagePayload,
+    type PublisherPayload,
+    type SeriesPayload,
+    type TranslatorPayload,
+    type AnyModel,
+} from "./types"
 
 const currencyAdminQueries = createAdminQueries<
     Prisma.CurrencyGetPayload<Prisma.CurrencyDefaultArgs>,
@@ -89,3 +98,11 @@ export const languageGetOne = async (...args: Parameters<typeof languageAdminQue
 export const languageCreateOne = async (...args: Parameters<typeof languageAdminQueries.createOne>) => languageAdminQueries.createOne(...args)
 export const languageUpdateOne = async (...args: Parameters<typeof languageAdminQueries.updateOne>) => languageAdminQueries.updateOne(...args)
 export const languageDeleteOne = async (...args: Parameters<typeof languageAdminQueries.deleteOne>) => languageAdminQueries.deleteOne(...args)
+
+export const getCategorySuggestions = getSuggestions<CategoryPayload>(db.category as unknown as AnyModel, "name")
+export const getPublisherSuggestions = getSuggestions<PublisherPayload>(db.publisher as unknown as AnyModel, "name")
+export const getLanguageSuggestions = getSuggestions<LanguagePayload>(db.language as unknown as AnyModel, "name")
+export const getSeriesSuggestions = getSuggestions<SeriesPayload>(db.series as unknown as AnyModel, "name")
+export const getCurrencySuggestions = getSuggestions<CurrencyPayload>(db.currency as unknown as AnyModel, "iso4217Code")
+export const getAuthorSuggestions = getSuggestions<AuthorPayload>(db.author as unknown as AnyModel, "name")
+export const getTranslatorSuggestions = getSuggestions<TranslatorPayload>(db.translator as unknown as AnyModel, "name")

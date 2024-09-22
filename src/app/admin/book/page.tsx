@@ -4,12 +4,9 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
+import { bookGetMany, bookGetOne, bookCreateOne, bookUpdateOne, bookDeleteOne } from "~/server/book-queries"
+
 import {
-    bookGetMany,
-    bookGetOne,
-    bookCreateOne,
-    bookUpdateOne,
-    bookDeleteOne,
     getCategorySuggestions,
     getPublisherSuggestions,
     getLanguageSuggestions,
@@ -17,7 +14,7 @@ import {
     getCurrencySuggestions,
     getAuthorSuggestions,
     getTranslatorSuggestions,
-} from "~/server/book-queries"
+} from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 import { DatePicker } from "../_components/date-picker"

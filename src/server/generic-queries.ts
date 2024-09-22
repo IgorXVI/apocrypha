@@ -15,9 +15,22 @@ export async function errorHandler<T>(fun: () => Promise<T>): Promise<CommonDBRe
         }
     } catch (e) {
         console.error(e)
+
+        let errorMessage = (e as Error).message
+
+        if (errorMessage.includes("Foreign key constraint failed on the field: `")) {
+            errorMessage =
+                errorMessage
+                    .replace(
+                        "Foreign key constraint failed on the field: `",
+                        "There are related records in the database that must be deleted first: ",
+                    )
+                    .split("_")[0] ?? errorMessage
+        }
+
         return {
             success: false,
-            errorMessage: (e as Error).message,
+            errorMessage,
             data: undefined,
         }
     }
@@ -138,3 +151,30 @@ export const createAdminQueries = <T, F extends string, C, U>(model: AnyModel, s
     updateOne: updateOne<U>(model, slug),
     deleteOne: deleteOne(model, slug),
 })
+
+interface HasId {
+    id: string
+}
+
+export const getSuggestions =
+    <T extends HasId>(model: AnyModel, searchAttr: keyof T) =>
+    async (searchTerm: string) =>
+        errorHandler(async () => {
+            const suggestions = await model.findMany({
+                where: {
+                    [searchAttr]: {
+                        startsWith: searchTerm,
+                    },
+                },
+                select: {
+                    id: true,
+                    [searchAttr]: true,
+                },
+                take: 5,
+            })
+
+            return (suggestions as unknown as T[]).map((suggestion) => ({
+                id: suggestion.id,
+                name: suggestion[searchAttr] ?? "",
+            }))
+        })

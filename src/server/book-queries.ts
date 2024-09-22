@@ -6,11 +6,8 @@ import { db } from "~/server/db"
 
 import { errorHandler } from "./generic-queries"
 
-import { deleteOne } from "./generic-queries"
-import { type BookGetManyOneRowOutput, type AnyModel, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
-import { archiveProduct, createProduct } from "./stripe-api"
-
-export const bookDeleteOne = async (id: string) => deleteOne(db.book as unknown as AnyModel, "book")(id)
+import { type BookGetManyOneRowOutput, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
+import { archiveProduct, createProduct, restoreProduct } from "./stripe-api"
 
 type BookDataInput = {
     price: number
@@ -117,12 +114,17 @@ export const bookCreateOne = async (data: BookDataInput) =>
 
         const dataForDB = transformBookInput(data)
 
-        await db.book.create({
-            data: {
-                ...dataForDB,
-                stripeId,
-            },
-        })
+        await db.book
+            .create({
+                data: {
+                    ...dataForDB,
+                    stripeId,
+                },
+            })
+            .catch((error) => {
+                archiveProduct(stripeId).catch((e) => console.error("Error archiving product", e))
+                throw error
+            })
 
         revalidatePath(`/admin/book`)
 
@@ -267,7 +269,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
             })
             .catch((error) => {
                 if (bookDBData.stripeId !== stripeId) {
-                    archiveProduct(stripeId).catch((e) => console.error(e))
+                    archiveProduct(stripeId).catch((e) => console.error("Error archiving product", e))
                 }
                 throw error
             })
@@ -440,131 +442,56 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
         }
     })
 
-export const getCategorySuggestions = async (searchTerm: string) =>
+export const bookDeleteOne = (id: string) =>
     errorHandler(async () => {
-        const suggestions = await db.category.findMany({
+        const bookDBData = await db.book.findUnique({
             where: {
-                name: {
-                    startsWith: searchTerm,
-                },
+                id,
             },
             select: {
-                id: true,
-                name: true,
+                stripeId: true,
             },
-            take: 5,
         })
 
-        return suggestions
-    })
+        if (!bookDBData) {
+            throw new Error("Book not found")
+        }
 
-export const getPublisherSuggestions = async (searchTerm: string) =>
-    errorHandler(async () => {
-        const suggestions = await db.publisher.findMany({
-            where: {
-                name: {
-                    startsWith: searchTerm,
-                },
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-            take: 5,
-        })
+        const archiveProductResponse = await archiveProduct(bookDBData.stripeId)
 
-        return suggestions
-    })
+        if (!archiveProductResponse.success) {
+            throw new Error(archiveProductResponse.message)
+        }
 
-export const getLanguageSuggestions = async (searchTerm: string) =>
-    errorHandler(async () => {
-        const suggestions = await db.language.findMany({
-            where: {
-                name: {
-                    startsWith: searchTerm,
-                },
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-            take: 5,
-        })
+        await db
+            .$transaction([
+                db.displayImage.deleteMany({
+                    where: {
+                        bookId: id,
+                    },
+                }),
+                db.authorOnBook.deleteMany({
+                    where: {
+                        bookId: id,
+                    },
+                }),
+                db.translatorOnBook.deleteMany({
+                    where: {
+                        bookId: id,
+                    },
+                }),
+                db.book.delete({
+                    where: {
+                        id,
+                    },
+                }),
+            ])
+            .catch((error) => {
+                restoreProduct(bookDBData.stripeId).catch((e) => console.error("Error restoring product", e))
+                throw error
+            })
 
-        return suggestions
-    })
+        revalidatePath(`/admin/book`)
 
-export const getSeriesSuggestions = async (searchTerm: string) =>
-    errorHandler(async () => {
-        const suggestions = await db.series.findMany({
-            where: {
-                name: {
-                    startsWith: searchTerm,
-                },
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-            take: 5,
-        })
-
-        return suggestions
-    })
-
-export const getCurrencySuggestions = async (searchTerm: string) =>
-    errorHandler(async () => {
-        const suggestions = await db.currency.findMany({
-            where: {
-                iso4217Code: {
-                    startsWith: searchTerm,
-                },
-            },
-            select: {
-                id: true,
-                iso4217Code: true,
-            },
-            take: 5,
-        })
-
-        return suggestions.map((s) => ({
-            ...s,
-            name: s.iso4217Code,
-        }))
-    })
-
-export const getAuthorSuggestions = async (searchTerm: string) =>
-    errorHandler(async () => {
-        const suggestions = await db.author.findMany({
-            where: {
-                name: {
-                    startsWith: searchTerm,
-                },
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-            take: 5,
-        })
-
-        return suggestions
-    })
-
-export const getTranslatorSuggestions = async (searchTerm: string) =>
-    errorHandler(async () => {
-        const suggestions = await db.translator.findMany({
-            where: {
-                name: {
-                    startsWith: searchTerm,
-                },
-            },
-            select: {
-                id: true,
-                name: true,
-            },
-            take: 5,
-        })
-
-        return suggestions
+        return undefined
     })

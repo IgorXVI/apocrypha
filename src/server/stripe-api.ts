@@ -62,3 +62,23 @@ export const archiveProduct = async (stripeId: string) => {
         message: `Product with id "${stripeId}" archived successfully`,
     }
 }
+
+export const restoreProduct = async (stripeId: string) => {
+    const [archivedProduct] = await Promise.allSettled([
+        stripe.products.update(stripeId, {
+            active: true,
+        }),
+    ])
+
+    if (archivedProduct.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to restore product with id "${stripeId}": ${archivedProduct.reason}`,
+        }
+    }
+
+    return {
+        success: true,
+        message: `Product with id "${stripeId}" restored successfully`,
+    }
+}

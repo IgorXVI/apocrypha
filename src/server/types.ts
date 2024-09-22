@@ -53,3 +53,11 @@ export type CommonSuggestion = {
     id: string
     name: string
 }
+
+export type CategoryPayload = Prisma.CategoryGetPayload<Prisma.CategoryDefaultArgs>
+export type PublisherPayload = Prisma.PublisherGetPayload<Prisma.PublisherDefaultArgs>
+export type LanguagePayload = Prisma.LanguageGetPayload<Prisma.LanguageDefaultArgs>
+export type SeriesPayload = Prisma.SeriesGetPayload<Prisma.SeriesDefaultArgs>
+export type CurrencyPayload = Prisma.CurrencyGetPayload<Prisma.CurrencyDefaultArgs>
+export type AuthorPayload = Prisma.AuthorGetPayload<Prisma.AuthorDefaultArgs>
+export type TranslatorPayload = Prisma.TranslatorGetPayload<Prisma.TranslatorDefaultArgs>
