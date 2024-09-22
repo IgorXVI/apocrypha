@@ -132,7 +132,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
             setRows(result.data.rows)
             setTotal(result.data.total)
         }
-    }, [getManyQuery, currentTake, currentPage, currentSearchTerm])
+    }, [getManyQuery, currentTake, currentPage, currentSearchTerm, toastDBRowsError])
 
     useEffect(() => {
         getRows().catch((e) => toastDBRowsError((e as Error).message))
@@ -172,7 +172,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
 
     const hasModalParams = useCallback(() => {
         return searchParams.has(ModalParams.delete) || searchParams.has(ModalParams.update) || searchParams.has(ModalParams.create)
-    }, [searchParams])
+    }, [ModalParams, searchParams])
 
     const closeModal = useCallback(() => {
         removeModalParamKeys()
@@ -245,7 +245,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                     </div>
                 )}
                 {getRowsDone && rows.length === 0 && (
-                    <div className="flex flex-col items-center justify-center p-6 text-center">
+                    <div className="flex flex-col items-center justify-center p-6 text-center h-[80vh]">
                         <AlertCircle className="h-10 w-10 text-yellow-500 mb-4" />
                         <h3 className="text-lg font-semibold mb-2">Sem {props.namePlural}</h3>
                         <p className="text-sm text-gray-500 mb-4">Parece que não há dados para {props.namePlural} cadastrados ainda.</p>

@@ -30,12 +30,14 @@ const inputKeyMap: Record<
         node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
+        className?: string
     }
 > = {
     iconUrl: {
         node: (field) => <SingleImageField {...field}></SingleImageField>,
         label: "Imagem do ícone da categoria.",
         description: "Escolha imagem para servir como ícone da categoria.",
+        className: "admin-input-md-center",
     },
     name: {
         node: (field) => (
@@ -46,6 +48,7 @@ const inputKeyMap: Record<
         ),
         label: "Nome",
         description: "Esse é o nome da categoria.",
+        className: "admin-input-md-center",
     },
 }
 

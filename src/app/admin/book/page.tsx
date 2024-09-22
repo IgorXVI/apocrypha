@@ -28,10 +28,10 @@ const zodValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }),
     amount: z.number().int().positive({ message: "A quantidade deve ser um número inteiro positivo." }),
     title: z.string().min(1, { message: "O título é obrigatório." }),
-    descriptionTitle: z.string({ required_error: "O título da descrição é obrigatório." }),
-    description: z.string({ required_error: "A descrição é obrigatória." }).max(100, {
+    descriptionTitle: z.string({ required_error: "O título da descrição é obrigatório." }).max(100, {
         message: "Título da descrição deve ter no máximo 100 caracteres.",
     }),
+    description: z.string({ required_error: "A descrição é obrigatória." }),
     pages: z.number().int().positive({ message: "O número de páginas deve ser um número inteiro positivo." }),
     publicationDate: z.date({ required_error: "A data de publicação é obrigatória." }),
     isbn10Code: z.string().length(10, { message: "O ISBN-10 deve ter exatamente 10 caracteres." }),
