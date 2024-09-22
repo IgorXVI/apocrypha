@@ -1,5 +1,4 @@
 import { type Prisma } from "prisma/prisma-client"
-import { type DefaultArgs } from "@prisma/client/runtime/library"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PossibleDBOutput = Record<string, any>
@@ -9,8 +8,6 @@ export type CommonDBReturn<T> = {
     errorMessage: string
     data: T | undefined
 }
-
-export type AnyModel = Prisma.PublisherDelegate<DefaultArgs>
 
 export type GetManyInput = {
     take: number
@@ -61,3 +58,11 @@ export type SeriesPayload = Prisma.SeriesGetPayload<Prisma.SeriesDefaultArgs>
 export type CurrencyPayload = Prisma.CurrencyGetPayload<Prisma.CurrencyDefaultArgs>
 export type AuthorPayload = Prisma.AuthorGetPayload<Prisma.AuthorDefaultArgs>
 export type TranslatorPayload = Prisma.TranslatorGetPayload<Prisma.TranslatorDefaultArgs>
+
+export type CategoryInput = Prisma.CategoryCreateInput
+export type PublisherInput = Prisma.PublisherCreateInput
+export type LanguageInput = Prisma.LanguageCreateInput
+export type SeriesInput = Prisma.SeriesCreateInput
+export type CurrencyInput = Prisma.CurrencyCreateInput
+export type AuthorInput = Prisma.AuthorCreateInput
+export type TranslatorInput = Prisma.TranslatorCreateInput

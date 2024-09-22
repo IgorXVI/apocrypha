@@ -2,7 +2,20 @@
 
 import { type Prisma } from "prisma/prisma-client"
 import { revalidatePath } from "next/cache"
-import { type CommonDBReturn, type AnyModel, type GetManyInput, type GetManyOutput } from "./types"
+import { type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
+import { type DefaultArgs } from "@prisma/client/runtime/library"
+import { db } from "./db"
+
+type AnyModel =
+    | Prisma.PublisherDelegate<DefaultArgs>
+    | Prisma.AuthorDelegate<DefaultArgs>
+    | Prisma.TranslatorDelegate<DefaultArgs>
+    | Prisma.CategoryDelegate<DefaultArgs>
+    | Prisma.SeriesDelegate<DefaultArgs>
+    | Prisma.CurrencyDelegate<DefaultArgs>
+    | Prisma.LanguageDelegate<DefaultArgs>
+
+type PrivateAnyModel = Prisma.CurrencyDelegate<DefaultArgs>
 
 export async function errorHandler<T>(fun: () => Promise<T>): Promise<CommonDBReturn<T>> {
     try {
@@ -40,8 +53,8 @@ export const createOne =
     <T>(model: AnyModel, slug: string) =>
     (data: T) =>
         errorHandler(async () => {
-            await model.create({
-                data: data as unknown as Prisma.PublisherCreateInput,
+            await (model as PrivateAnyModel).create({
+                data: data as Prisma.CurrencyCreateInput,
             })
 
             revalidatePath(`/admin/${slug}`)
@@ -53,8 +66,8 @@ export const updateOne =
     <T>(model: AnyModel, slug: string) =>
     (id: string, data: T) =>
         errorHandler(async () => {
-            await model.update({
-                data: data as unknown as Prisma.PublisherUpdateInput,
+            await (model as PrivateAnyModel).update({
+                data: data as Prisma.CurrencyUpdateInput,
                 where: {
                     id,
                 },
@@ -67,7 +80,7 @@ export const updateOne =
 
 export const deleteOne = (model: AnyModel, slug: string) => (id: string) =>
     errorHandler(async () => {
-        await model.delete({
+        await (model as PrivateAnyModel).delete({
             where: {
                 id,
             },
@@ -82,7 +95,7 @@ export const getOne =
     <T>(model: AnyModel) =>
     (id: string) =>
         errorHandler(async () => {
-            const row = await model.findUnique({
+            const row = await (model as PrivateAnyModel).findUnique({
                 where: {
                     id,
                 },
@@ -96,61 +109,33 @@ export const getOne =
         })
 
 export const getMany =
-    <T>({ attrs, model }: { attrs: string[]; model: AnyModel }) =>
+    <T>(model: AnyModel, searchAttr: keyof T) =>
     (input: GetManyInput): Promise<CommonDBReturn<GetManyOutput<T>>> =>
         errorHandler(async () => {
-            const whereClause = {
-                OR: attrs.reduce(
-                    (prev, attr) =>
-                        prev.concat([
-                            {
-                                [attr]: {
-                                    startsWith: input.searchTerm,
-                                },
-                            },
-                        ]),
-                    [] as Record<string, Record<string, string>>[],
-                ),
-            }
-
-            const [rowsResult, totalResult] = await Promise.allSettled([
-                model.findMany({
+            const [rows, total] = await db.$transaction([
+                (model as PrivateAnyModel).findMany({
                     take: input.take,
                     skip: input.skip,
-                    where: whereClause,
+                    where: {
+                        [searchAttr]: {
+                            startsWith: input.searchTerm,
+                        },
+                    },
                 }),
-                model.count({
-                    where: whereClause,
+                (model as PrivateAnyModel).count({
+                    where: {
+                        [searchAttr]: {
+                            startsWith: input.searchTerm,
+                        },
+                    },
                 }),
             ])
 
-            if (rowsResult.status === "rejected") {
-                throw rowsResult.reason
-            }
-
-            if (totalResult.status === "rejected") {
-                throw totalResult.reason
-            }
-
-            const total = totalResult.value
-            const rows = rowsResult.value as T[]
-
             return {
                 total,
-                rows,
+                rows: rows as T[],
             }
         })
-
-export const createAdminQueries = <T, F extends string, C, U>(model: AnyModel, slug: string, searchAttrs: F[]) => ({
-    getMany: getMany<T>({
-        attrs: searchAttrs,
-        model,
-    }),
-    getOne: getOne<T>(model),
-    createOne: createOne<C>(model, slug),
-    updateOne: updateOne<U>(model, slug),
-    deleteOne: deleteOne(model, slug),
-})
 
 interface HasId {
     id: string
@@ -160,7 +145,7 @@ export const getSuggestions =
     <T extends HasId>(model: AnyModel, searchAttr: keyof T) =>
     async (searchTerm: string) =>
         errorHandler(async () => {
-            const suggestions = await model.findMany({
+            const suggestions = await (model as PrivateAnyModel).findMany({
                 where: {
                     [searchAttr]: {
                         startsWith: searchTerm,
