@@ -3,7 +3,6 @@
 import { type ZodObject, type ZodRawShape } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, type Path, type ControllerRenderProps, type FieldValues } from "react-hook-form"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import React, { useMemo } from "react"
 
 import { Button } from "~/components/ui/button"
@@ -29,22 +28,11 @@ export default function CreateOrUpdate<I>(props: {
     waitingMessage: string
     successMessage: string
 }) {
-    const router = useRouter()
-    const searchParams = useSearchParams()
-    const pathname = usePathname()
-
     const fieldNames = Object.keys(props.inputKeyMap)
-
-    const keyForParams = useMemo(() => `${props.paramsPrefix}_values_json`, [props])
 
     const form = useForm<ZodRawShape>({
         resolver: zodResolver(props.formSchema),
         defaultValues: async () => {
-            const paramValue = searchParams.get(keyForParams)
-            if (paramValue) {
-                return JSON.parse(paramValue) as ZodRawShape
-            }
-
             if (!props.dbGetOne) {
                 return props.defaultValues as ZodRawShape
             }
@@ -63,12 +51,6 @@ export default function CreateOrUpdate<I>(props: {
     })
 
     const onSubmit = async (values: ZodRawShape) => {
-        const params = new URLSearchParams(searchParams)
-
-        params.set(keyForParams, JSON.stringify(values))
-
-        router.replace(`${pathname}?${params.toString()}`)
-
         await dbQueryWithToast({
             dbQuery: () => props.dbMutation(values as I),
             mutationName: "saving",

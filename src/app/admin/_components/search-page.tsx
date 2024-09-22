@@ -114,29 +114,35 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
     const { getManyQuery } = props
 
     const getRows = useCallback(async () => {
-        const result = await getManyQuery({
-            take: currentTake,
-            skip: currentTake * (currentPage - 1),
-            searchTerm: currentSearchTerm,
-        })
+        try {
+            setGetRowsDone(false)
 
-        if (!result.success) {
-            toastDBRowsError(result.errorMessage)
-            return
-        }
+            const result = await getManyQuery({
+                take: currentTake,
+                skip: currentTake * (currentPage - 1),
+                searchTerm: currentSearchTerm,
+            })
 
-        setGetRowsDone(true)
+            if (!result.success) {
+                toastDBRowsError(result.errorMessage)
+                return
+            }
 
-        if (result.data) {
-            setShowErrorIndicator(false)
-            setRows(result.data.rows)
-            setTotal(result.data.total)
+            setGetRowsDone(true)
+
+            if (result.data) {
+                setShowErrorIndicator(false)
+                setRows(result.data.rows)
+                setTotal(result.data.total)
+            }
+        } catch (error) {
+            toastDBRowsError((error as Error).message)
         }
     }, [getManyQuery, currentTake, currentPage, currentSearchTerm, toastDBRowsError])
 
     useEffect(() => {
-        getRows().catch((e) => toastDBRowsError((e as Error).message))
-    }, [getRows, toastDBRowsError])
+        getRows()
+    }, [getRows])
 
     enum ModalParams {
         delete = "delete_id",
@@ -144,7 +150,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         create = "is_creating",
     }
 
-    const removeModalParamKeys = useCallback(() => {
+    const closeModal = useCallback(() => {
         const params = new URLSearchParams(searchParams)
         searchParams.forEach((_, key) => {
             if (key.startsWith("delete_") || key.startsWith("update_") || key.startsWith("create_") || key.startsWith("is_creating")) {
@@ -152,7 +158,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
             }
         })
         router.replace(`${pathname}?${params.toString()}`)
-    }, [pathname, router, searchParams])
+        getRows()
+    }, [pathname, router, searchParams, getRows])
 
     const setNewModalParams = useCallback(
         (key: string, value: string) => {
@@ -173,11 +180,6 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
     const hasModalParams = useCallback(() => {
         return searchParams.has(ModalParams.delete) || searchParams.has(ModalParams.update) || searchParams.has(ModalParams.create)
     }, [ModalParams, searchParams])
-
-    const closeModal = useCallback(() => {
-        removeModalParamKeys()
-        getRows().catch((e) => toastDBRowsError((e as Error).message))
-    }, [removeModalParamKeys, getRows, toastDBRowsError])
 
     return (
         <main className="flex flex-col p-2 gap-3">
@@ -227,7 +229,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
 
             <Card x-chunk="dashboard-06-chunk-0">
                 {!getRowsDone && !showErrorIndicator && (
-                    <div className="flex w-full justify-center items-center">
+                    <div className="flex w-full justify-center items-center h-[80vh]">
                         <LoaderCircle
                             width={100}
                             height={100}
@@ -236,7 +238,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                     </div>
                 )}
                 {showErrorIndicator && (
-                    <div className="flex w-full justify-center items-center">
+                    <div className="flex w-full justify-center items-center h-[80vh]">
                         <CircleX
                             width={100}
                             height={100}

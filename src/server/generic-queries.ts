@@ -143,7 +143,7 @@ interface HasId {
 
 export const getSuggestions =
     <T extends HasId>(model: AnyModel, searchAttr: keyof T) =>
-    async (searchTerm: string) =>
+    async (searchTerm: string, id?: string) =>
         errorHandler(async () => {
             const suggestions = await (model as PrivateAnyModel).findMany({
                 where: {
@@ -157,6 +157,22 @@ export const getSuggestions =
                 },
                 take: 5,
             })
+
+            if (id && !suggestions.some((suggestion) => suggestion.id === id)) {
+                const suggenstionWithId = await (model as PrivateAnyModel).findUnique({
+                    where: {
+                        id,
+                    },
+                    select: {
+                        id: true,
+                        [searchAttr]: true,
+                    },
+                })
+
+                if (suggenstionWithId) {
+                    suggestions.unshift(suggenstionWithId)
+                }
+            }
 
             return (suggestions as unknown as T[]).map((suggestion) => ({
                 id: suggestion.id,

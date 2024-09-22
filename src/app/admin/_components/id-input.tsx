@@ -13,7 +13,7 @@ export default function IdInput(props: {
     onChange: (value: string) => void
     value?: string
     disabled?: boolean
-    getSuggestions: (searchTerm: string) => Promise<CommonDBReturn<CommonSuggestion[]>>
+    getSuggestions: (searchTerm: string, id?: string) => Promise<CommonDBReturn<CommonSuggestion[]>>
     label: string
 }) {
     const [suggestions, setSuggestions] = useState<CommonSuggestion[]>([])
@@ -21,13 +21,12 @@ export default function IdInput(props: {
     const [open, setOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
 
-    const { getSuggestions } = props
+    const { getSuggestions, value } = props
 
     useEffect(() => {
         const searchSuggestions = async (searchTerm: string) => {
-            setSearchTerm(searchTerm)
             setIsLoading(true)
-            const suggestions = await getSuggestions(searchTerm)
+            const suggestions = await getSuggestions(searchTerm, props.value)
             setIsLoading(false)
 
             if (suggestions.data) {
@@ -36,7 +35,7 @@ export default function IdInput(props: {
         }
 
         searchSuggestions(searchTerm).catch((error) => console.log(error))
-    }, [getSuggestions, searchTerm])
+    }, [getSuggestions, searchTerm, value])
 
     return (
         <Popover
@@ -50,7 +49,7 @@ export default function IdInput(props: {
                     role="combobox"
                     aria-expanded={open}
                     className="ml-2 justify-between"
-                    disabled={props.disabled}
+                    disabled={props.disabled || isLoading}
                 >
                     {props.value && props.value !== "" ? suggestions.find((s) => s.id === props.value)?.name : `Selecione ${props.label}...`}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
