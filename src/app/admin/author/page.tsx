@@ -61,11 +61,11 @@ export default function MainPage() {
                 name: "Nome",
                 about: "Sobre",
             }}
-            getManyQuery={authorGetMany}
-            deleteOneQuery={authorDeleteOne}
-            getOneQuery={authorGetOne}
-            createOneQuery={authorCreateOne}
-            updateOneQuery={authorUpdateOne}
+            getManyQueryAction={authorGetMany}
+            deleteOneQueryAction={authorDeleteOne}
+            getOneQueryAction={authorGetOne}
+            createOneQueryAction={authorCreateOne}
+            updateOneQueryAction={authorUpdateOne}
             inputKeyMap={inputKeyMap}
             formSchema={authorValidationSchema}
         ></SearchPage>

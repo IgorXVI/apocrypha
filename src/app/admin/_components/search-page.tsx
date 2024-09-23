@@ -38,15 +38,15 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         name: string
         namePlural: string
         tableHeaders: Record<keyof D, string>
-        getManyQuery: (input: { take: number; skip: number; searchTerm: string }) => Promise<
+        getManyQueryAction: (input: { take: number; skip: number; searchTerm: string }) => Promise<
             CommonDBReturn<{
                 total: number
                 rows: D[]
             }>
         >
-        deleteOneQuery: (id: string) => Promise<CommonDBReturn<undefined>>
-        updateOneQuery: (id: string, values: I) => Promise<CommonDBReturn<undefined>>
-        createOneQuery: (values: I) => Promise<CommonDBReturn<undefined>>
+        deleteOneQueryAction: (id: string) => Promise<CommonDBReturn<undefined>>
+        updateOneQueryAction: (id: string, values: I) => Promise<CommonDBReturn<undefined>>
+        createOneQueryAction: (values: I) => Promise<CommonDBReturn<undefined>>
         getOneQuery: (id: string) => Promise<CommonDBReturn<I>>
         formSchema: ZodObject<ZodRawShape>
         inputKeyMap: Record<
