@@ -2,9 +2,9 @@
 
 import { type Prisma } from "prisma/prisma-client"
 import { revalidatePath } from "next/cache"
-import { type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
+import { type CommonDBReturn, type GetManyInput, type GetManyOutput } from "../types"
 import { type DefaultArgs } from "@prisma/client/runtime/library"
-import { db } from "./db"
+import { db } from "../db"
 
 type AnyModel =
     | Prisma.PublisherDelegate<DefaultArgs>
@@ -158,7 +158,7 @@ export const getSuggestions =
                 take: 5,
             })
 
-            if (id && !suggestions.some((suggestion) => suggestion.id === id)) {
+            if (id && !suggestions.some((suggestion) => (suggestion as unknown as T).id === id)) {
                 const suggenstionWithId = await (model as PrivateAnyModel).findUnique({
                     where: {
                         id,

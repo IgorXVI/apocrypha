@@ -4,7 +4,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { publisherGetMany, publisherGetOne, publisherCreateOne, publisherUpdateOne, publisherDeleteOne } from "~/server/queries"
+import { publisherGetMany, publisherGetOne, publisherCreateOne, publisherUpdateOne, publisherDeleteOne } from "~/server/actions/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 

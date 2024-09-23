@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { dbQueryWithToast } from "~/lib/toasting"
+import { dbQueryWithToast } from "./toasting"
 import { Button } from "~/components/ui/button"
 
 export default function DeleteOne(props: {

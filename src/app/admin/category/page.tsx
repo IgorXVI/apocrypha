@@ -4,7 +4,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { categoryGetMany, categoryGetOne, categoryCreateOne, categoryUpdateOne, categoryDeleteOne } from "~/server/queries"
+import { categoryGetMany, categoryGetOne, categoryCreateOne, categoryUpdateOne, categoryDeleteOne } from "~/server/actions/queries"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "~/app/admin/_components/search-page"
 

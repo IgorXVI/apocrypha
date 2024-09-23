@@ -6,7 +6,7 @@ import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { languageGetMany, languageGetOne, languageCreateOne, languageUpdateOne, languageDeleteOne } from "~/server/queries"
+import { languageGetMany, languageGetOne, languageCreateOne, languageUpdateOne, languageDeleteOne } from "~/server/actions/queries"
 
 const zodValidationSchema = z.object({
     name: z.string().min(3, {
