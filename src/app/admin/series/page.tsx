@@ -1,26 +1,14 @@
-"use client"
-
 import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { seriesGetMany, seriesGetOne, seriesCreateOne, seriesUpdateOne, seriesDeleteOne } from "~/server/actions/queries"
+import { seriesGetMany, seriesGetOne, seriesCreateOne, seriesUpdateOne, seriesDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
-const zodValidationSchema = z.object({
-    name: z.string().min(3, {
-        message: "Nome deve ter ao menos 3 caracteres.",
-    }),
-})
+import { seriesValidationSchema, type SeriesSchemaType } from "~/server/validation"
 
-type SchemaType = z.infer<typeof zodValidationSchema>
-
-const defaultValues: SchemaType = {
-    name: "",
-}
-
-type ModelAttrs = keyof SchemaType
+type ModelAttrs = keyof SeriesSchemaType
 
 const inputKeyMap: Record<
     ModelAttrs,
@@ -56,9 +44,8 @@ export default function MainPage() {
             getOneQuery={seriesGetOne}
             createOneQuery={seriesCreateOne}
             updateOneQuery={seriesUpdateOne}
-            defaultValues={defaultValues}
             inputKeyMap={inputKeyMap}
-            formSchema={zodValidationSchema}
+            formSchema={seriesValidationSchema}
         ></SearchPage>
     )
 }

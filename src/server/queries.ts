@@ -1,6 +1,6 @@
-"use server"
+"server-only"
 
-import { db } from "../db"
+import { db } from "./db"
 import { getMany, getOne, createOne, updateOne, deleteOne, getSuggestions } from "./generic-queries"
 import {
     type AuthorPayload,
@@ -17,10 +17,10 @@ import {
     type CurrencyInput,
     type AuthorInput,
     type TranslatorInput,
-} from "../types"
+} from "./types"
 
 export const currencyGetMany = getMany<CurrencyPayload>(db.currency, "iso4217Code")
-export const currencyGetOne = getOne(db.currency)
+export const currencyGetOne = getOne<CurrencyInput>(db.currency)
 export const currencyCreateOne = createOne<CurrencyInput>(db.currency, "currency")
 export const currencyUpdateOne = updateOne<CurrencyInput>(db.currency, "currency")
 export const currencyDeleteOne = deleteOne(db.currency, "currency")

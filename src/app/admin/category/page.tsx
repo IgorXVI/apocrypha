@@ -1,28 +1,13 @@
-"use client"
-
-import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { categoryGetMany, categoryGetOne, categoryCreateOne, categoryUpdateOne, categoryDeleteOne } from "~/server/actions/queries"
+import { categoryGetMany, categoryGetOne, categoryCreateOne, categoryUpdateOne, categoryDeleteOne } from "~/server/queries"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "~/app/admin/_components/search-page"
 
-const zodValidationSchema = z.object({
-    name: z.string().min(3, {
-        message: "Nome deve ter ao menos 3 caracteres.",
-    }),
-    iconUrl: z.string().url("Selecione uma imagem."),
-})
+import { categoryValidationSchema, type CategorySchemaType } from "~/server/validation"
 
-type SchemaType = z.infer<typeof zodValidationSchema>
-
-const defaultValues: SchemaType = {
-    name: "",
-    iconUrl: "",
-}
-
-type ModelAttrs = keyof SchemaType
+type ModelAttrs = keyof CategorySchemaType
 
 const inputKeyMap: Record<
     ModelAttrs,
@@ -67,9 +52,8 @@ export default function MainPage() {
             getOneQuery={categoryGetOne}
             createOneQuery={categoryCreateOne}
             updateOneQuery={categoryUpdateOne}
-            defaultValues={defaultValues}
             inputKeyMap={inputKeyMap}
-            formSchema={zodValidationSchema}
+            formSchema={categoryValidationSchema}
         ></SearchPage>
     )
 }

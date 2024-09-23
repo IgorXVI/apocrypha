@@ -1,33 +1,14 @@
-"use client"
-
-import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { authorGetMany, authorGetOne, authorCreateOne, authorUpdateOne, authorDeleteOne } from "~/server/actions/queries"
+import { authorGetMany, authorGetOne, authorCreateOne, authorUpdateOne, authorDeleteOne } from "~/server/queries"
 import { Textarea } from "~/components/ui/textarea"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "../_components/search-page"
 
-const zodValidationSchema = z.object({
-    name: z.string().min(3, {
-        message: "Nome deve ter ao menos 3 caracteres.",
-    }),
-    about: z.string().min(5, {
-        message: "Sobre deve ter ao menos 5 caracteres.",
-    }),
-    imgUrl: z.string().url("Selecione uma imagem."),
-})
+import { authorValidationSchema, type AuthorSchemaType } from "~/server/validation"
 
-type SchemaType = z.infer<typeof zodValidationSchema>
-
-const defaultValues: SchemaType = {
-    name: "",
-    about: "",
-    imgUrl: "",
-}
-
-type ModelAttrs = keyof SchemaType
+type ModelAttrs = keyof AuthorSchemaType
 
 const inputKeyMap: Record<
     ModelAttrs,
@@ -85,9 +66,8 @@ export default function MainPage() {
             getOneQuery={authorGetOne}
             createOneQuery={authorCreateOne}
             updateOneQuery={authorUpdateOne}
-            defaultValues={defaultValues}
             inputKeyMap={inputKeyMap}
-            formSchema={zodValidationSchema}
+            formSchema={authorValidationSchema}
         ></SearchPage>
     )
 }

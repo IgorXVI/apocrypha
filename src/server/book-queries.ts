@@ -1,4 +1,4 @@
-"use server"
+"server-only"
 
 import { revalidatePath } from "next/cache"
 
@@ -6,8 +6,8 @@ import { db } from "~/server/db"
 
 import { errorHandler } from "./generic-queries"
 
-import { type BookGetManyOneRowOutput, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "../types"
-import { archiveProduct, createProduct, restoreProduct } from "../stripe-api"
+import { type BookGetManyOneRowOutput, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
+import { archiveProduct, createProduct, restoreProduct } from "./stripe-api"
 
 type BookDataInput = {
     price: number

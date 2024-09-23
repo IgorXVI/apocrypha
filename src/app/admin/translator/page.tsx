@@ -1,26 +1,13 @@
-"use client"
-
-import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { translatorGetMany, translatorGetOne, translatorCreateOne, translatorUpdateOne, translatorDeleteOne } from "~/server/actions/queries"
+import { translatorGetMany, translatorGetOne, translatorCreateOne, translatorUpdateOne, translatorDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
-const zodValidationSchema = z.object({
-    name: z.string().min(3, {
-        message: "Nome deve ter ao menos 3 caracteres.",
-    }),
-})
+import { translatorValidationSchema, type TranslatorSchemaType } from "~/server/validation"
 
-type SchemaType = z.infer<typeof zodValidationSchema>
-
-const defaultValues: SchemaType = {
-    name: "",
-}
-
-type ModelAttrs = keyof SchemaType
+type ModelAttrs = keyof TranslatorSchemaType
 
 const inputKeyMap: Record<
     ModelAttrs,
@@ -56,9 +43,8 @@ export default function MainPage() {
             getOneQuery={translatorGetOne}
             createOneQuery={translatorCreateOne}
             updateOneQuery={translatorUpdateOne}
-            defaultValues={defaultValues}
             inputKeyMap={inputKeyMap}
-            formSchema={zodValidationSchema}
+            formSchema={translatorValidationSchema}
         ></SearchPage>
     )
 }

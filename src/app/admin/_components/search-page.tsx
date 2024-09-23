@@ -6,7 +6,7 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useDebouncedCallback } from "use-debounce"
-import { type Path, type ControllerRenderProps, type FieldValues } from "react-hook-form"
+import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 import { type ZodObject, type ZodRawShape } from "zod"
 
 import { Button } from "~/components/ui/button"
@@ -31,6 +31,8 @@ import DeleteOne from "./delete-one"
 import { type PossibleDBOutput, type CommonDBReturn } from "~/server/types"
 import CreateOrUpdate from "./create-or-update"
 
+type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
+
 export default function SearchPage<I, D extends PossibleDBOutput>(
     props: Readonly<{
         name: string
@@ -46,12 +48,11 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         updateOneQuery: (id: string, values: I) => Promise<CommonDBReturn<undefined>>
         createOneQuery: (values: I) => Promise<CommonDBReturn<undefined>>
         getOneQuery: (id: string) => Promise<CommonDBReturn<I>>
-        defaultValues: I
         formSchema: ZodObject<ZodRawShape>
         inputKeyMap: Record<
             string,
             {
-                node: (field: ControllerRenderProps<FieldValues, Path<I>>) => React.ReactNode
+                node: (field: ControllerRenderProps<FieldValues, inputKeysWithoutId<I>>) => React.ReactNode
                 label: string
                 description: string | React.ReactNode
                 className?: string
@@ -480,7 +481,6 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                 paramsPrefix="update"
                                 waitingMessage={`Atualizando ${props.name}...`}
                                 successMessage="Atualizado."
-                                defaultValues={props.defaultValues}
                                 formSchema={props.formSchema}
                                 inputKeyMap={props.inputKeyMap}
                                 dbMutation={(values) => props.updateOneQuery(searchParams.get(ModalParams.update) ?? "", values)}
@@ -498,7 +498,6 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                 paramsPrefix="create"
                                 waitingMessage={`Criando ${props.name}...`}
                                 successMessage="Criado."
-                                defaultValues={props.defaultValues}
                                 formSchema={props.formSchema}
                                 inputKeyMap={props.inputKeyMap}
                                 dbMutation={props.createOneQuery}

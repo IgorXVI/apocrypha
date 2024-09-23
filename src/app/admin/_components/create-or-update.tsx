@@ -1,8 +1,8 @@
 "use client"
 
-import { type ZodObject, type ZodRawShape } from "zod"
+import { type ZodObject, type ZodRawShape, z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, type Path, type ControllerRenderProps, type FieldValues } from "react-hook-form"
+import { useForm, type ControllerRenderProps, type FieldValues } from "react-hook-form"
 import React from "react"
 
 import { Button } from "~/components/ui/button"
@@ -10,16 +10,28 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { dbQueryWithToast } from "./toasting"
 import { type CommonDBReturn } from "~/server/types"
 
+function getDefaults<Schema extends ZodObject<ZodRawShape>>(schema: Schema) {
+    return Object.fromEntries(
+        Object.entries(schema.shape).map(([key, value]) => {
+            if (value instanceof z.ZodDefault) return [key, value._def.defaultValue()]
+            return [key, undefined]
+        }),
+    )
+}
+
+type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
+
+type inputField<I> = ControllerRenderProps<FieldValues, inputKeysWithoutId<I>>
+
 export default function CreateOrUpdate<I>(props: {
     paramsPrefix: string
     formSchema: ZodObject<ZodRawShape>
     dbMutation: (values: I) => Promise<CommonDBReturn<undefined>>
-    defaultValues: I
     dbGetOne?: () => Promise<CommonDBReturn<I>>
     inputKeyMap: Record<
         string,
         {
-            node: (field: ControllerRenderProps<FieldValues, Path<I>>) => React.ReactNode
+            node: (field: inputField<I>) => React.ReactNode
             label: string
             description: string | React.ReactNode
             className?: string
@@ -34,7 +46,7 @@ export default function CreateOrUpdate<I>(props: {
         resolver: zodResolver(props.formSchema),
         defaultValues: async () => {
             if (!props.dbGetOne) {
-                return props.defaultValues as ZodRawShape
+                return getDefaults(props.formSchema)
             }
 
             const dbResult = await dbQueryWithToast({
@@ -46,7 +58,7 @@ export default function CreateOrUpdate<I>(props: {
             if (dbResult) {
                 return dbResult as ZodRawShape
             }
-            return props.defaultValues as ZodRawShape
+            return getDefaults(props.formSchema)
         },
     })
 
@@ -70,11 +82,11 @@ export default function CreateOrUpdate<I>(props: {
                         key={index}
                         disabled={form.formState.isSubmitting || form.formState.isLoading}
                         control={form.control}
-                        name={key as Path<I>}
+                        name={key}
                         render={({ field }) => (
                             <FormItem className={props.inputKeyMap[key]?.className ?? "flex flex-col justify-center"}>
                                 <FormLabel>{props.inputKeyMap[key]?.label}</FormLabel>
-                                <FormControl>{props.inputKeyMap[key]?.node(field)}</FormControl>
+                                <FormControl>{props.inputKeyMap[key]?.node(field as unknown as inputField<I>)}</FormControl>
                                 <FormDescription>{props.inputKeyMap[key]?.description}</FormDescription>
                                 <FormMessage />
                             </FormItem>

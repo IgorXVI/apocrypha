@@ -1,40 +1,13 @@
-"use client"
-
-import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { currencyGetMany, currencyGetOne, currencyCreateOne, currencyUpdateOne, currencyDeleteOne } from "~/server/actions/queries"
+import { currencyGetMany, currencyGetOne, currencyCreateOne, currencyUpdateOne, currencyDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
-const zodValidationSchema = z.object({
-    label: z
-        .string()
-        .min(1, {
-            message: "Prefixo deve ter ao menos 1 caracter.",
-        })
-        .max(5, {
-            message: "Prefixo deve ter no máximo 5 caracteres.",
-        }),
-    iso4217Code: z
-        .string()
-        .min(3, {
-            message: "Código ISO 4217 deve ter ao menos 3 caracteres.",
-        })
-        .max(4, {
-            message: "Código ISO 4217 deve ter no máximo 4 caracteres.",
-        }),
-})
+import { currencyValidationSchema, type CurrencySchemaType } from "~/server/validation"
 
-type SchemaType = z.infer<typeof zodValidationSchema>
-
-const defaultValues: SchemaType = {
-    label: "",
-    iso4217Code: "",
-}
-
-type ModelAttrs = keyof SchemaType
+type ModelAttrs = keyof CurrencySchemaType
 
 const inputKeyMap: Record<
     ModelAttrs,
@@ -92,9 +65,8 @@ export default function MainPage() {
             getOneQuery={currencyGetOne}
             createOneQuery={currencyCreateOne}
             updateOneQuery={currencyUpdateOne}
-            defaultValues={defaultValues}
             inputKeyMap={inputKeyMap}
-            formSchema={zodValidationSchema}
+            formSchema={currencyValidationSchema}
         ></SearchPage>
     )
 }
