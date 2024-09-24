@@ -173,7 +173,10 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
             }
         })
         router.replace(`${pathname}?${params.toString()}`)
-    }, [pathname, router, searchParams])
+        getRows().catch((error) => {
+            toastDBRowsError((error as Error).message)
+        })
+    }, [getRows, pathname, router, searchParams, toastDBRowsError])
 
     const setNewModalParams = useCallback(
         (key: string, value: string) => {
