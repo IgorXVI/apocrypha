@@ -12,6 +12,7 @@ export async function GET(req: Request, { params: { slug } }: { params: { slug: 
     if (!result.success) {
         return Response.json(
             {
+                success: false,
                 errorMessage: result.errorMessage,
             },
             {
@@ -20,7 +21,10 @@ export async function GET(req: Request, { params: { slug } }: { params: { slug: 
         )
     }
 
-    return Response.json(result.data)
+    return Response.json({
+        success: true,
+        data: result.data,
+    })
 }
 
 export async function POST(req: Request, { params: { slug } }: { params: { slug: string } }) {
@@ -46,6 +50,7 @@ export async function POST(req: Request, { params: { slug } }: { params: { slug:
     if (!reqBodyResult.success) {
         return Response.json(
             {
+                success: false,
                 errorMessage: reqBodyResult.errorMessage,
             },
             {
@@ -59,7 +64,8 @@ export async function POST(req: Request, { params: { slug } }: { params: { slug:
     if (!validationResult.success) {
         return Response.json(
             {
-                issues: validationResult.error.issues,
+                success: false,
+                errorMessage: validationResult.error.issues,
             },
             {
                 status: 400,
@@ -73,6 +79,7 @@ export async function POST(req: Request, { params: { slug } }: { params: { slug:
     if (!result.success) {
         return Response.json(
             {
+                success: false,
                 errorMessage: result.errorMessage,
             },
             {

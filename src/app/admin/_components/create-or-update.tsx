@@ -8,7 +8,6 @@ import React from "react"
 import { Button } from "~/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 import { dbQueryWithToast } from "./toasting"
-import { type CommonDBReturn } from "~/server/types"
 
 function getDefaults<Schema extends ZodObject<ZodRawShape>>(schema: Schema) {
     return Object.fromEntries(
@@ -26,8 +25,8 @@ type inputField<I> = ControllerRenderProps<FieldValues, inputKeysWithoutId<I>>
 export default function CreateOrUpdate<I>(props: {
     paramsPrefix: string
     formSchema: ZodObject<ZodRawShape>
-    dbMutation: (values: I) => Promise<CommonDBReturn<undefined>>
-    dbGetOne?: () => Promise<CommonDBReturn<I>>
+    slug: string
+    id?: string
     inputKeyMap: Record<
         string,
         {
@@ -45,12 +44,35 @@ export default function CreateOrUpdate<I>(props: {
     const form = useForm<ZodRawShape>({
         resolver: zodResolver(props.formSchema),
         defaultValues: async () => {
-            if (!props.dbGetOne) {
+            if (!props.id) {
                 return getDefaults(props.formSchema)
             }
 
             const dbResult = await dbQueryWithToast({
-                dbQuery: props.dbGetOne,
+                dbQuery: () =>
+                    fetch(`/api/admin/${props.slug}/${props.id}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    })
+                        .then((res) => res.json())
+                        .then((json) => {
+                            if (json.success) {
+                                return {
+                                    data: json.data,
+                                    success: true,
+                                    errorMessage: "",
+                                }
+                            }
+                            throw new Error(json.errorMessage)
+                        })
+                        .catch((error) => {
+                            return {
+                                data: undefined,
+                                success: false,
+                                errorMessage: (error as Error).message,
+                            }
+                        }),
                 mutationName: "getting",
                 waitingMessage: "Buscando dados...",
                 successMessage: "Busca realizada com sucesso",
@@ -64,7 +86,32 @@ export default function CreateOrUpdate<I>(props: {
 
     const onSubmit = async (values: ZodRawShape) => {
         await dbQueryWithToast({
-            dbQuery: () => props.dbMutation(values as I),
+            dbQuery: () =>
+                fetch(`/api/admin/${props.slug}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(values),
+                })
+                    .then((res) => res.json())
+                    .then((json) => {
+                        if (json.success) {
+                            return {
+                                data: json.data,
+                                success: true,
+                                errorMessage: "",
+                            }
+                        }
+                        throw new Error(json.errorMessage)
+                    })
+                    .catch((error) => {
+                        return {
+                            data: undefined,
+                            success: false,
+                            errorMessage: (error as Error).message,
+                        }
+                    }),
             mutationName: "saving",
             waitingMessage: props.waitingMessage,
             successMessage: props.successMessage,

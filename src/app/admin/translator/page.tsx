@@ -1,7 +1,6 @@
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { translatorGetMany, translatorGetOne, translatorCreateOne, translatorUpdateOne, translatorDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
@@ -38,11 +37,7 @@ export default function MainPage() {
                 id: "ID",
                 name: "Nome",
             }}
-            getManyQuery={translatorGetMany}
-            deleteOneQuery={translatorDeleteOne}
-            getOneQuery={translatorGetOne}
-            createOneQuery={translatorCreateOne}
-            updateOneQuery={translatorUpdateOne}
+            slug="generic-crud/translator"
             inputKeyMap={inputKeyMap}
             formSchema={translatorValidationSchema}
         ></SearchPage>

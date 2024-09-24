@@ -1,7 +1,6 @@
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { categoryGetMany, categoryGetOne, categoryCreateOne, categoryUpdateOne, categoryDeleteOne } from "~/server/queries"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "~/app/admin/_components/search-page"
 
@@ -47,11 +46,7 @@ export default function MainPage() {
                 iconUrl: "Ícone",
                 name: "Nome",
             }}
-            getManyQuery={categoryGetMany}
-            deleteOneQuery={categoryDeleteOne}
-            getOneQuery={categoryGetOne}
-            createOneQuery={categoryCreateOne}
-            updateOneQuery={categoryUpdateOne}
+            slug="generic-crud/category"
             inputKeyMap={inputKeyMap}
             formSchema={categoryValidationSchema}
         ></SearchPage>

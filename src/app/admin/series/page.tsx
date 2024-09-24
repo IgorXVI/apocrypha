@@ -1,8 +1,6 @@
-import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { seriesGetMany, seriesGetOne, seriesCreateOne, seriesUpdateOne, seriesDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
@@ -39,11 +37,7 @@ export default function MainPage() {
                 id: "ID",
                 name: "Nome",
             }}
-            getManyQuery={seriesGetMany}
-            deleteOneQuery={seriesDeleteOne}
-            getOneQuery={seriesGetOne}
-            createOneQuery={seriesCreateOne}
-            updateOneQuery={seriesUpdateOne}
+            slug="generic-crud/series"
             inputKeyMap={inputKeyMap}
             formSchema={seriesValidationSchema}
         ></SearchPage>

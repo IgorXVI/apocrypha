@@ -28,26 +28,17 @@ import {
 } from "~/components/ui/pagination"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import DeleteOne from "./delete-one"
-import { type PossibleDBOutput, type CommonDBReturn } from "~/server/types"
+import { type PossibleDBOutput } from "~/server/types"
 import CreateOrUpdate from "./create-or-update"
 
 type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
 
 export default function SearchPage<I, D extends PossibleDBOutput>(
     props: Readonly<{
+        slug: string
         name: string
         namePlural: string
         tableHeaders: Record<keyof D, string>
-        getManyQueryAction: (input: { take: number; skip: number; searchTerm: string }) => Promise<
-            CommonDBReturn<{
-                total: number
-                rows: D[]
-            }>
-        >
-        deleteOneQueryAction: (id: string) => Promise<CommonDBReturn<undefined>>
-        updateOneQueryAction: (id: string, values: I) => Promise<CommonDBReturn<undefined>>
-        createOneQueryAction: (values: I) => Promise<CommonDBReturn<undefined>>
-        getOneQuery: (id: string) => Promise<CommonDBReturn<I>>
         formSchema: ZodObject<ZodRawShape>
         inputKeyMap: Record<
             string,
@@ -112,17 +103,40 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         [searchParams, pathname, currentPage],
     )
 
-    const { getManyQuery } = props
-
     const getRows = useCallback(async () => {
         try {
             setGetRowsDone(false)
 
-            const result = await getManyQuery({
-                take: currentTake,
-                skip: currentTake * (currentPage - 1),
+            const paramsForRequest = new URLSearchParams({
+                take: currentTake.toString(),
+                skip: (currentTake * (currentPage - 1)).toString(),
                 searchTerm: currentSearchTerm,
             })
+
+            const result = await fetch(`/api/admin/${props.slug}?${paramsForRequest.toString()}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+                .then((res) => res.json())
+                .then((json) => {
+                    if (json.success) {
+                        return {
+                            data: json.data,
+                            success: true,
+                            errorMessage: "",
+                        }
+                    }
+
+                    throw new Error(json.errorMessage)
+                })
+                .catch((error) => {
+                    return {
+                        data: undefined,
+                        success: false,
+                        errorMessage: (error as Error).message,
+                    }
+                })
 
             if (!result.success) {
                 toastDBRowsError(result.errorMessage)
@@ -139,7 +153,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         } catch (error) {
             toastDBRowsError((error as Error).message)
         }
-    }, [getManyQuery, currentTake, currentPage, currentSearchTerm, toastDBRowsError])
+    }, [props.slug, currentPage, currentSearchTerm, currentTake, toastDBRowsError])
 
     useEffect(() => {
         getRows().catch((error) => {
@@ -461,7 +475,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                             <DeleteOne
                                 waitingMessage={`Apagando ${props.name}...`}
                                 successMessage="Apagado."
-                                dbMutation={() => props.deleteOneQuery(searchParams.get(ModalParams.delete) ?? "")}
+                                slug={props.slug}
+                                id={searchParams.get(ModalParams.delete) ?? ""}
                                 onConfirm={() => closeModal()}
                             ></DeleteOne>
                         </>
@@ -483,8 +498,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                 successMessage="Atualizado."
                                 formSchema={props.formSchema}
                                 inputKeyMap={props.inputKeyMap}
-                                dbMutation={(values) => props.updateOneQuery(searchParams.get(ModalParams.update) ?? "", values)}
-                                dbGetOne={() => props.getOneQuery(searchParams.get(ModalParams.update) ?? "")}
+                                slug={props.slug}
+                                id={searchParams.get(ModalParams.update) ?? ""}
                             ></CreateOrUpdate>
                         </>
                     )}
@@ -500,7 +515,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                 successMessage="Criado."
                                 formSchema={props.formSchema}
                                 inputKeyMap={props.inputKeyMap}
-                                dbMutation={props.createOneQuery}
+                                slug={props.slug}
                             ></CreateOrUpdate>
                         </>
                     )}

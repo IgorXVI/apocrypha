@@ -1,9 +1,6 @@
-import { z } from "zod"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { publisherGetMany, publisherGetOne, publisherCreateOne, publisherUpdateOne, publisherDeleteOne } from "~/server/queries"
-
 import SearchPage from "~/app/admin/_components/search-page"
 
 import { publisherValidationSchema, type PublisherSchemaType } from "~/server/validation"
@@ -39,11 +36,7 @@ export default function MainPage() {
                 id: "ID",
                 name: "Nome",
             }}
-            getManyQuery={publisherGetMany}
-            deleteOneQuery={publisherDeleteOne}
-            getOneQuery={publisherGetOne}
-            createOneQuery={publisherCreateOne}
-            updateOneQuery={publisherUpdateOne}
+            slug="generic-crud/publisher"
             inputKeyMap={inputKeyMap}
             formSchema={publisherValidationSchema}
         ></SearchPage>

@@ -6,6 +6,7 @@ export async function GET(_: Request, { params: { slug, id } }: { params: { slug
     if (!result.success) {
         return Response.json(
             {
+                success: false,
                 errorMessage: result.errorMessage,
             },
             {
@@ -14,7 +15,10 @@ export async function GET(_: Request, { params: { slug, id } }: { params: { slug
         )
     }
 
-    return Response.json(result.data)
+    return Response.json({
+        success: true,
+        data: result.data,
+    })
 }
 
 export async function DELETE(_: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
@@ -23,6 +27,7 @@ export async function DELETE(_: Request, { params: { slug, id } }: { params: { s
     if (!result.success) {
         return Response.json(
             {
+                success: false,
                 errorMessage: result.errorMessage,
             },
             {
@@ -59,6 +64,7 @@ export async function PATCH(req: Request, { params: { slug, id } }: { params: { 
     if (!reqBodyResult.success) {
         return Response.json(
             {
+                success: false,
                 errorMessage: reqBodyResult.errorMessage,
             },
             {
@@ -72,6 +78,7 @@ export async function PATCH(req: Request, { params: { slug, id } }: { params: { 
     if (!validationResult.success) {
         return Response.json(
             {
+                success: false,
                 issues: validationResult.error.issues,
             },
             {
@@ -86,6 +93,7 @@ export async function PATCH(req: Request, { params: { slug, id } }: { params: { 
     if (!result.success) {
         return Response.json(
             {
+                success: false,
                 errorMessage: result.errorMessage,
             },
             {

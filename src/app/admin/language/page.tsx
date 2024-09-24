@@ -3,7 +3,6 @@ import SearchPage from "~/app/admin/_components/search-page"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { languageGetMany, languageGetOne, languageCreateOne, languageUpdateOne, languageDeleteOne } from "~/server/queries"
 
 import { languageValidationSchema, type LanguageSchemaType } from "~/server/validation"
 
@@ -82,11 +81,7 @@ export default function MainPage() {
                 iso6391Code: "Código ISO 6391",
                 iso6392Code: "Código ISO 6392",
             }}
-            getManyQuery={languageGetMany}
-            deleteOneQuery={languageDeleteOne}
-            getOneQuery={languageGetOne}
-            createOneQuery={languageCreateOne}
-            updateOneQuery={languageUpdateOne}
+            slug="generic-crud/language"
             inputKeyMap={inputKeyMap}
             formSchema={languageValidationSchema}
         ></SearchPage>

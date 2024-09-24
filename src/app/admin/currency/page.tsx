@@ -1,7 +1,6 @@
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { currencyGetMany, currencyGetOne, currencyCreateOne, currencyUpdateOne, currencyDeleteOne } from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
@@ -60,11 +59,7 @@ export default function MainPage() {
                 label: "Prefixo",
                 iso4217Code: "Código",
             }}
-            getManyQuery={currencyGetMany}
-            deleteOneQuery={currencyDeleteOne}
-            getOneQuery={currencyGetOne}
-            createOneQuery={currencyCreateOne}
-            updateOneQuery={currencyUpdateOne}
+            slug="generic-crud/currency"
             inputKeyMap={inputKeyMap}
             formSchema={currencyValidationSchema}
         ></SearchPage>

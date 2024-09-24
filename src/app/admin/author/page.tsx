@@ -1,7 +1,6 @@
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { authorGetMany, authorGetOne, authorCreateOne, authorUpdateOne, authorDeleteOne } from "~/server/queries"
 import { Textarea } from "~/components/ui/textarea"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "../_components/search-page"
@@ -61,11 +60,7 @@ export default function MainPage() {
                 name: "Nome",
                 about: "Sobre",
             }}
-            getManyQueryAction={authorGetMany}
-            deleteOneQueryAction={authorDeleteOne}
-            getOneQueryAction={authorGetOne}
-            createOneQueryAction={authorCreateOne}
-            updateOneQueryAction={authorUpdateOne}
+            slug="generic-crud/author"
             inputKeyMap={inputKeyMap}
             formSchema={authorValidationSchema}
         ></SearchPage>
