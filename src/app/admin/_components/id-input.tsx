@@ -5,37 +5,66 @@ import { useEffect, useState } from "react"
 import { Button } from "~/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
 import { Input } from "~/components/ui/input"
-import { type CommonDBReturn, type CommonSuggestion } from "~/server/types"
+import { type CommonSuggestion } from "~/server/types"
 import { cn } from "~/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
+import { dbQueryWithToast, toastError } from "./toasting"
 
-export default function IdInput(props: {
-    onChange: (value: string) => void
-    value?: string
-    disabled?: boolean
-    getSuggestions: (searchTerm: string, id?: string) => Promise<CommonDBReturn<CommonSuggestion[]>>
-    label: string
-}) {
+export default function IdInput(props: { slug: string; onChange: (value: string) => void; value?: string; disabled?: boolean; label: string }) {
     const [suggestions, setSuggestions] = useState<CommonSuggestion[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [open, setOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
 
-    const { getSuggestions, value } = props
-
     useEffect(() => {
         const searchSuggestions = async (searchTerm: string) => {
             setIsLoading(true)
-            const suggestions = await getSuggestions(searchTerm, value)
+
+            const paramsForRequest = new URLSearchParams({
+                id: props.value ?? "",
+                searchTerm: searchTerm,
+            })
+
+            const result = await dbQueryWithToast({
+                dbQuery: () =>
+                    fetch(`/api/admin/suggestions/${props.slug}?${paramsForRequest.toString()}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    })
+                        .then((res) => res.json())
+                        .then((json) => {
+                            if (json.success) {
+                                return {
+                                    data: json.data,
+                                    success: true,
+                                    errorMessage: "",
+                                }
+                            }
+
+                            throw new Error(json.errorMessage)
+                        })
+                        .catch((error) => {
+                            return {
+                                data: undefined,
+                                success: false,
+                                errorMessage: error.message,
+                            }
+                        }),
+                mutationName: `${props.slug}-suggestions`,
+                waitingMessage: `Buscando ${props.label}...`,
+                successMessage: `Dados de ${props.label} encontrados!`,
+            })
+
             setIsLoading(false)
 
-            if (suggestions.data) {
-                setSuggestions(suggestions.data)
-            }
+            setSuggestions(result)
         }
 
-        searchSuggestions(searchTerm).catch((error) => console.log(error))
-    }, [getSuggestions, searchTerm, value])
+        searchSuggestions(searchTerm).catch((error) => {
+            toastError((error as Error).message)
+        })
+    }, [props.label, props.slug, props.value, searchTerm])
 
     return (
         <Popover

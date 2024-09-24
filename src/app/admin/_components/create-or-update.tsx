@@ -85,10 +85,12 @@ export default function CreateOrUpdate<I>(props: {
     })
 
     const onSubmit = async (values: ZodRawShape) => {
+        const method = props.id ? "PATCH" : "POST"
+        const url = props.id ? `/api/admin/${props.slug}/${props.id}` : `/api/admin/${props.slug}`
         await dbQueryWithToast({
             dbQuery: () =>
-                fetch(`/api/admin/${props.slug}`, {
-                    method: "POST",
+                fetch(url, {
+                    method: method,
                     headers: {
                         "Content-Type": "application/json",
                     },

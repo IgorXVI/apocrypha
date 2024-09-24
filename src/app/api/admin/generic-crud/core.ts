@@ -32,64 +32,64 @@ export const decideQueries = (slug: string) => {
         case "currency":
             return {
                 getMany: getMany<CurrencyPayload>(db.currency, "iso4217Code"),
-                createOne: createOne<CurrencyInput>(db.currency, "currency"),
+                createOne: createOne<CurrencyInput>(db.currency),
                 getOne: getOne<CurrencyInput>(db.currency),
-                updateOne: updateOne<CurrencyInput>(db.currency, "currency"),
-                deleteOne: deleteOne(db.currency, "currency"),
+                updateOne: updateOne<CurrencyInput>(db.currency),
+                deleteOne: deleteOne(db.currency),
                 validationSchema: currencyValidationSchema,
             }
         case "author":
             return {
                 getMany: getMany<AuthorPayload>(db.author, "name"),
-                createOne: createOne<AuthorInput>(db.author, "author"),
+                createOne: createOne<AuthorInput>(db.author),
                 getOne: getOne<AuthorInput>(db.author),
-                updateOne: updateOne<AuthorInput>(db.author, "author"),
-                deleteOne: deleteOne(db.author, "author"),
+                updateOne: updateOne<AuthorInput>(db.author),
+                deleteOne: deleteOne(db.author),
                 validationSchema: authorValidationSchema,
             }
         case "translator":
             return {
                 getMany: getMany<TranslatorPayload>(db.translator, "name"),
-                createOne: createOne<TranslatorInput>(db.translator, "translator"),
+                createOne: createOne<TranslatorInput>(db.translator),
                 getOne: getOne<TranslatorInput>(db.translator),
-                updateOne: updateOne<TranslatorInput>(db.translator, "translator"),
-                deleteOne: deleteOne(db.translator, "translator"),
+                updateOne: updateOne<TranslatorInput>(db.translator),
+                deleteOne: deleteOne(db.translator),
                 validationSchema: translatorValidationSchema,
             }
         case "publisher":
             return {
                 getMany: getMany<PublisherPayload>(db.publisher, "name"),
-                createOne: createOne<PublisherInput>(db.publisher, "publisher"),
+                createOne: createOne<PublisherInput>(db.publisher),
                 getOne: getOne<PublisherInput>(db.publisher),
-                updateOne: updateOne<PublisherInput>(db.publisher, "publisher"),
-                deleteOne: deleteOne(db.publisher, "publisher"),
+                updateOne: updateOne<PublisherInput>(db.publisher),
+                deleteOne: deleteOne(db.publisher),
                 validationSchema: publisherValidationSchema,
             }
         case "series":
             return {
                 getMany: getMany<SeriesPayload>(db.series, "name"),
-                createOne: createOne<SeriesInput>(db.series, "series"),
+                createOne: createOne<SeriesInput>(db.series),
                 getOne: getOne<SeriesInput>(db.series),
-                updateOne: updateOne<SeriesInput>(db.series, "series"),
-                deleteOne: deleteOne(db.series, "series"),
+                updateOne: updateOne<SeriesInput>(db.series),
+                deleteOne: deleteOne(db.series),
                 validationSchema: seriesValidationSchema,
             }
         case "category":
             return {
                 getMany: getMany<CategoryPayload>(db.category, "name"),
-                createOne: createOne<CategoryInput>(db.category, "category"),
+                createOne: createOne<CategoryInput>(db.category),
                 getOne: getOne<CategoryInput>(db.category),
-                updateOne: updateOne<CategoryInput>(db.category, "category"),
-                deleteOne: deleteOne(db.category, "category"),
+                updateOne: updateOne<CategoryInput>(db.category),
+                deleteOne: deleteOne(db.category),
                 validationSchema: categoryValidationSchema,
             }
         case "language":
             return {
                 getMany: getMany<LanguagePayload>(db.language, "name"),
-                createOne: createOne<LanguageInput>(db.language, "language"),
+                createOne: createOne<LanguageInput>(db.language),
                 getOne: getOne<LanguageInput>(db.language),
-                updateOne: updateOne<LanguageInput>(db.language, "language"),
-                deleteOne: deleteOne(db.language, "language"),
+                updateOne: updateOne<LanguageInput>(db.language),
+                deleteOne: deleteOne(db.language),
                 validationSchema: languageValidationSchema,
             }
         default: {

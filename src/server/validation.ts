@@ -103,7 +103,10 @@ export const bookValidationSchema = z.object({
         .default(""),
     description: z.string({ required_error: "A descrição é obrigatória." }).default(""),
     pages: z.number().int().positive({ message: "O número de páginas deve ser um número inteiro positivo." }).default(0),
-    publicationDate: z.date({ required_error: "A data de publicação é obrigatória." }).default(new Date()),
+    publicationDate: z.preprocess(
+        (value) => (typeof value === "string" ? new Date(value) : value),
+        z.date({ required_error: "A data de publicação é obrigatória." }),
+    ),
     isbn10Code: z.string().length(10, { message: "O ISBN-10 deve ter exatamente 10 caracteres." }).default(""),
     isbn13Code: z.string().length(13, { message: "O ISBN-13 deve ter exatamente 13 caracteres." }).default(""),
     width: z.number().positive({ message: "A largura deve ser um número positivo." }).default(0),

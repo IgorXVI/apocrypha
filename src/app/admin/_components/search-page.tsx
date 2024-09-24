@@ -4,7 +4,6 @@ import * as R from "remeda"
 import { MoreHorizontal, PlusCircle, Search, LoaderCircle, CircleX, AlertCircle } from "lucide-react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { toast } from "sonner"
 import { useDebouncedCallback } from "use-debounce"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 import { type ZodObject, type ZodRawShape } from "zod"
@@ -30,6 +29,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import DeleteOne from "./delete-one"
 import { type PossibleDBOutput } from "~/server/types"
 import CreateOrUpdate from "./create-or-update"
+import { toastError } from "./toasting"
 
 type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
 
@@ -60,11 +60,9 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
     const pathname = usePathname()
     const router = useRouter()
 
-    const toastDBRowsError = useCallback((errorMessage: string | React.ReactNode) => {
+    const toastDBRowsError = useCallback((errorMessage: string) => {
         setShowErrorIndicator(true)
-        toast(<span className="text-red-500">Erro ao tentar buscar linhas: {errorMessage}</span>, {
-            duration: 5000,
-        })
+        toastError(errorMessage)
     }, [])
 
     const currentSearchTerm = useMemo(() => searchParams.get("search") ?? "", [searchParams])
@@ -175,26 +173,7 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
             }
         })
         router.replace(`${pathname}?${params.toString()}`)
-        toast(
-            <div className="flex flex-row items-center gap-4">
-                <LoaderCircle className="animate-spin"></LoaderCircle>
-                <span className="text-lg">Buscando novos dados...</span>
-            </div>,
-            {
-                duration: 100000,
-                id: "refresh-rows",
-            },
-        )
-        getRows()
-            .then(() => {
-                toast.dismiss("refresh-rows")
-                toast(<span className="text-lg text-green-500">Busca realizada com sucesso.</span>)
-            })
-            .catch((error) => {
-                toast.dismiss("refresh-rows")
-                toastDBRowsError((error as Error).message)
-            })
-    }, [getRows, pathname, router, searchParams, toastDBRowsError])
+    }, [pathname, router, searchParams])
 
     const setNewModalParams = useCallback(
         (key: string, value: string) => {

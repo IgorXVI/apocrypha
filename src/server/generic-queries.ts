@@ -1,7 +1,6 @@
 "server-only"
 
 import { type Prisma } from "prisma/prisma-client"
-import { revalidatePath } from "next/cache"
 import { type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
 import { type DefaultArgs } from "@prisma/client/runtime/library"
 import { db } from "./db"
@@ -50,20 +49,18 @@ export async function errorHandler<T>(fun: () => Promise<T>): Promise<CommonDBRe
 }
 
 export const createOne =
-    <T>(model: AnyModel, slug: string) =>
+    <T>(model: AnyModel) =>
     (data: T) =>
         errorHandler(async () => {
             await (model as PrivateAnyModel).create({
                 data: data as Prisma.CurrencyCreateInput,
             })
 
-            revalidatePath(`/admin/${slug}`)
-
             return undefined
         })
 
 export const updateOne =
-    <T>(model: AnyModel, slug: string) =>
+    <T>(model: AnyModel) =>
     (id: string, data: T) =>
         errorHandler(async () => {
             await (model as PrivateAnyModel).update({
@@ -73,20 +70,16 @@ export const updateOne =
                 },
             })
 
-            revalidatePath(`/admin/${slug}`)
-
             return undefined
         })
 
-export const deleteOne = (model: AnyModel, slug: string) => (id: string) =>
+export const deleteOne = (model: AnyModel) => (id: string) =>
     errorHandler(async () => {
         await (model as PrivateAnyModel).delete({
             where: {
                 id,
             },
         })
-
-        revalidatePath(`/admin/${slug}`)
 
         return undefined
     })

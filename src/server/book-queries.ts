@@ -1,7 +1,5 @@
 "server-only"
 
-import { revalidatePath } from "next/cache"
-
 import { db } from "~/server/db"
 
 import { errorHandler } from "./generic-queries"
@@ -125,8 +123,6 @@ export const bookCreateOne = async (data: BookDataInput) =>
                 archiveProduct(stripeId).catch((e) => console.error("Error archiving product", e))
                 throw error
             })
-
-        revalidatePath(`/admin/book`)
 
         return undefined
     })
@@ -273,8 +269,6 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                 }
                 throw error
             })
-
-        revalidatePath(`/admin/book`)
 
         return undefined
     })
@@ -490,8 +484,6 @@ export const bookDeleteOne = (id: string) =>
                 restoreProduct(bookDBData.stripeId).catch((e) => console.error("Error restoring product", e))
                 throw error
             })
-
-        revalidatePath(`/admin/book`)
 
         return undefined
     })

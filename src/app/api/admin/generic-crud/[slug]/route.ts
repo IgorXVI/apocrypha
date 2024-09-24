@@ -65,7 +65,8 @@ export async function POST(req: Request, { params: { slug } }: { params: { slug:
         return Response.json(
             {
                 success: false,
-                errorMessage: validationResult.error.issues,
+                errorMessage: validationResult.error.issues[0]?.message ?? "Validation failed",
+                issues: validationResult.error.issues,
             },
             {
                 status: 400,

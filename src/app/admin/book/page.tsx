@@ -1,27 +1,18 @@
+"use client"
+
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import { bookGetMany, bookGetOne, bookCreateOne, bookUpdateOne, bookDeleteOne } from "~/server/book-queries"
-
-import {
-    getCategorySuggestions,
-    getPublisherSuggestions,
-    getLanguageSuggestions,
-    getSeriesSuggestions,
-    getCurrencySuggestions,
-    getAuthorSuggestions,
-    getTranslatorSuggestions,
-} from "~/server/queries"
 
 import SearchPage from "~/app/admin/_components/search-page"
 import { DatePicker } from "../_components/date-picker"
 import MultipleImageField from "../_components/multiple-image-field"
 import IdInput from "../_components/id-input"
-import { Textarea } from "~/components/ui/textarea"
 import NumberInput from "../_components/number-input"
 import SingleImageField from "../_components/single-image-field"
 
 import { bookValidationSchema, type BookSchemaType } from "~/server/validation"
+import { AdminRichTextInput } from "../_components/admin-rich-text-editor"
 
 type ModelAttrs = keyof BookSchemaType
 
@@ -55,6 +46,7 @@ const inputKeyMap: Record<
         ),
         label: "Título",
         description: "Esse é o título do livro.",
+        className: "admin-input-md-center",
     },
     descriptionTitle: {
         node: (field) => (
@@ -65,28 +57,29 @@ const inputKeyMap: Record<
         ),
         label: "Título da Descrição",
         description: "Esse é o título da descrição do livro.",
+        className: "admin-input-md-center",
+    },
+    description: {
+        node: (field) => (
+            <AdminRichTextInput
+                size="medium"
+                {...field}
+            />
+        ),
+        label: "Descrição",
+        description: "Esse é a descrição do livro.",
+        className: "admin-input-md-center",
     },
     pages: {
         node: (field) => <NumberInput {...field} />,
         label: "Quantidade de Páginas",
         description: "Esse é a quantidade de páginas do livro.",
     },
-    description: {
-        node: (field) => (
-            <Textarea
-                className="h-[25vh]"
-                placeholder="O livro é muito bom pois ele fala sobre..."
-                {...field}
-            />
-        ),
-        label: "Descrição",
-        description: "Esse é a descrição do livro.",
-    },
     currencyId: {
         node: (field) => (
             <IdInput
                 label="moeda"
-                getSuggestions={getCurrencySuggestions}
+                slug="currency"
                 {...field}
             />
         ),
@@ -158,7 +151,7 @@ const inputKeyMap: Record<
         node: (field) => (
             <IdInput
                 label="categoria"
-                getSuggestions={getCategorySuggestions}
+                slug="category"
                 {...field}
             />
         ),
@@ -169,7 +162,7 @@ const inputKeyMap: Record<
         node: (field) => (
             <IdInput
                 label="editora"
-                getSuggestions={getPublisherSuggestions}
+                slug="publisher"
                 {...field}
             />
         ),
@@ -180,7 +173,7 @@ const inputKeyMap: Record<
         node: (field) => (
             <IdInput
                 label="língua"
-                getSuggestions={getLanguageSuggestions}
+                slug="language"
                 {...field}
             />
         ),
@@ -191,7 +184,7 @@ const inputKeyMap: Record<
         node: (field) => (
             <IdInput
                 label="série"
-                getSuggestions={getSeriesSuggestions}
+                slug="series"
                 {...field}
             />
         ),
@@ -201,7 +194,7 @@ const inputKeyMap: Record<
     authorId: {
         node: (field) => (
             <IdInput
-                getSuggestions={getAuthorSuggestions}
+                slug="author"
                 label="autor"
                 {...field}
             />
@@ -213,7 +206,7 @@ const inputKeyMap: Record<
     translatorId: {
         node: (field) => (
             <IdInput
-                getSuggestions={getTranslatorSuggestions}
+                slug="translator"
                 label="tradutor"
                 {...field}
             />
@@ -253,11 +246,7 @@ export default function MainPage() {
                 mainAuthorName: "Autor",
                 mainTranslatorName: "Tradutor",
             }}
-            getManyQuery={bookGetMany}
-            deleteOneQuery={bookDeleteOne}
-            getOneQuery={bookGetOne}
-            createOneQuery={bookCreateOne}
-            updateOneQuery={bookUpdateOne}
+            slug="book"
             inputKeyMap={inputKeyMap}
             formSchema={bookValidationSchema}
         ></SearchPage>

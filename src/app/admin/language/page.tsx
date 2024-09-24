@@ -1,3 +1,5 @@
+"use client"
+
 import SearchPage from "~/app/admin/_components/search-page"
 
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"

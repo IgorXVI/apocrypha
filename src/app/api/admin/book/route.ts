@@ -1,7 +1,14 @@
-import { decideQueries } from "../../core"
+import { bookGetMany, bookCreateOne } from "~/server/book-queries"
+import { bookValidationSchema } from "~/server/validation"
 
-export async function GET(_: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
-    const result = await decideQueries(slug).getOne(id)
+export async function GET(req: Request) {
+    const queryParams = new URLSearchParams(new URL(req.url).search)
+
+    const result = await bookGetMany({
+        searchTerm: queryParams.get("searchTerm") ?? "",
+        take: Number(queryParams.get("take")) || 10,
+        skip: Number(queryParams.get("skip")) || 0,
+    })
 
     if (!result.success) {
         return Response.json(
@@ -21,29 +28,7 @@ export async function GET(_: Request, { params: { slug, id } }: { params: { slug
     })
 }
 
-export async function DELETE(_: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
-    const result = await decideQueries(slug).deleteOne(id)
-
-    if (!result.success) {
-        return Response.json(
-            {
-                success: false,
-                errorMessage: result.errorMessage,
-            },
-            {
-                status: 400,
-            },
-        )
-    }
-
-    return Response.json({
-        success: true,
-    })
-}
-
-export async function PATCH(req: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
-    const slugger = decideQueries(slug)
-
+export async function POST(req: Request) {
     const reqBodyResult = await req
         .json()
         .then((data) => {
@@ -73,7 +58,7 @@ export async function PATCH(req: Request, { params: { slug, id } }: { params: { 
         )
     }
 
-    const validationResult = slugger.validationSchema.safeParse(reqBodyResult.data)
+    const validationResult = bookValidationSchema.safeParse(reqBodyResult.data)
 
     if (!validationResult.success) {
         return Response.json(
@@ -88,8 +73,7 @@ export async function PATCH(req: Request, { params: { slug, id } }: { params: { 
         )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await slugger.updateOne(id, validationResult.data as any)
+    const result = await bookCreateOne(validationResult.data)
 
     if (!result.success) {
         return Response.json(

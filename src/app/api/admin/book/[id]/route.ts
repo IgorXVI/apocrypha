@@ -1,7 +1,8 @@
-import { decideQueries } from "../../core"
+import { bookGetOne, bookDeleteOne, bookUpdateOne } from "~/server/book-queries"
+import { bookValidationSchema } from "~/server/validation"
 
-export async function GET(_: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
-    const result = await decideQueries(slug).getOne(id)
+export async function GET(_: Request, { params: { id } }: { params: { id: string } }) {
+    const result = await bookGetOne(id)
 
     if (!result.success) {
         return Response.json(
@@ -21,8 +22,8 @@ export async function GET(_: Request, { params: { slug, id } }: { params: { slug
     })
 }
 
-export async function DELETE(_: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
-    const result = await decideQueries(slug).deleteOne(id)
+export async function DELETE(_: Request, { params: { id } }: { params: { id: string } }) {
+    const result = await bookDeleteOne(id)
 
     if (!result.success) {
         return Response.json(
@@ -41,9 +42,7 @@ export async function DELETE(_: Request, { params: { slug, id } }: { params: { s
     })
 }
 
-export async function PATCH(req: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
-    const slugger = decideQueries(slug)
-
+export async function PATCH(req: Request, { params: { id } }: { params: { id: string } }) {
     const reqBodyResult = await req
         .json()
         .then((data) => {
@@ -73,7 +72,7 @@ export async function PATCH(req: Request, { params: { slug, id } }: { params: { 
         )
     }
 
-    const validationResult = slugger.validationSchema.safeParse(reqBodyResult.data)
+    const validationResult = bookValidationSchema.safeParse(reqBodyResult.data)
 
     if (!validationResult.success) {
         return Response.json(
@@ -88,8 +87,7 @@ export async function PATCH(req: Request, { params: { slug, id } }: { params: { 
         )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await slugger.updateOne(id, validationResult.data as any)
+    const result = await bookUpdateOne(id, validationResult.data)
 
     if (!result.success) {
         return Response.json(

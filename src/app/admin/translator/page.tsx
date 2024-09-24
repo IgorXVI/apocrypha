@@ -1,3 +1,5 @@
+"use client"
+
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
