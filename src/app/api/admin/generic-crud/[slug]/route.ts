@@ -26,11 +26,35 @@ export async function GET(req: Request, { params: { slug } }: { params: { slug: 
 export async function POST(req: Request, { params: { slug } }: { params: { slug: string } }) {
     const slugger = decideQueries(slug)
 
-    const reqBody = await req.json()
+    const reqBodyResult = await req
+        .json()
+        .then((data) => {
+            return {
+                success: true,
+                data,
+                errorMessage: "",
+            }
+        })
+        .catch((error) => {
+            return {
+                success: false,
+                data: undefined,
+                errorMessage: (error as Error).message,
+            }
+        })
 
-    console.log(reqBody)
+    if (!reqBodyResult.success) {
+        return Response.json(
+            {
+                errorMessage: reqBodyResult.errorMessage,
+            },
+            {
+                status: 400,
+            },
+        )
+    }
 
-    const validationResult = slugger.validationSchema.safeParse(reqBody)
+    const validationResult = slugger.validationSchema.safeParse(reqBodyResult.data)
 
     if (!validationResult.success) {
         return Response.json(
