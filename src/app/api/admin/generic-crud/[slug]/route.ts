@@ -1,69 +1,9 @@
-import { db } from "~/server/db"
-import { getMany } from "~/server/generic-queries"
-import {
-    type CommonDBReturn,
-    type AuthorPayload,
-    type CategoryPayload,
-    type CurrencyPayload,
-    type LanguagePayload,
-    type PublisherPayload,
-    type SeriesPayload,
-    type TranslatorPayload,
-    type GetManyOutput,
-    type GetManyInput,
-} from "~/server/types"
-
-const currencyGetMany = getMany<CurrencyPayload>(db.currency, "iso4217Code")
-
-const authorGetMany = getMany<AuthorPayload>(db.author, "name")
-
-const translatorGetMany = getMany<TranslatorPayload>(db.translator, "name")
-
-const publisherGetMany = getMany<PublisherPayload>(db.publisher, "name")
-
-const seriesGetMany = getMany<SeriesPayload>(db.series, "name")
-
-const categoryGetMany = getMany<CategoryPayload>(db.category, "name")
-
-const languageGetMany = getMany<LanguagePayload>(db.language, "name")
+import { decideQueries } from "../core"
 
 export async function GET(req: Request, { params: { slug } }: { params: { slug: string } }) {
-    let dbQuery: (input: GetManyInput) => Promise<CommonDBReturn<GetManyOutput<unknown>>>
-    switch (slug) {
-        case "currency":
-            dbQuery = currencyGetMany
-            break
-        case "author":
-            dbQuery = authorGetMany
-            break
-        case "translator":
-            dbQuery = translatorGetMany
-            break
-        case "publisher":
-            dbQuery = publisherGetMany
-            break
-        case "series":
-            dbQuery = seriesGetMany
-            break
-        case "category":
-            dbQuery = categoryGetMany
-            break
-        case "language":
-            dbQuery = languageGetMany
-            break
-        default:
-            dbQuery = async () => {
-                return {
-                    data: undefined,
-                    success: false,
-                    errorMessage: "Invalid slug",
-                }
-            }
-    }
-
     const queryParams = new URLSearchParams(new URL(req.url).search)
 
-    const result = await dbQuery({
+    const result = await decideQueries(slug).getMany({
         searchTerm: queryParams.get("searchTerm") ?? "",
         take: Number(queryParams.get("take")) || 10,
         skip: Number(queryParams.get("skip")) || 0,
@@ -75,10 +15,49 @@ export async function GET(req: Request, { params: { slug } }: { params: { slug: 
                 errorMessage: result.errorMessage,
             },
             {
-                status: 500,
+                status: 400,
             },
         )
     }
 
     return Response.json(result.data)
+}
+
+export async function POST(req: Request, { params: { slug } }: { params: { slug: string } }) {
+    const slugger = decideQueries(slug)
+
+    const reqBody = await req.json()
+
+    console.log(reqBody)
+
+    const validationResult = slugger.validationSchema.safeParse(reqBody)
+
+    if (!validationResult.success) {
+        return Response.json(
+            {
+                issues: validationResult.error.issues,
+            },
+            {
+                status: 400,
+            },
+        )
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await slugger.createOne(validationResult.data as any)
+
+    if (!result.success) {
+        return Response.json(
+            {
+                errorMessage: result.errorMessage,
+            },
+            {
+                status: 400,
+            },
+        )
+    }
+
+    return Response.json({
+        success: true,
+    })
 }
