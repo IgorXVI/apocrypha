@@ -1,7 +1,5 @@
-"server-only"
-
-import { db } from "./db"
-import { getMany, getOne, createOne, updateOne, deleteOne, getSuggestions } from "./generic-queries"
+import { db } from "~/server/db"
+import { getMany, getOne, createOne, updateOne, deleteOne } from "~/server/generic-queries"
 import {
     type AuthorPayload,
     type CategoryPayload,
@@ -17,7 +15,8 @@ import {
     type CurrencyInput,
     type AuthorInput,
     type TranslatorInput,
-} from "./types"
+    type CommonDBReturn,
+} from "~/server/types"
 
 export const currencyGetMany = getMany<CurrencyPayload>(db.currency, "iso4217Code")
 export const currencyGetOne = getOne<CurrencyInput>(db.currency)
@@ -61,10 +60,54 @@ export const languageCreateOne = createOne<LanguageInput>(db.language, "language
 export const languageUpdateOne = updateOne<LanguageInput>(db.language, "language")
 export const languageDeleteOne = deleteOne(db.language, "language")
 
-export const getCategorySuggestions = getSuggestions<CategoryPayload>(db.category, "name")
-export const getPublisherSuggestions = getSuggestions<PublisherPayload>(db.publisher, "name")
-export const getLanguageSuggestions = getSuggestions<LanguagePayload>(db.language, "name")
-export const getSeriesSuggestions = getSuggestions<SeriesPayload>(db.series, "name")
-export const getCurrencySuggestions = getSuggestions<CurrencyPayload>(db.currency, "iso4217Code")
-export const getAuthorSuggestions = getSuggestions<AuthorPayload>(db.author, "name")
-export const getTranslatorSuggestions = getSuggestions<TranslatorPayload>(db.translator, "name")
+export async function GET(_: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
+    console.log("slug", slug)
+    console.log("id", id)
+    let dbQuery: (id: string) => Promise<CommonDBReturn<unknown>>
+    switch (slug) {
+        case "currency":
+            dbQuery = currencyGetOne
+            break
+        case "author":
+            dbQuery = authorGetOne
+            break
+        case "translator":
+            dbQuery = translatorGetOne
+            break
+        case "publisher":
+            dbQuery = publisherGetOne
+            break
+        case "series":
+            dbQuery = seriesGetOne
+            break
+        case "category":
+            dbQuery = categoryGetOne
+            break
+        case "language":
+            dbQuery = languageGetOne
+            break
+        default:
+            dbQuery = async () => {
+                return {
+                    data: undefined,
+                    success: false,
+                    errorMessage: "Invalid slug",
+                }
+            }
+    }
+
+    const result = await dbQuery(id)
+
+    if (!result.success) {
+        return Response.json(
+            {
+                errorMessage: result.errorMessage,
+            },
+            {
+                status: 500,
+            },
+        )
+    }
+
+    return Response.json(result.data)
+}
