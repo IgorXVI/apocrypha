@@ -1,6 +1,5 @@
 import Image from "next/image"
 import Link from "next/link"
-import Header from "~/components/header/header"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel"
 import { db } from "~/server/db"
@@ -39,7 +38,6 @@ export default async function HomePage() {
 
     return (
         <main className="flex gap-5 flex-col items-center justify-center">
-            <Header></Header>
             <h1 className="text-4xl font-bold">Livros</h1>
             <div className="flex flex-col md:flex-row md:flex-wrap gap-5">
                 {books.map((book) => (
@@ -82,13 +80,15 @@ export default async function HomePage() {
                                                 key={image.id}
                                                 className="flex flex-col items-center justify-center h-full w-full"
                                             >
-                                                <Image
-                                                    src={image.url}
-                                                    alt={book.title}
-                                                    width={500}
-                                                    height={500}
-                                                    className="object-contain aspect-square"
-                                                ></Image>
+                                                <Link href={`/book/${book.id}`}>
+                                                    <Image
+                                                        src={image.url}
+                                                        alt={book.title}
+                                                        width={500}
+                                                        height={500}
+                                                        className="object-contain aspect-square"
+                                                    ></Image>
+                                                </Link>
                                             </CarouselItem>
                                         ))}
                                     </CarouselContent>

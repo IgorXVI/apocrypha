@@ -16,6 +16,7 @@ const inputKeyMap: Record<
         node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
+        className?: string
     }
 > = {
     label: {
@@ -27,6 +28,7 @@ const inputKeyMap: Record<
         ),
         label: "Prefixo",
         description: "Esse é o préfixo que vai aparecer antes do valor monetário.",
+        className: "admin-input-md-center",
     },
     iso4217Code: {
         node: (field) => (
@@ -48,6 +50,7 @@ const inputKeyMap: Record<
                 da moeda.
             </>
         ),
+        className: "admin-input-md-center",
     },
 }
 

@@ -16,6 +16,7 @@ const inputKeyMap: Record<
         node: (field: ControllerRenderProps<FieldValues, ModelAttrs>) => React.ReactNode
         label: string
         description: string | React.ReactNode
+        className?: string
     }
 > = {
     name: {
@@ -27,6 +28,7 @@ const inputKeyMap: Record<
         ),
         label: "Nome",
         description: "Esse é o nome da língua.",
+        className: "admin-input-md-center",
     },
     iso6391Code: {
         node: (field) => (
@@ -48,6 +50,7 @@ const inputKeyMap: Record<
                 da moeda.
             </>
         ),
+        className: "admin-input-md-center",
     },
     iso6392Code: {
         node: (field) => (
@@ -69,6 +72,7 @@ const inputKeyMap: Record<
                 da moeda.
             </>
         ),
+        className: "admin-input-md-center",
     },
 }
 

@@ -1,35 +1,43 @@
 import Link from "next/link"
+import { Button } from "~/components/ui/button"
 
 export default function Admin() {
     return (
-        <main className="flex text-xl gap-3 flex-col items-center justify-center h-screen">
-            <h1>OI ADEMIR</h1>
-            <nav className="underline flex flex-col gap-3">
-                <li>
-                    <Link href="/admin/book">Livros</Link>
-                </li>
-                <li>
-                    <Link href="/admin/author">Autores</Link>
-                </li>
-                <li>
-                    <Link href="/admin/translator">Tradutores</Link>
-                </li>
-                <li>
-                    <Link href="/admin/publisher">Editoras</Link>
-                </li>
-                <li>
-                    <Link href="/admin/series">Séries</Link>
-                </li>
-                <li>
-                    <Link href="/admin/category">Categorias</Link>
-                </li>
-                <li>
-                    <Link href="/admin/language">Línguas</Link>
-                </li>
-                <li>
-                    <Link href="/admin/currency">Moedas</Link>
-                </li>
-            </nav>
+        <main className="flex text-xl gap-10 flex-col items-center justify-center h-full mb-5">
+            <h1 className="text-6xl font-extrabold text-center text-wrap">Administrar as Tabelas</h1>
+            <div className="flex flex-col gap-3 list-none">
+                <Link href="/admin/book">
+                    <Button className="text-2xl w-full p-8">Livros</Button>
+                </Link>
+
+                <Link href="/admin/author">
+                    <Button className="text-2xl w-full p-8">Autores</Button>
+                </Link>
+
+                <Link href="/admin/translator">
+                    <Button className="text-2xl w-full p-8">Tradutores</Button>
+                </Link>
+
+                <Link href="/admin/publisher">
+                    <Button className="text-2xl w-full p-8">Editoras</Button>
+                </Link>
+
+                <Link href="/admin/series">
+                    <Button className="text-2xl w-full p-8">Séries</Button>
+                </Link>
+
+                <Link href="/admin/category">
+                    <Button className="text-2xl w-full p-8">Categorias</Button>
+                </Link>
+
+                <Link href="/admin/language">
+                    <Button className="text-2xl w-full p-8">Línguas</Button>
+                </Link>
+
+                <Link href="/admin/currency">
+                    <Button className="text-2xl w-full p-8">Moedas</Button>
+                </Link>
+            </div>
         </main>
     )
 }

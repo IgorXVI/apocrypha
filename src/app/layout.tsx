@@ -6,6 +6,7 @@ import { GeistSans } from "geist/font/sans"
 import { type Metadata } from "next"
 
 import { Toaster } from "~/components/ui/sonner"
+import Header from "~/components/header"
 
 export const metadata: Metadata = {
     title: "Loja do Igor",
@@ -21,7 +22,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 className={`${GeistSans.variable}`}
             >
                 <body className="min-h-screen">
-                    {children}
+                    <Header></Header>
+                    <div className="md:mr-[7vw] md:ml-[7vw] mt-5">{children}</div>
                     <Toaster></Toaster>
                 </body>
             </html>
