@@ -69,7 +69,7 @@ export default async function MainCommercePage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex self-center items-center justify-center">
-                            <div className="flex flex-col items-center justify-center hover:z-50 hover:bg-slate-500 hover:bg-opacity-5 hover:scale-110 duration-300">
+                            <div className="flex flex-col items-center justify-center">
                                 <Carousel
                                     opts={{ loop: true }}
                                     className="flex flex-row w-[80%] h-full items-center justify-center"

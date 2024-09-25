@@ -1,6 +1,6 @@
 import Image from "next/image"
-import { Button } from "~/components/ui/button"
 import { db } from "~/server/db"
+import AddToCartButton from "../../_components/add-to-cart-button"
 
 export default async function BookPage({ params: { id } }: { params: { id: string } }) {
     const book = await db.book.findUnique({
@@ -60,7 +60,14 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
                 <h1 className="text-2xl font-bold">{book.title}</h1>
                 <h2 className="text-xl font-bold">{book.descriptionTitle}</h2>
                 <p className="text-sm text-gray-600">{book.description}</p>
-                <Button type="button">Adicionar ao carrinho</Button>
+                <AddToCartButton
+                    author={book.AuthorOnBook[0]?.Author?.name ?? ""}
+                    title={book.title}
+                    price={book.price.toNumber()}
+                    currency={book.Currency.label}
+                    id={book.id}
+                    amount={1}
+                />
             </div>
         </div>
     )
