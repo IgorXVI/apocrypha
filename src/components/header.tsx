@@ -80,7 +80,7 @@ export default function Header() {
 
                 <form
                     action=""
-                    className="self-center flex justify-center items-center flex-grow md:max-w-2xl order-1 md:order-none px-1 lg:mr-28"
+                    className="self-center flex justify-center items-center flex-grow md:max-w-2xl order-1 md:order-none px-1 lg:mr-32"
                 >
                     <input
                         type="text"
