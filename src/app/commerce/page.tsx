@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel"
 import { db } from "~/server/db"
 
-export default async function HomePage() {
+export default async function MainCommercePage() {
     const books = await db.book.findMany({
         include: {
             DisplayImage: {
@@ -49,7 +49,7 @@ export default async function HomePage() {
                             <CardTitle>
                                 <Link
                                     className="hover:underline hover:text-blue-700"
-                                    href={`/book/${book.id}`}
+                                    href={`/commerce/book/${book.id}`}
                                 >
                                     {book.title}
                                 </Link>
@@ -80,7 +80,7 @@ export default async function HomePage() {
                                                 key={image.id}
                                                 className="flex flex-col items-center justify-center h-full w-full"
                                             >
-                                                <Link href={`/book/${book.id}`}>
+                                                <Link href={`/commerce/book/${book.id}`}>
                                                     <Image
                                                         src={image.url}
                                                         alt={book.title}
