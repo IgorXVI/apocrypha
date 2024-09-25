@@ -67,6 +67,7 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
                     currency={book.Currency.label}
                     id={book.id}
                     amount={1}
+                    mainImg={book.DisplayImage[0]?.url ?? ""}
                 />
             </div>
         </div>
