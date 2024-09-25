@@ -3,21 +3,9 @@ import Link from "next/link"
 import { MapPin, Home, Menu, Crown, ShoppingCart, SearchIcon } from "lucide-react"
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet"
+import { Sheet, SheetTrigger, SheetContent } from "./ui/sheet"
 
 import { Button } from "./ui/button"
-
-function StoreIconButton() {
-    return (
-        <a href="/">
-            <img
-                src="favicon.ico"
-                alt="Logo da loja"
-                className="h-7"
-            />
-        </a>
-    )
-}
 
 function MenuSheet() {
     return (
@@ -27,28 +15,25 @@ function MenuSheet() {
                     size="icon"
                     variant="ghost"
                 >
-                    <Menu className="h-6 w-6" />
+                    <Menu className="h-7 w-7" />
                     <span className="sr-only">Menu</span>
                 </Button>
             </SheetTrigger>
             <SheetContent
                 side="left"
-                className="sm:max-w-xs"
+                className="sm:max-w-xs bg-black opacity-50 text-white"
             >
-                <SheetHeader>
-                    <SheetTitle>Menu</SheetTitle>
-                </SheetHeader>
-                <nav className="grid gap-6 text-lg font-medium pt-5">
+                <nav className="grid gap-6 text-lg font-medium pt-5 text-white">
                     <Link
                         href="/"
-                        className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                        className="flex items-center gap-4 px-2.5 hover:text-blue-500 hover:underline"
                     >
                         <Home className="h-5 w-5" />
                         Página Inicial
                     </Link>
                     <Link
                         href="/admin"
-                        className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                        className="flex items-center gap-4 px-2.5 hover:text-blue-500 hover:underline"
                     >
                         <Crown className="h-5 w-5" />
                         Admin
@@ -74,15 +59,28 @@ function HeaderUserButton() {
 
 export default function Header() {
     return (
-        <header className="flex flex-col w-full text-white">
-            <div className="bg-black flex flex-row flex-wrap items-center justify-between gap-1 px-2 pb-3 md:px-[5vw] md:pt-3">
-                <div className="flex gap-2 justify-center items-center">
+        <header className="flex flex-col w-full text-white justify-center">
+            <div className="bg-black flex flex-row flex-wrap md:flex-nowrap md:justify-between items-center gap-1 md:gap-5 px-2 pb-3 md:px-8 md:pt-3">
+                <div className="flex gap-1 md:gap-3 justify-center items-center mr-auto md:mr-0">
                     <MenuSheet></MenuSheet>
-                    <StoreIconButton></StoreIconButton>
+                    <Link href="/">
+                        <img
+                            src="favicon.ico"
+                            alt="Logo da loja"
+                            className="h-7"
+                        />
+                    </Link>
+                    <div className="hidden md:flex items-center rounded gap-1 ml-5">
+                        <MapPin className="h-7 w-7"></MapPin>
+                        <span className="font-bold text-sm ml-2">
+                            Olá Selecione <br /> o endereço
+                        </span>
+                    </div>
                 </div>
+
                 <form
                     action=""
-                    className="flex justify-center items-center flex-grow md:w-1/2 md:flex-grow-0 order-1 md:order-none px-2"
+                    className="self-center flex justify-center items-center flex-grow md:max-w-2xl order-1 md:order-none px-1 lg:mr-28"
                 >
                     <input
                         type="text"
@@ -92,6 +90,7 @@ export default function Header() {
                         <SearchIcon></SearchIcon>
                     </button>
                 </form>
+
                 <div className="flex justify-center gap-6 items-center p-2">
                     <div className="rounded-sm relative">
                         <ShoppingCart className="h-7 w-7"></ShoppingCart>
@@ -102,7 +101,7 @@ export default function Header() {
                     </div>
                 </div>
             </div>
-            <div className="md:hidden flex bg-slate-600 text-sm items-center p-2 md:px-[5vw]">
+            <div className="flex md:hidden bg-slate-600 text-sm items-center gap-10 p-2 md:px-10">
                 <div className="flex items-center rounded gap-1">
                     <MapPin className="h-6 w-6"></MapPin>
                     <div className="flex leading-tight text-xs">

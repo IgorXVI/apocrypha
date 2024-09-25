@@ -39,7 +39,7 @@ export default async function HomePage() {
     return (
         <main className="flex gap-5 flex-col items-center justify-center">
             <h1 className="text-4xl font-bold">Livros</h1>
-            <div className="flex flex-col md:flex-row md:flex-wrap gap-5">
+            <div className="flex flex-col md:flex-row md:flex-wrap gap-5 items-center justify-center">
                 {books.map((book) => (
                     <Card
                         key={book.id}
