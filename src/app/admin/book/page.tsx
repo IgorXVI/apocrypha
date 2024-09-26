@@ -224,8 +224,8 @@ export default function MainPage() {
             tableHeaders={{
                 id: "ID",
                 mainImageUrl: "Imagem",
-                price: "Preço",
                 currencyLabel: "Moeda",
+                price: "Preço",
                 amount: "Estoque",
                 stripeId: "Stripe ID",
                 title: "Título",

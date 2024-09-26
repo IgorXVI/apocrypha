@@ -7,7 +7,7 @@ import React from "react"
 
 import { Button } from "~/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
-import { dbQueryWithToast } from "./toasting"
+import { dbQueryWithToast } from "~/components/toast/toasting"
 
 function getDefaults<Schema extends ZodObject<ZodRawShape>>(schema: Schema) {
     return Object.fromEntries(

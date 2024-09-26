@@ -29,7 +29,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import DeleteOne from "./delete-one"
 import { type PossibleDBOutput } from "~/server/types"
 import CreateOrUpdate from "./create-or-update"
-import { toastError } from "./toasting"
+import { toastError } from "~/components/toast/toasting"
 
 type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
 
@@ -311,7 +311,9 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                                                     </TableCell>
                                                 ) : (
                                                     <TableCell key={attr}>
-                                                        {typeof row[attr] === "string" && row[attr].length > 20 ? (
+                                                        {typeof row[attr] === "string" && attr.endsWith("Date") ? (
+                                                            new Date(row[attr]).toLocaleDateString()
+                                                        ) : typeof row[attr] === "string" && row[attr].length > 20 ? (
                                                             <FieldTooLong content={row[attr]}></FieldTooLong>
                                                         ) : !row[attr] ? (
                                                             "N/A"

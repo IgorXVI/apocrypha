@@ -8,7 +8,7 @@ import { Input } from "~/components/ui/input"
 import { type CommonSuggestion } from "~/server/types"
 import { cn } from "~/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
-import { dbQueryWithToast, toastError } from "./toasting"
+import { dbQueryWithToast, toastError } from "~/components/toast/toasting"
 
 export default function IdInput(props: { slug: string; onChange: (value: string) => void; value?: string; disabled?: boolean; label: string }) {
     const [suggestions, setSuggestions] = useState<CommonSuggestion[]>([])
