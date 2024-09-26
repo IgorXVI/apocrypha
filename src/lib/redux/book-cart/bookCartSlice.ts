@@ -1,6 +1,16 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
-export type BookCartState = { id: string; mainImg: string; title: string; author: string; price: number; currency: string; amount: number }
+export type BookCartState = {
+    id: string
+    mainImg: string
+    title: string
+    author: string
+    price: number
+    currency: string
+    currencyCode: string
+    amount: number
+    stripeId: string
+}
 
 export const bookCartSlice = createSlice({
     name: "bookCart",

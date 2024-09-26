@@ -34,6 +34,7 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
             Currency: {
                 select: {
                     label: true,
+                    iso4217Code: true,
                 },
             },
         },
@@ -65,9 +66,11 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
                     title={book.title}
                     price={book.price.toNumber()}
                     currency={book.Currency.label}
+                    currencyCode={book.Currency.iso4217Code}
                     id={book.id}
                     amount={1}
                     mainImg={book.DisplayImage[0]?.url ?? ""}
+                    stripeId={book.stripeId}
                 />
             </div>
         </div>

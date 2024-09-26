@@ -82,3 +82,38 @@ export const restoreProduct = async (stripeId: string) => {
         message: `Product with id "${stripeId}" restored successfully`,
     }
 }
+
+export const createCheckoutSession = async (products: { stripeId: string; quantity: number; price: number }[]) => {
+    const [checkoutSession] = await Promise.allSettled([
+        stripe.checkout.sessions.create({
+            mode: "payment",
+            line_items: products.map((product) => {
+                const priceInCents = product.price * 100
+
+                return {
+                    price_data: {
+                        product: product.stripeId,
+                        currency: "brl",
+                        unit_amount: priceInCents,
+                    },
+                    quantity: product.quantity,
+                }
+            }),
+            success_url: `${env.URL}/commerce/payment-success`,
+            cancel_url: `${env.URL}/commerce/payment-canceled`,
+        }),
+    ])
+
+    if (checkoutSession.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to create checkout session: ${checkoutSession.reason}`,
+        }
+    }
+
+    return {
+        success: true,
+        message: "Checkout session created successfully",
+        url: checkoutSession.value.url,
+    }
+}

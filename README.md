@@ -11,9 +11,10 @@
 -   [x] Arrumar bug ao atualizar relações N->N
 -   [x] Arrumar bug no input de id
 -   [x] Adicionar cadastro de livros no stripe
--   [ ] Adicionar listagem de livros
--   [ ] Adicionar funcionalidade do carrinho de compras
--   [ ] Adicionar funcionalidade de checkout com stripe
+-   [x] Adicionar listagem de livros
+-   [x] Adicionar funcionalidade do carrinho de compras
+-   [x] Adicionar funcionalidade de checkout com stripe
 -   [ ] Adicionar busca de livros
 -   [ ] Limitar acesso às páginas de admin
 -   [x] Arrumar queries excessivas nas páginas de admin
+-   [ ] Lidar com moedas que não sejam o real no checkout e no carrinho

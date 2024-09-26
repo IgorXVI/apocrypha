@@ -8,6 +8,7 @@ export const env = createEnv({
         CLERK_SECRET_KEY: z.string(),
         UPLOADTHING_TOKEN: z.string(),
         STRIPE_SECRET_KEY: z.string(),
+        URL: z.string().url(),
     },
     client: {
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
@@ -25,6 +26,7 @@ export const env = createEnv({
         UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
         STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+        URL: process.env.URL,
     },
     skipValidation: !!process.env.SKIP_ENV_VALIDATION,
     emptyStringAsUndefined: true,
