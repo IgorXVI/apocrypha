@@ -121,7 +121,7 @@ export const bookValidationSchema = z.object({
     imgUrls: z.array(z.string().url({ message: "URL da imagem inválida." })).default([]),
     mainImgUrl: z.string().url({ message: "URL da imagem inválida." }).default(""),
     authorId: z.string().uuid({ message: "ID do autor inválido." }).default(""),
-    translatorId: z.string().uuid({ message: "ID do tradutor inválido." }).default(""),
+    translatorId: z.preprocess((value) => (value === "" ? undefined : value), z.string().uuid({ message: "ID do tradutor inválido." }).optional()),
 })
 
 export type BookSchemaType = z.infer<typeof bookValidationSchema>

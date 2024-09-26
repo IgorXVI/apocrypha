@@ -17,17 +17,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <ClerkProvider localization={ptBR}>
-            <StoreProvider>
-                <html
-                    lang="pt"
-                    className={`${GeistSans.variable}`}
-                >
-                    <body className="min-h-screen">
-                        {children}
-                        <Toaster></Toaster>
-                    </body>
-                </html>
-            </StoreProvider>
+            <html
+                lang="pt"
+                className={`${GeistSans.variable}`}
+            >
+                <body className="min-h-screen">
+                    <StoreProvider>{children}</StoreProvider>
+                    <Toaster></Toaster>
+                </body>
+            </html>
         </ClerkProvider>
     )
 }

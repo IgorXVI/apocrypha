@@ -45,12 +45,14 @@ const transformBookInput = (data: BookDataInput) => {
         },
     ]
 
-    const translators = [
-        {
-            translatorId: data.translatorId,
-            main: true,
-        },
-    ]
+    const translators = data.translatorId
+        ? [
+              {
+                  translatorId: data.translatorId,
+                  main: true,
+              },
+          ]
+        : []
 
     return {
         amount: data.amount,
@@ -130,7 +132,7 @@ export const bookCreateOne = async (data: BookDataInput) =>
 export const bookUpdateOne = async (id: string, data: BookDataInput) =>
     errorHandler(async () => {
         const authorIds = [data.authorId]
-        const translatorIds = [data.translatorId]
+        const translatorIds = data.translatorId ? [data.translatorId] : []
 
         const bookDBData = await db.book.findUnique({
             where: {

@@ -79,8 +79,8 @@ const inputKeyMap: Record<
 export default function MainPage() {
     return (
         <SearchPage
-            name="moeda"
-            namePlural="moedas"
+            name="língua"
+            namePlural="línguas"
             tableHeaders={{
                 id: "ID",
                 name: "Nome",

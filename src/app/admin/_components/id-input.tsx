@@ -10,7 +10,7 @@ import { cn } from "~/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
 import { dbQueryWithToast, toastError } from "~/components/toast/toasting"
 
-export default function IdInput(props: { slug: string; onChange: (value: string) => void; value?: string; disabled?: boolean; label: string }) {
+export default function IdInput(props: { slug: string; onChange: (value?: string) => void; value?: string; disabled?: boolean; label: string }) {
     const [suggestions, setSuggestions] = useState<CommonSuggestion[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [open, setOpen] = useState(false)
@@ -101,7 +101,11 @@ export default function IdInput(props: { slug: string; onChange: (value: string)
                                 variant="ghost"
                                 key={s.id}
                                 onClick={() => {
-                                    props.onChange(s.id)
+                                    if (s.id === props.value) {
+                                        props.onChange(undefined)
+                                    } else {
+                                        props.onChange(s.id)
+                                    }
                                     setOpen(false)
                                 }}
                             >
