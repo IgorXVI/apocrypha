@@ -98,7 +98,7 @@ export default async function MainCommercePage() {
                             </div>
                         </CardContent>
                         <CardFooter className="text-xl font-extrabold">
-                            {book.Currency.label} {book.price.toString()}
+                            {book.Currency.label} {book.price.toFixed(2)}
                         </CardFooter>
                     </Card>
                 ))}

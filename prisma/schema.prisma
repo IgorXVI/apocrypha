@@ -10,42 +10,49 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum LiteratureType {
+    BRAZILIAN
+    INTERNATIONAL
+}
+
+enum Langs {
+    PORTUGUESE
+    ENGLISH
+    SPANISH
+    FRENCH
+    ITALIAN
+    GERMAN
+    TURKISH
+    RUSSIAN
+    ARABIC
+    PORTUGUESE_BRAZILIAN
+}
+
 model Book {
     id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     stripeId         String             @unique
-    price            Decimal            @db.Decimal(8, 4)
-    amount           Int
+    isAvailable      Boolean            @default(true)
     title            String
-    descriptionTitle String             @db.VarChar(100)
     description      String
     pages            Int
     publicationDate  DateTime
-    isbn10Code       String             @db.VarChar(10)
-    isbn13Code       String             @db.VarChar(14)
-    width            Int
-    height           Int
-    length           Int
-    edition          String?
+    isbn10Code       String?            @db.VarChar(10)
+    isbn13Code       String?            @db.VarChar(13)
+    edition          Int                @default(1)
+    literatureType   LiteratureType     @default(BRAZILIAN)
+    language         Langs              @default(PORTUGUESE_BRAZILIAN)
     AuthorOnBook     AuthorOnBook[]
     TranslatorOnBook TranslatorOnBook[]
     Category         Category           @relation(fields: [categoryId], references: [id])
     categoryId       String             @db.Uuid
     Publisher        Publisher          @relation(fields: [publisherId], references: [id])
     publisherId      String             @db.Uuid
-    Language         Language           @relation(fields: [languageId], references: [id])
-    languageId       String             @db.Uuid
     DisplayImage     DisplayImage[]
     Series           Series?            @relation(fields: [seriesId], references: [id])
     seriesId         String?            @db.Uuid
-    Currency         Currency           @relation(fields: [currencyId], references: [id])
-    currencyId       String             @db.Uuid
-}
-
-model Currency {
-    id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    label       String @db.VarChar(5)
-    iso4217Code String @db.VarChar(4)
-    Book        Book[]
+    RelatedBook      Book?              @relation("BookToBook", fields: [relatedBookId], references: [id])
+    relatedBookId    String?            @db.Uuid
+    RelatedBooks     Book[]             @relation("BookToBook")
 }
 
 model Series {
@@ -60,14 +67,6 @@ model DisplayImage {
     order  Int    @default(0)
     Book   Book   @relation(fields: [bookId], references: [id])
     bookId String @db.Uuid
-}
-
-model Language {
-    id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name        String
-    iso6392Code String @db.VarChar(3)
-    iso6391Code String @db.VarChar(2)
-    Book        Book[]
 }
 
 model Publisher {
@@ -110,9 +109,17 @@ model Translator {
     TranslatorOnBook TranslatorOnBook[]
 }
 
+model SuperCategory {
+    id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name     String
+    Category Category[]
+}
+
 model Category {
-    id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name    String
-    iconUrl String?
-    Book    Book[]
+    id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name            String
+    iconUrl         String?        @default("https://utfs.io/f/V4ibhetxoONefMluzf4Pp09QXZSnIkmVbD4fvTJYieGacygE")
+    Book            Book[]
+    SuperCategory   SuperCategory? @relation(fields: [superCategoryId], references: [id])
+    superCategoryId String?        @db.Uuid
 }

@@ -83,22 +83,36 @@ export const restoreProduct = async (stripeId: string) => {
     }
 }
 
-export const createCheckoutSession = async (products: { stripeId: string; quantity: number; price: number }[]) => {
+export const createCheckoutSession = async (products: { stripeId: string; quantity: number }[]) => {
+    const productQantityMap = new Map<string, number>()
+    products.forEach((product) => {
+        productQantityMap.set(product.stripeId, product.quantity)
+    })
+
+    const [stripeProducts] = await Promise.allSettled([
+        stripe.products.list({
+            ids: [...productQantityMap.keys()],
+            limit: products.length,
+        }),
+    ])
+
+    if (stripeProducts.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to fetch products: ${stripeProducts.reason}`,
+        }
+    }
+
+    const lineItems = stripeProducts.value.data.map((stripeProduct) => ({
+        price: stripeProduct.default_price?.toString() ?? "",
+        quantity: productQantityMap.get(stripeProduct.id),
+    }))
+
     const [checkoutSession] = await Promise.allSettled([
         stripe.checkout.sessions.create({
             mode: "payment",
-            line_items: products.map((product) => {
-                const priceInCents = product.price * 100
-
-                return {
-                    price_data: {
-                        product: product.stripeId,
-                        currency: "brl",
-                        unit_amount: priceInCents,
-                    },
-                    quantity: product.quantity,
-                }
-            }),
+            currency: "brl",
+            line_items: lineItems,
             success_url: `${env.URL}/commerce/payment-success`,
             cancel_url: `${env.URL}/commerce/payment-canceled`,
         }),

@@ -14,7 +14,6 @@ export default function CartPage() {
         const products = cartContent.map((item) => ({
             stripeId: item.stripeId,
             quantity: item.amount,
-            price: item.price,
         }))
 
         const stripeUrl = await dbQueryWithToast({

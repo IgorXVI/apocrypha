@@ -6,7 +6,6 @@ const checkoutValidationSchema = z.object({
         z.object({
             stripeId: z.string(),
             quantity: z.number().int().positive(),
-            price: z.number().positive(),
         }),
     ),
 })
