@@ -1,6 +1,6 @@
 import { toast } from "sonner"
 import { LoaderCircle } from "lucide-react"
-import { type CommonDBReturn } from "~/server/types"
+import { type CommonDBReturn } from "~/lib/types"
 
 export const toastError = (errorMessage: string) => {
     toast(<span className="text-lg text-red-500">{errorMessage}</span>, {

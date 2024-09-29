@@ -1,36 +1,17 @@
 "server-only"
 
+import { type z } from "zod"
+
 import { db } from "~/server/db"
 
 import { errorHandler } from "./generic-queries"
 
-import { type BookGetManyOneRowOutput, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
-import { archiveProduct, createProduct, restoreProduct } from "./stripe-api"
+import { type BookGetManyOneRowOutput, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "../lib/types"
+import { archiveProduct, createProduct, getProductPrice, getProductsPricesMap, restoreProduct } from "./stripe-api"
 
-type BookDataInput = {
-    price: number
-    amount: number
-    title: string
-    descriptionTitle: string
-    description: string
-    pages: number
-    publicationDate: Date
-    isbn10Code: string
-    isbn13Code: string
-    width: number
-    height: number
-    length: number
-    edition?: string
-    categoryId: string
-    publisherId: string
-    languageId: string
-    currencyId: string
-    seriesId?: string
-    mainImgUrl: string
-    authorId: string
-    translatorId: string
-    imgUrls: string[]
-}
+import { type bookValidationSchema } from "~/lib/validation"
+
+type BookDataInput = z.infer<typeof bookValidationSchema>
 
 const transformBookInput = (data: BookDataInput) => {
     const displayImages = [data.mainImgUrl].concat(data.imgUrls).map((image, index) => ({
@@ -38,65 +19,41 @@ const transformBookInput = (data: BookDataInput) => {
         order: index,
     }))
 
-    const authors = [
-        {
-            authorId: data.authorId,
-            main: true,
-        },
-    ]
+    const authors = data.authorIds.map((authorId, index) => ({
+        authorId,
+        main: index === 0,
+    }))
 
-    const translators = data.translatorId
-        ? [
-              {
-                  translatorId: data.translatorId,
-                  main: true,
-              },
-          ]
-        : []
+    const translators = data.translatorIds.map((translatorId, index) => ({
+        translatorId,
+        main: index === 0,
+    }))
 
     return {
-        amount: data.amount,
+        isAvailable: data.isAvailable,
         title: data.title,
-        descriptionTitle: data.descriptionTitle,
         description: data.description,
         pages: data.pages,
         publicationDate: data.publicationDate,
         isbn10Code: data.isbn10Code,
         isbn13Code: data.isbn13Code,
-        width: data.width,
-        height: data.height,
-        length: data.length,
-        price: data.price,
         edition: data.edition,
+        literatureType: data.literatureType,
+        language: data.language,
         DisplayImage: { createMany: { data: displayImages } },
         AuthorOnBook: { createMany: { data: authors } },
         TranslatorOnBook: { createMany: { data: translators } },
         Category: { connect: { id: data.categoryId } },
         Publisher: { connect: { id: data.publisherId } },
-        Language: { connect: { id: data.languageId } },
-        Currency: { connect: { id: data.currencyId } },
         Series: data.seriesId ? { connect: { id: data.seriesId } } : undefined,
+        RelatedBook: data.relatedBookId ? { connect: { id: data.relatedBookId } } : undefined,
     }
 }
 
 const createStripeProduct = async (data: BookDataInput) => {
-    const currency = await db.currency.findUnique({
-        where: {
-            id: data.currencyId,
-        },
-        select: {
-            iso4217Code: true,
-        },
-    })
-
-    if (!currency) {
-        throw new Error("Currency not found")
-    }
-
     const stripeResponse = await createProduct({
         name: data.title,
         price: data.price,
-        currency: currency.iso4217Code,
         mainImg: data.mainImgUrl,
     })
 
@@ -131,19 +88,11 @@ export const bookCreateOne = async (data: BookDataInput) =>
 
 export const bookUpdateOne = async (id: string, data: BookDataInput) =>
     errorHandler(async () => {
-        const authorIds = [data.authorId]
-        const translatorIds = data.translatorId ? [data.translatorId] : []
-
         const bookDBData = await db.book.findUnique({
             where: {
                 id,
             },
             include: {
-                Currency: {
-                    select: {
-                        id: true,
-                    },
-                },
                 DisplayImage: {
                     take: 1,
                     where: {
@@ -156,7 +105,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                 AuthorOnBook: {
                     where: {
                         authorId: {
-                            notIn: authorIds,
+                            notIn: data.authorIds,
                         },
                     },
                     select: {
@@ -166,7 +115,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                 TranslatorOnBook: {
                     where: {
                         translatorId: {
-                            notIn: translatorIds,
+                            notIn: data.translatorIds,
                         },
                     },
                     select: {
@@ -182,12 +131,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
 
         let stripeId = bookDBData.stripeId
 
-        if (
-            data.title !== bookDBData.title ||
-            data.price !== bookDBData.price.toNumber() ||
-            data.currencyId !== bookDBData.Currency.id ||
-            data.mainImgUrl !== bookDBData.DisplayImage[0]?.url
-        ) {
+        if (data.title !== bookDBData.title || data.mainImgUrl !== bookDBData.DisplayImage[0]?.url) {
             const archiveProductResponse = await archiveProduct(bookDBData.stripeId)
 
             if (!archiveProductResponse.success && !archiveProductResponse.message.includes("No such product")) {
@@ -230,8 +174,8 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                     AuthorOnBook: {
                         deleteMany: deleteAuthorOnBook.length > 0 ? deleteAuthorOnBook : undefined,
                         connectOrCreate:
-                            authorIds.length > 0
-                                ? authorIds.map((authorId) => ({
+                            data.authorIds.length > 0
+                                ? data.authorIds.map((authorId) => ({
                                       where: {
                                           bookId_authorId: {
                                               bookId: id,
@@ -248,8 +192,8 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                     TranslatorOnBook: {
                         deleteMany: deleteTranslatorOnBook.length > 0 ? deleteTranslatorOnBook : undefined,
                         connectOrCreate:
-                            translatorIds.length > 0
-                                ? translatorIds.map((translatorId) => ({
+                            data.translatorIds.length > 0
+                                ? data.translatorIds.map((translatorId) => ({
                                       where: {
                                           bookId_translatorId: {
                                               bookId: id,
@@ -286,10 +230,16 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
                     select: {
                         authorId: true,
                     },
+                    orderBy: {
+                        main: "asc",
+                    },
                 },
                 TranslatorOnBook: {
                     select: {
                         translatorId: true,
+                    },
+                    orderBy: {
+                        main: "asc",
                     },
                 },
                 DisplayImage: {
@@ -307,17 +257,26 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
             throw new Error("Not found")
         }
 
+        const stripePrice = await getProductPrice(row.stripeId)
+
+        if (!stripePrice.success) {
+            throw new Error(stripePrice.message)
+        }
+
         const allImgUrls = row.DisplayImage.map((image) => image.url)
 
         return {
             ...row,
-            authorId: row.AuthorOnBook[0]?.authorId ?? "",
-            translatorId: row.TranslatorOnBook[0]?.translatorId ?? "",
+            isbn10Code: row.isbn10Code ?? undefined,
+            isbn13Code: row.isbn13Code ?? undefined,
+            relatedBookId: row.relatedBookId ?? undefined,
+            authorIds: row.AuthorOnBook.map((author) => author.authorId),
+            translatorIds: row.TranslatorOnBook.map((translator) => translator.translatorId),
             mainImgUrl: allImgUrls[0] ?? "",
             imgUrls: allImgUrls.slice(1),
-            price: row.price.toNumber(),
             edition: row.edition ?? undefined,
             seriesId: row.seriesId ?? undefined,
+            price: stripePrice.price ?? 0,
         }
     })
 
@@ -344,6 +303,10 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                                 },
                             },
                         },
+                        orderBy: {
+                            main: "asc",
+                        },
+                        take: 1,
                     },
                     TranslatorOnBook: {
                         where: {
@@ -356,6 +319,10 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                                 },
                             },
                         },
+                        orderBy: {
+                            main: "asc",
+                        },
+                        take: 1,
                     },
 
                     DisplayImage: {
@@ -380,21 +347,15 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                         },
                     },
 
-                    Language: {
-                        select: {
-                            name: true,
-                        },
-                    },
-
-                    Currency: {
-                        select: {
-                            label: true,
-                        },
-                    },
-
                     Series: {
                         select: {
                             name: true,
+                        },
+                    },
+
+                    RelatedBook: {
+                        select: {
+                            title: true,
                         },
                     },
                 },
@@ -417,19 +378,26 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
             throw totalResult.reason
         }
 
+        const pricesData = await getProductsPricesMap(rowsResult.value.map((row) => row.stripeId))
+
+        if (!pricesData.success) {
+            throw new Error(pricesData.message)
+        }
+
         const total = totalResult.value
         const rows = rowsResult.value.map((row) => ({
             ...row,
-            price: row.price.toNumber(),
+            isbn10Code: row.isbn10Code ?? undefined,
+            isbn13Code: row.isbn13Code ?? undefined,
+            price: pricesData.pricesMap?.get(row.stripeId) ?? 0,
             edition: row.edition ?? undefined,
             mainImageUrl: row.DisplayImage[0]?.url ?? "",
             mainAuthorName: row.AuthorOnBook[0]?.Author.name ?? "",
             mainTranslatorName: row.TranslatorOnBook[0]?.Translator.name ?? "",
             categoryName: row.Category.name,
             publisherName: row.Publisher.name,
-            languageName: row.Language.name,
-            currencyLabel: row.Currency.label,
             seriesName: row.Series?.name ?? undefined,
+            relatedBookTitle: row.RelatedBook?.title ?? undefined,
         }))
 
         return {

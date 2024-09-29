@@ -6,7 +6,7 @@ import { Input } from "~/components/ui/input"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "../_components/search-page"
 
-import { authorValidationSchema, type AuthorSchemaType } from "~/server/validation"
+import { authorValidationSchema, type AuthorSchemaType } from "~/lib/validation"
 import { AdminRichTextInput } from "../_components/admin-rich-text-editor"
 
 type ModelAttrs = keyof AuthorSchemaType

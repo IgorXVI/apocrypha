@@ -1,5 +1,5 @@
 import { bookGetOne, bookDeleteOne, bookUpdateOne } from "~/server/book-queries"
-import { bookValidationSchema } from "~/server/validation"
+import { bookValidationSchema } from "~/lib/validation"
 
 export async function GET(_: Request, { params: { id } }: { params: { id: string } }) {
     const result = await bookGetOne(id)

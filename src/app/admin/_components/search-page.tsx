@@ -1,7 +1,7 @@
 "use client"
 
 import * as R from "remeda"
-import { MoreHorizontal, PlusCircle, Search, LoaderCircle, CircleX, AlertCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, LoaderCircle, CircleX, AlertCircle, CheckIcon, XIcon } from "lucide-react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useDebouncedCallback } from "use-debounce"
@@ -27,13 +27,13 @@ import {
 } from "~/components/ui/pagination"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import DeleteOne from "./delete-one"
-import { type PossibleDBOutput } from "~/server/types"
+import { type PossibleDBOutput } from "~/lib/types"
 import CreateOrUpdate from "./create-or-update"
 import { toastError } from "~/components/toast/toasting"
 
 type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
 
-export default function SearchPage<I, D extends PossibleDBOutput>(
+export default function SearchPage<I, D extends PossibleDBOutput, K extends PossibleDBOutput>(
     props: Readonly<{
         slug: string
         name: string
@@ -49,6 +49,8 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                 className?: string
             }
         >
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tableValuesMap?: Record<keyof K, (value: any) => React.ReactNode | string>
     }>,
 ) {
     const [rows, setRows] = useState<D[]>([])
@@ -198,6 +200,10 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
         return searchParams.has(ModalParams.delete) || searchParams.has(ModalParams.update) || searchParams.has(ModalParams.create)
     }, [ModalParams, searchParams])
 
+    const headers = useMemo(() => Object.values(props.tableHeaders), [props.tableHeaders])
+
+    const headerKeys = useMemo(() => Object.keys(props.tableHeaders), [props.tableHeaders])
+
     return (
         <main className="flex flex-col p-2 gap-3">
             <div className="flex flex-row items-center p-2 gap-3">
@@ -287,44 +293,58 @@ export default function SearchPage<I, D extends PossibleDBOutput>(
                             <Table>
                                 <TableHeader>
                                     <TableRow className="text-nowrap">
-                                        {Object.values(props.tableHeaders).map((text, index) => (
-                                            <TableHead key={index}>{text}</TableHead>
+                                        {headers.map((text, index) => (
+                                            <TableHead
+                                                key={index}
+                                                className="text-center"
+                                            >
+                                                {text}
+                                            </TableHead>
                                         ))}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {rows.map((row) => (
                                         <TableRow key={row.id}>
-                                            {Object.keys(props.tableHeaders).map((attr) =>
-                                                attr.includes("Url") ? (
-                                                    <TableCell
-                                                        key={attr}
-                                                        className="table-cell"
-                                                    >
-                                                        <Image
-                                                            alt="Product image"
-                                                            className="aspect-square rounded-md object-cover"
-                                                            src={row[attr]}
-                                                            height="64"
-                                                            width="64"
-                                                        />
-                                                    </TableCell>
-                                                ) : (
-                                                    <TableCell key={attr}>
-                                                        {typeof row[attr] === "string" && attr.endsWith("Date") ? (
+                                            {headerKeys.map((attr) => (
+                                                <TableCell
+                                                    key={attr}
+                                                    className="table-cell border-r-[1px]"
+                                                >
+                                                    <div className="flex items-center justify-center w-full">
+                                                        {props.tableValuesMap?.[attr] ? (
+                                                            props.tableValuesMap[attr](row[attr])
+                                                        ) : attr.includes("Url") ? (
+                                                            <Image
+                                                                alt="Product image"
+                                                                className="aspect-square rounded-md object-cover"
+                                                                src={row[attr]}
+                                                                height="64"
+                                                                width="64"
+                                                            />
+                                                        ) : typeof row[attr] === "string" && attr.endsWith("Date") ? (
                                                             new Date(row[attr]).toLocaleDateString()
-                                                        ) : typeof row[attr] === "string" && row[attr].length > 20 ? (
-                                                            <FieldTooLong content={row[attr]}></FieldTooLong>
                                                         ) : !row[attr] ? (
                                                             "N/A"
                                                         ) : row[attr] instanceof Date ? (
                                                             row[attr].toLocaleDateString()
+                                                        ) : typeof row[attr] === "boolean" ? (
+                                                            row[attr] ? (
+                                                                <CheckIcon className="w-4 h-4 text-green-500" />
+                                                            ) : (
+                                                                <XIcon className="w-4 h-4 text-red-500" />
+                                                            )
+                                                        ) : typeof row[attr] === "string" ? (
+                                                            <FieldTooLong
+                                                                content={row[attr]}
+                                                                numberOfCols={headers.length}
+                                                            ></FieldTooLong>
                                                         ) : (
                                                             row[attr]
                                                         )}
-                                                    </TableCell>
-                                                ),
-                                            )}
+                                                    </div>
+                                                </TableCell>
+                                            ))}
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>

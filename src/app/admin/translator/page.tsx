@@ -6,7 +6,7 @@ import { Input } from "~/components/ui/input"
 
 import SearchPage from "~/app/admin/_components/search-page"
 
-import { translatorValidationSchema, type TranslatorSchemaType } from "~/server/validation"
+import { translatorValidationSchema, type TranslatorSchemaType } from "~/lib/validation"
 
 type ModelAttrs = keyof TranslatorSchemaType
 

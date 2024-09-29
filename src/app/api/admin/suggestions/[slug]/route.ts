@@ -1,21 +1,16 @@
 import { db } from "~/server/db"
 import { getSuggestions } from "~/server/generic-queries"
 import {
+    type BookPayload,
     type AuthorPayload,
     type CategoryPayload,
-    type CurrencyPayload,
-    type LanguagePayload,
     type PublisherPayload,
     type SeriesPayload,
     type TranslatorPayload,
-} from "~/server/types"
+} from "~/lib/types"
 
 export const decideQueries = (slug: string) => {
     switch (slug) {
-        case "currency":
-            return {
-                getSuggestions: getSuggestions<CurrencyPayload>(db.currency, "iso4217Code"),
-            }
         case "author":
             return {
                 getSuggestions: getSuggestions<AuthorPayload>(db.author, "name"),
@@ -36,9 +31,9 @@ export const decideQueries = (slug: string) => {
             return {
                 getSuggestions: getSuggestions<CategoryPayload>(db.category, "name"),
             }
-        case "language":
+        case "book":
             return {
-                getSuggestions: getSuggestions<LanguagePayload>(db.language, "name"),
+                getSuggestions: getSuggestions<BookPayload>(db.book, "title"),
             }
         default: {
             return {

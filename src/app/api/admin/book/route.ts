@@ -1,5 +1,5 @@
 import { bookGetMany, bookCreateOne } from "~/server/book-queries"
-import { bookValidationSchema } from "~/server/validation"
+import { bookValidationSchema } from "~/lib/validation"
 
 export async function GET(req: Request) {
     const queryParams = new URLSearchParams(new URL(req.url).search)

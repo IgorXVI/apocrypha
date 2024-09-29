@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { db } from "~/server/db"
 import AddToCartButton from "../../_components/add-to-cart-button"
+import { getProductPrice } from "~/server/stripe-api"
 
 export default async function BookPage({ params: { id } }: { params: { id: string } }) {
     const book = await db.book.findUnique({
@@ -31,12 +32,6 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
                     },
                 },
             },
-            Currency: {
-                select: {
-                    label: true,
-                    iso4217Code: true,
-                },
-            },
         },
     })
 
@@ -49,6 +44,12 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
         )
     }
 
+    const stripePriceData = await getProductPrice(book.stripeId)
+
+    if (!stripePriceData.success) {
+        return <div>Erro ao obter o preço do livro {stripePriceData.message}</div>
+    }
+
     return (
         <div className="flex gap-4 p-4">
             <Image
@@ -59,14 +60,11 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
             />
             <div className="flex flex-col gap-4 items-center justify-center">
                 <h1 className="text-2xl font-bold">{book.title}</h1>
-                <h2 className="text-xl font-bold">{book.descriptionTitle}</h2>
                 <p className="text-sm text-gray-600">{book.description}</p>
                 <AddToCartButton
                     author={book.AuthorOnBook[0]?.Author?.name ?? ""}
                     title={book.title}
-                    price={book.price.toNumber()}
-                    currency={book.Currency.label}
-                    currencyCode={book.Currency.iso4217Code}
+                    price={stripePriceData.price ?? 0}
                     id={book.id}
                     amount={1}
                     mainImg={book.DisplayImage[0]?.url ?? ""}

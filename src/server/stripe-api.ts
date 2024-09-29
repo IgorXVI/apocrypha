@@ -11,7 +11,6 @@ const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
 type ProductData = {
     name: string
     price: number
-    currency: string
     mainImg: string
 }
 
@@ -21,7 +20,7 @@ export const createProduct = async (productData: ProductData) => {
             name: productData.name,
             images: [productData.mainImg],
             default_price_data: {
-                currency: productData.currency.toLowerCase(),
+                currency: "brl",
                 unit_amount: productData.price * 100,
             },
             shippable: true,
@@ -129,5 +128,76 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         success: true,
         message: "Checkout session created successfully",
         url: checkoutSession.value.url,
+    }
+}
+
+export const getProductPrice = async (stripeId: string) => {
+    const [product] = await Promise.allSettled([stripe.products.retrieve(stripeId)])
+
+    if (product.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to fetch product: ${product.reason}`,
+        }
+    }
+
+    const [price] = await Promise.allSettled([stripe.prices.retrieve(product.value.default_price?.toString() ?? "")])
+
+    if (price.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to fetch price: ${price.reason}`,
+        }
+    }
+
+    return {
+        success: true,
+        message: "Price fetched successfully",
+        price: price.value.unit_amount ? price.value.unit_amount / 100 : 0,
+    }
+}
+
+export const getProductsPricesMap = async (stripeIds: string[]) => {
+    const [products] = await Promise.allSettled([
+        stripe.products.list({
+            ids: stripeIds,
+            limit: stripeIds.length,
+        }),
+    ])
+
+    if (products.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to fetch products: ${products.reason}`,
+        }
+    }
+
+    const prices = await Promise.allSettled(products.value.data.map((product) => stripe.prices.retrieve(product.default_price?.toString() ?? "")))
+
+    const pricesWithErrors = prices.filter((price) => price.status === "rejected")
+
+    if (pricesWithErrors.length > 0) {
+        return {
+            success: false,
+            message: `Failed to fetch prices: ${pricesWithErrors.map((price) => `${price.reason}`).join(", ")}`,
+        }
+    }
+
+    const priceIdsToProductIdsMap = new Map<string, string>()
+    products.value.data.forEach((product) => {
+        priceIdsToProductIdsMap.set(product.default_price?.toString() ?? "", product.id)
+    })
+
+    const pricesMap = new Map<string, number>()
+    prices.forEach((price) => {
+        if (price.status === "fulfilled") {
+            pricesMap.set(priceIdsToProductIdsMap.get(price.value.id) ?? "", price.value.unit_amount ? price.value.unit_amount / 100 : 0)
+        }
+    })
+
+    return {
+        success: true,
+        message: "Prices fetched successfully",
+        pricesMap,
     }
 }

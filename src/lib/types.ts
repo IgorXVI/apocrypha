@@ -23,23 +23,20 @@ export type GetManyOutput<T> = {
 export type BookGetManyOneRowOutput = {
     id: string
     price: number
-    amount: number
+    isAvailable: boolean
     title: string
-    descriptionTitle: string
     description: string
     pages: number
     publicationDate: Date
-    isbn10Code: string
-    isbn13Code: string
-    width: number
-    height: number
-    length: number
-    edition?: string
+    isbn10Code?: string
+    isbn13Code?: string
+    edition: number
     categoryName: string
     publisherName: string
-    languageName: string
-    currencyLabel: string
+    literatureType: string
+    language: string
     seriesName?: string
+    relatedBookTitle?: string
     mainImageUrl: string
     mainAuthorName: string
     mainTranslatorName: string
@@ -53,16 +50,13 @@ export type CommonSuggestion = {
 
 export type CategoryPayload = Prisma.CategoryGetPayload<Prisma.CategoryDefaultArgs>
 export type PublisherPayload = Prisma.PublisherGetPayload<Prisma.PublisherDefaultArgs>
-export type LanguagePayload = Prisma.LanguageGetPayload<Prisma.LanguageDefaultArgs>
 export type SeriesPayload = Prisma.SeriesGetPayload<Prisma.SeriesDefaultArgs>
-export type CurrencyPayload = Prisma.CurrencyGetPayload<Prisma.CurrencyDefaultArgs>
 export type AuthorPayload = Prisma.AuthorGetPayload<Prisma.AuthorDefaultArgs>
 export type TranslatorPayload = Prisma.TranslatorGetPayload<Prisma.TranslatorDefaultArgs>
+export type BookPayload = Prisma.BookGetPayload<Prisma.BookDefaultArgs>
 
 export type CategoryInput = Prisma.CategoryCreateInput
 export type PublisherInput = Prisma.PublisherCreateInput
-export type LanguageInput = Prisma.LanguageCreateInput
 export type SeriesInput = Prisma.SeriesCreateInput
-export type CurrencyInput = Prisma.CurrencyCreateInput
 export type AuthorInput = Prisma.AuthorCreateInput
 export type TranslatorInput = Prisma.TranslatorCreateInput

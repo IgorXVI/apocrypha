@@ -17,8 +17,6 @@
 -   [ ] Adicionar busca de livros
 -   [ ] Limitar acesso às páginas de admin
 -   [x] Arrumar queries excessivas nas páginas de admin
--   [ ] Lidar com moedas que não sejam o real no checkout e no carrinho
--   [ ] Transformar línguas em enum no banco dados
--   [ ] Transformar moedas em enum no banco dados
+-   [x] Transformar línguas em enum no banco dados
 -   [ ] Adicionar relação entre lívros
 -   [ ] Adicionar categorias secundárias para livros

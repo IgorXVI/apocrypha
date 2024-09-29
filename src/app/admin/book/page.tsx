@@ -11,8 +11,10 @@ import IdInput from "../_components/id-input"
 import NumberInput from "../_components/number-input"
 import SingleImageField from "../_components/single-image-field"
 
-import { bookValidationSchema, type BookSchemaType } from "~/server/validation"
+import { bookValidationSchema, type BookSchemaType } from "~/lib/validation"
 import { AdminRichTextInput } from "../_components/admin-rich-text-editor"
+import SelectEnum from "../_components/select-enum"
+import BooleanInput from "../_components/boolean-input"
 
 type ModelAttrs = keyof BookSchemaType
 
@@ -48,17 +50,6 @@ const inputKeyMap: Record<
         description: "Esse é o título do livro.",
         className: "admin-input-md-center",
     },
-    descriptionTitle: {
-        node: (field) => (
-            <Input
-                placeholder="Resenha de As duas torres"
-                {...field}
-            />
-        ),
-        label: "Título da Descrição",
-        description: "Esse é o título da descrição do livro.",
-        className: "admin-input-md-center",
-    },
     description: {
         node: (field) => (
             <AdminRichTextInput
@@ -75,27 +66,10 @@ const inputKeyMap: Record<
         label: "Quantidade de Páginas",
         description: "Esse é a quantidade de páginas do livro.",
     },
-    currencyId: {
-        node: (field) => (
-            <IdInput
-                label="moeda"
-                slug="currency"
-                {...field}
-            />
-        ),
-        label: "Moeda",
-        description: "Escolha a moeda do livro.",
-        className: "max-w-[250px]",
-    },
     price: {
         node: (field) => <NumberInput {...field} />,
         label: "Preço",
         description: "Esse é o preço do livro.",
-    },
-    amount: {
-        node: (field) => <NumberInput {...field} />,
-        label: "Quantidade em Estoque",
-        description: "Esse é a quantidade em estoque do livro.",
     },
     publicationDate: {
         node: (field) => <DatePicker {...field} />,
@@ -122,28 +96,8 @@ const inputKeyMap: Record<
         label: "Código ISBN-13",
         description: "Esse é o código ISBN-13 do livro.",
     },
-    width: {
-        node: (field) => <NumberInput {...field} />,
-        label: "Largura (mm)",
-        description: "Esse é a largura do livro em milímetros.",
-    },
-    height: {
-        node: (field) => <NumberInput {...field} />,
-        label: "Altura (mm)",
-        description: "Esse é a altura do livro em milímetros.",
-    },
-    length: {
-        node: (field) => <NumberInput {...field} />,
-        label: "Comprimento (mm)",
-        description: "Esse é o comprimento do livro em milímetros.",
-    },
     edition: {
-        node: (field) => (
-            <Input
-                placeholder="Edição português"
-                {...field}
-            />
-        ),
+        node: (field) => <NumberInput {...field} />,
         label: "Edição",
         description: "Esse é a edição do livro.",
     },
@@ -169,17 +123,6 @@ const inputKeyMap: Record<
         label: "Editora",
         description: "Escolha a editora do livro.",
     },
-    languageId: {
-        node: (field) => (
-            <IdInput
-                label="língua"
-                slug="language"
-                {...field}
-            />
-        ),
-        label: "Língua",
-        description: "Escolha a língua do livro.",
-    },
     seriesId: {
         node: (field) => (
             <IdInput
@@ -191,7 +134,7 @@ const inputKeyMap: Record<
         label: "Série",
         description: "Escolha a série do livro.",
     },
-    authorId: {
+    authorIds: {
         node: (field) => (
             <IdInput
                 slug="author"
@@ -202,8 +145,7 @@ const inputKeyMap: Record<
         label: "Autor",
         description: "Escolha o autor do livro.",
     },
-
-    translatorId: {
+    translatorIds: {
         node: (field) => (
             <IdInput
                 slug="translator"
@@ -214,6 +156,56 @@ const inputKeyMap: Record<
         label: "Tradutor",
         description: "Escolha o tradutor do livro.",
     },
+    isAvailable: {
+        node: (field) => <BooleanInput {...field} />,
+        label: "Disponível",
+        description: "Esse é o status de disponibilidade do livro.",
+    },
+    language: {
+        node: (field) => (
+            <SelectEnum
+                {...field}
+                enumLikeObject={{
+                    PORTUGUESE: "Português",
+                    ENGLISH: "Inglês",
+                    SPANISH: "Espanhol",
+                    FRENCH: "Francês",
+                    GERMAN: "Alemão",
+                    ITALIAN: "Italiano",
+                    TURKISH: "Turco",
+                    RUSSIAN: "Russo",
+                    ARABIC: "Árabe",
+                    PORTUGUESE_BRAZILIAN: "Português (Brasil)",
+                }}
+            ></SelectEnum>
+        ),
+        label: "Idioma",
+        description: "Escolha o idioma do livro.",
+    },
+    literatureType: {
+        node: (field) => (
+            <SelectEnum
+                {...field}
+                enumLikeObject={{
+                    INTERNATIONAL: "Internacional",
+                    BRAZILIAN: "Nacional",
+                }}
+            ></SelectEnum>
+        ),
+        label: "Tipo de Literatura",
+        description: "Escolha o tipo de literatura do livro.",
+    },
+    relatedBookId: {
+        node: (field) => (
+            <IdInput
+                slug="book"
+                label="livro relacionado"
+                {...field}
+            />
+        ),
+        label: "Livro Relacionado",
+        description: "Escolha o livro que possui uma relação com este.",
+    },
 }
 
 export default function MainPage() {
@@ -223,28 +215,28 @@ export default function MainPage() {
             namePlural="livros"
             tableHeaders={{
                 id: "ID",
-                mainImageUrl: "Imagem",
-                currencyLabel: "Moeda",
-                price: "Preço",
-                amount: "Estoque",
-                stripeId: "Stripe ID",
+                mainImageUrl: "Imagem Principal",
                 title: "Título",
-                descriptionTitle: "Título da Descrição",
+                price: "Preço",
+                isAvailable: "Disponível",
+                stripeId: "Stripe ID",
                 description: "Descrição",
                 pages: "Páginas",
                 publicationDate: "Data de Publicação",
                 isbn10Code: "ISBN-10",
                 isbn13Code: "ISBN-13",
-                width: "Largura (mm)",
-                height: "Altura (mm)",
-                length: "Comprimento (mm)",
                 edition: "Edição",
-                languageName: "Idioma",
                 categoryName: "Categoria",
                 publisherName: "Editora",
+                literatureType: "Tipo de Literatura",
+                language: "Idioma",
                 seriesName: "Série",
-                mainAuthorName: "Autor",
-                mainTranslatorName: "Tradutor",
+                relatedBookTitle: "Livro Relacionado",
+                mainAuthorName: "Autor Principal",
+                mainTranslatorName: "Tradutor Principal",
+            }}
+            tableValuesMap={{
+                price: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
             }}
             slug="book"
             inputKeyMap={inputKeyMap}

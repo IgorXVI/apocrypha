@@ -5,7 +5,7 @@ import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 import { Input } from "~/components/ui/input"
 import SearchPage from "~/app/admin/_components/search-page"
 
-import { publisherValidationSchema, type PublisherSchemaType } from "~/server/validation"
+import { publisherValidationSchema, type PublisherSchemaType } from "~/lib/validation"
 
 type ModelAttrs = keyof PublisherSchemaType
 

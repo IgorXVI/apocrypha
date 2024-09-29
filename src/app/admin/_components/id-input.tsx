@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Button } from "~/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
 import { Input } from "~/components/ui/input"
-import { type CommonSuggestion } from "~/server/types"
+import { type CommonSuggestion } from "~/lib/types"
 import { cn } from "~/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
 import { dbQueryWithToast, toastError } from "~/components/toast/toasting"
@@ -80,7 +80,9 @@ export default function IdInput(props: { slug: string; onChange: (value?: string
                     className="ml-2 justify-between"
                     disabled={props.disabled ?? isLoading}
                 >
-                    {props.value && props.value !== "" ? suggestions.find((s) => s.id === props.value)?.name : `Selecione ${props.label}...`}
+                    {props.value && props.value !== ""
+                        ? (suggestions.find((s) => s.id === props.value)?.name ?? "N/A")
+                        : `Selecione ${props.label}...`}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>

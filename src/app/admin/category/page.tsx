@@ -6,7 +6,7 @@ import { Input } from "~/components/ui/input"
 import SingleImageField from "../_components/single-image-field"
 import SearchPage from "~/app/admin/_components/search-page"
 
-import { categoryValidationSchema, type CategorySchemaType } from "~/server/validation"
+import { categoryValidationSchema, type CategorySchemaType } from "~/lib/validation"
 
 type ModelAttrs = keyof CategorySchemaType
 

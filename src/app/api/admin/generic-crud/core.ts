@@ -4,40 +4,25 @@ import { getMany, createOne, getOne, updateOne, deleteOne } from "~/server/gener
 import {
     type AuthorPayload,
     type CategoryPayload,
-    type CurrencyPayload,
-    type LanguagePayload,
     type PublisherPayload,
     type SeriesPayload,
     type TranslatorPayload,
-    type CurrencyInput,
     type AuthorInput,
     type TranslatorInput,
     type PublisherInput,
     type SeriesInput,
     type CategoryInput,
-    type LanguageInput,
-} from "~/server/types"
+} from "~/lib/types"
 import {
-    currencyValidationSchema,
     authorValidationSchema,
     translatorValidationSchema,
     publisherValidationSchema,
     seriesValidationSchema,
     categoryValidationSchema,
-    languageValidationSchema,
-} from "~/server/validation"
+} from "~/lib/validation"
 
 export const decideQueries = (slug: string) => {
     switch (slug) {
-        case "currency":
-            return {
-                getMany: getMany<CurrencyPayload>(db.currency, "iso4217Code"),
-                createOne: createOne<CurrencyInput>(db.currency),
-                getOne: getOne<CurrencyInput>(db.currency),
-                updateOne: updateOne<CurrencyInput>(db.currency),
-                deleteOne: deleteOne(db.currency),
-                validationSchema: currencyValidationSchema,
-            }
         case "author":
             return {
                 getMany: getMany<AuthorPayload>(db.author, "name"),
@@ -82,15 +67,6 @@ export const decideQueries = (slug: string) => {
                 updateOne: updateOne<CategoryInput>(db.category),
                 deleteOne: deleteOne(db.category),
                 validationSchema: categoryValidationSchema,
-            }
-        case "language":
-            return {
-                getMany: getMany<LanguagePayload>(db.language, "name"),
-                createOne: createOne<LanguageInput>(db.language),
-                getOne: getOne<LanguageInput>(db.language),
-                updateOne: updateOne<LanguageInput>(db.language),
-                deleteOne: deleteOne(db.language),
-                validationSchema: languageValidationSchema,
             }
         default: {
             const defaultResult = {

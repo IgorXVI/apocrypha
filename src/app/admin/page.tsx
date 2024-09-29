@@ -29,14 +29,6 @@ export default function Admin() {
                 <Link href="/admin/category">
                     <Button className="text-2xl w-full p-8">Categorias</Button>
                 </Link>
-
-                <Link href="/admin/language">
-                    <Button className="text-2xl w-full p-8">Línguas</Button>
-                </Link>
-
-                <Link href="/admin/currency">
-                    <Button className="text-2xl w-full p-8">Moedas</Button>
-                </Link>
             </div>
         </main>
     )

@@ -6,8 +6,6 @@ export type BookCartState = {
     title: string
     author: string
     price: number
-    currency: string
-    currencyCode: string
     amount: number
     stripeId: string
 }

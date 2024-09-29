@@ -68,3 +68,7 @@
 .admin-input-md-center {
     @apply md:col-span-2 flex flex-col justify-center md:ml-[25%] md:mr-[25%];
 }
+
+.admin-table-cell-image {
+    @apply aspect-square rounded-md object-cover;
+}

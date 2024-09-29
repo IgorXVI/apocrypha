@@ -1,7 +1,7 @@
 "server-only"
 
 import { type Prisma } from "prisma/prisma-client"
-import { type CommonDBReturn, type GetManyInput, type GetManyOutput } from "./types"
+import { type CommonDBReturn, type GetManyInput, type GetManyOutput } from "../lib/types"
 import { type DefaultArgs } from "@prisma/client/runtime/library"
 import { db } from "./db"
 
@@ -11,10 +11,9 @@ type AnyModel =
     | Prisma.TranslatorDelegate<DefaultArgs>
     | Prisma.CategoryDelegate<DefaultArgs>
     | Prisma.SeriesDelegate<DefaultArgs>
-    | Prisma.CurrencyDelegate<DefaultArgs>
-    | Prisma.LanguageDelegate<DefaultArgs>
+    | Prisma.BookDelegate<DefaultArgs>
 
-type PrivateAnyModel = Prisma.CurrencyDelegate<DefaultArgs>
+type PrivateAnyModel = Prisma.AuthorDelegate<DefaultArgs>
 
 export async function errorHandler<T>(fun: () => Promise<T>): Promise<CommonDBReturn<T>> {
     try {
@@ -53,7 +52,7 @@ export const createOne =
     (data: T) =>
         errorHandler(async () => {
             await (model as PrivateAnyModel).create({
-                data: data as Prisma.CurrencyCreateInput,
+                data: data as Prisma.AuthorCreateInput,
             })
 
             return undefined
@@ -64,7 +63,7 @@ export const updateOne =
     (id: string, data: T) =>
         errorHandler(async () => {
             await (model as PrivateAnyModel).update({
-                data: data as Prisma.CurrencyUpdateInput,
+                data: data as Prisma.AuthorUpdateInput,
                 where: {
                     id,
                 },
