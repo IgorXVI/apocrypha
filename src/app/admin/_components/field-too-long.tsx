@@ -28,7 +28,7 @@ export default function FieldTooLong(props: { content: string; numberOfCols: num
                             <CopyIcon></CopyIcon>
                         </button>
                     </CopyToClipboard>
-                    <p>{props.content.length > 1000 ? props.content.slice(0, 1000) + "..." : props.content}</p>
+                    <p className="text-center">{props.content.length > 1000 ? props.content.slice(0, 1000) + "..." : props.content}</p>
                 </div>
             </PopoverContent>
         </Popover>

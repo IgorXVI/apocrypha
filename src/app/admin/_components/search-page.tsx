@@ -287,7 +287,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                     <>
                         <CardHeader>
                             <CardTitle>{R.capitalize(props.namePlural)}</CardTitle>
-                            <CardDescription>Crie, atualize, apague ou busque {props.name}.</CardDescription>
+                            <CardDescription>Crie, atualize, apague ou busque {props.namePlural}.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Table>

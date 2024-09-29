@@ -18,6 +18,24 @@ import BooleanInput from "../_components/boolean-input"
 
 type ModelAttrs = keyof BookSchemaType
 
+const langsMap: Record<string, string> = {
+    PORTUGUESE: "Português",
+    ENGLISH: "Inglês",
+    SPANISH: "Espanhol",
+    FRENCH: "Francês",
+    GERMAN: "Alemão",
+    ITALIAN: "Italiano",
+    TURKISH: "Turco",
+    RUSSIAN: "Russo",
+    ARABIC: "Árabe",
+    PORTUGUESE_BRAZILIAN: "Português (Brasil)",
+}
+
+const literatureTypeMap: Record<string, string> = {
+    INTERNATIONAL: "Internacional",
+    BRAZILIAN: "Nacional",
+}
+
 const inputKeyMap: Record<
     ModelAttrs,
     {
@@ -165,18 +183,7 @@ const inputKeyMap: Record<
         node: (field) => (
             <SelectEnum
                 {...field}
-                enumLikeObject={{
-                    PORTUGUESE: "Português",
-                    ENGLISH: "Inglês",
-                    SPANISH: "Espanhol",
-                    FRENCH: "Francês",
-                    GERMAN: "Alemão",
-                    ITALIAN: "Italiano",
-                    TURKISH: "Turco",
-                    RUSSIAN: "Russo",
-                    ARABIC: "Árabe",
-                    PORTUGUESE_BRAZILIAN: "Português (Brasil)",
-                }}
+                enumLikeObject={langsMap}
             ></SelectEnum>
         ),
         label: "Idioma",
@@ -186,10 +193,7 @@ const inputKeyMap: Record<
         node: (field) => (
             <SelectEnum
                 {...field}
-                enumLikeObject={{
-                    INTERNATIONAL: "Internacional",
-                    BRAZILIAN: "Nacional",
-                }}
+                enumLikeObject={literatureTypeMap}
             ></SelectEnum>
         ),
         label: "Tipo de Literatura",
@@ -237,6 +241,8 @@ export default function MainPage() {
             }}
             tableValuesMap={{
                 price: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
+                literatureType: (value: string) => <span className="text-nowrap">{literatureTypeMap[value] ?? value}</span>,
+                language: (value: string) => <span className="text-nowrap">{langsMap[value] ?? value}</span>,
             }}
             slug="book"
             inputKeyMap={inputKeyMap}
