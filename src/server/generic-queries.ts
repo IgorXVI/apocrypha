@@ -141,7 +141,8 @@ export const getSuggestions =
             let suggestions = await (model as PrivateAnyModel).findMany({
                 where: {
                     [searchAttr]: {
-                        startsWith: searchTerm,
+                        contains: searchTerm,
+                        mode: "insensitive",
                     },
                 },
                 select: {
