@@ -7,7 +7,7 @@
 -   [x] Criar página de admin para books
 -   [x] Melhorar input de data do calendário
 -   [x] Melhorar input de várias imagens
--   [ ] Melhorar input de vários ids
+-   [x] Melhorar input de vários ids
 -   [x] Arrumar bug ao atualizar relações N->N
 -   [x] Arrumar bug no input de id
 -   [x] Adicionar cadastro de livros no stripe
