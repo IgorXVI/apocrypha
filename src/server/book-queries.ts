@@ -7,7 +7,7 @@ import { db } from "~/server/db"
 import { errorHandler } from "./generic-queries"
 
 import { type BookGetManyOneRowOutput, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "../lib/types"
-import { archiveProduct, createProduct, getProductPrice, getProductsPricesMap, restoreProduct } from "./stripe-api"
+import { archiveProduct, createProduct, restoreProduct } from "./stripe-api"
 
 import { type bookValidationSchema } from "~/lib/validation"
 
@@ -24,7 +24,12 @@ const transformBookInput = (data: BookDataInput) => {
         main: index === 0,
     }))
 
-    const translators = [data.mainTranslatorId, ...data.translatorIds].map((translatorId, index) => ({
+    const allTranslatorIds = data.translatorIds
+    if (data.mainTranslatorId) {
+        allTranslatorIds.unshift(data.mainTranslatorId)
+    }
+
+    const translators = allTranslatorIds.map((translatorId, index) => ({
         translatorId,
         main: index === 0,
     }))
@@ -34,6 +39,7 @@ const transformBookInput = (data: BookDataInput) => {
         title: data.title,
         description: data.description,
         pages: data.pages,
+        price: data.price,
         publicationDate: data.publicationDate,
         isbn10Code: data.isbn10Code,
         isbn13Code: data.isbn13Code,
@@ -89,7 +95,10 @@ export const bookCreateOne = async (data: BookDataInput) =>
 export const bookUpdateOne = async (id: string, data: BookDataInput) =>
     errorHandler(async () => {
         const allAuthorIds = [data.mainAuthorId, ...data.authorIds]
-        const allTranslatorIds = [data.mainTranslatorId, ...data.translatorIds]
+        const allTranslatorIds = data.translatorIds
+        if (data.mainTranslatorId) {
+            allTranslatorIds.unshift(data.mainTranslatorId)
+        }
 
         const bookDBData = await db.book.findUnique({
             where: {
@@ -134,7 +143,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
 
         let stripeId = bookDBData.stripeId
 
-        if (data.title !== bookDBData.title || data.mainImgUrl !== bookDBData.DisplayImage[0]?.url) {
+        if (data.title !== bookDBData.title || data.mainImgUrl !== bookDBData.DisplayImage[0]?.url || data.price !== bookDBData.price.toNumber()) {
             const archiveProductResponse = await archiveProduct(bookDBData.stripeId)
 
             if (!archiveProductResponse.success && !archiveProductResponse.message.includes("No such product")) {
@@ -260,12 +269,6 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
             throw new Error("Not found")
         }
 
-        const stripePrice = await getProductPrice(row.stripeId)
-
-        if (!stripePrice.success) {
-            throw new Error(stripePrice.message)
-        }
-
         const allImgUrls = row.DisplayImage.map((image) => image.url)
 
         const allAuthorIds = row.AuthorOnBook.map((author) => author.authorId)
@@ -284,7 +287,7 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
             imgUrls: allImgUrls.slice(1),
             edition: row.edition ?? undefined,
             seriesId: row.seriesId ?? undefined,
-            price: stripePrice.price ?? 0,
+            price: row.price.toNumber(),
         }
     })
 
@@ -386,18 +389,12 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
             throw totalResult.reason
         }
 
-        const pricesData = await getProductsPricesMap(rowsResult.value.map((row) => row.stripeId))
-
-        if (!pricesData.success) {
-            throw new Error(pricesData.message)
-        }
-
         const total = totalResult.value
         const rows = rowsResult.value.map((row) => ({
             ...row,
             isbn10Code: row.isbn10Code ?? undefined,
             isbn13Code: row.isbn13Code ?? undefined,
-            price: pricesData.pricesMap?.get(row.stripeId) ?? 0,
+            price: row.price.toNumber(),
             edition: row.edition ?? undefined,
             mainImageUrl: row.DisplayImage[0]?.url ?? "",
             mainAuthorName: row.AuthorOnBook[0]?.Author.name ?? "",

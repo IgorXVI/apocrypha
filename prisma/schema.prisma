@@ -32,6 +32,7 @@ model Book {
     id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     stripeId         String             @unique
     isAvailable      Boolean            @default(true)
+    price            Decimal            @default(0) @db.Decimal(10, 4)
     title            String
     description      String
     pages            Int

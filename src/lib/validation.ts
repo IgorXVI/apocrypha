@@ -80,7 +80,10 @@ export const bookValidationSchema = z.object({
     translatorIds: z.array(z.string().uuid({ message: "ID do tradutor inválido." })).default([]),
 
     mainAuthorId: z.string().uuid({ message: "ID do autor inválido." }).default(""),
-    mainTranslatorId: z.string().uuid({ message: "ID do tradutor inválido." }).default(""),
+    mainTranslatorId: z.preprocess(
+        (value) => (value === "" ? undefined : value),
+        z.string().uuid({ message: "ID do tradutor inválido." }).optional(),
+    ),
 
     relatedBookId: z.preprocess(
         (value) => (value === "" ? undefined : value),

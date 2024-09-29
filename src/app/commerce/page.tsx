@@ -3,7 +3,6 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel"
 import { db } from "~/server/db"
-import { getProductsPricesMap } from "~/server/stripe-api"
 
 export default async function MainCommercePage() {
     const books = await db.book.findMany({
@@ -31,12 +30,6 @@ export default async function MainCommercePage() {
             },
         },
     })
-
-    const stripePriceData = await getProductsPricesMap(books.map((book) => book.stripeId))
-
-    if (!stripePriceData.success) {
-        return <div>Erro ao obter os preços dos livros {stripePriceData.message}</div>
-    }
 
     return (
         <main className="flex gap-5 flex-col items-center justify-center">
@@ -99,7 +92,7 @@ export default async function MainCommercePage() {
                                 </Carousel>
                             </div>
                         </CardContent>
-                        <CardFooter className="text-xl font-extrabold">R$ {stripePriceData.pricesMap?.get(book.stripeId)?.toFixed(2)}</CardFooter>
+                        <CardFooter className="text-xl font-extrabold">R$ {book.price.toFixed(2)}</CardFooter>
                     </Card>
                 ))}
             </div>
