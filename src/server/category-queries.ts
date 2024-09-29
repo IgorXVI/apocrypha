@@ -6,34 +6,43 @@ import { errorHandler } from "./generic-queries"
 
 export const getSuperCategoryCompositeSuggestions = async (searchTerm: string, ids?: string[]): Promise<CommonDBReturn<CommonSuggestion[]>> =>
     errorHandler(async () => {
-        const categories = await db.category.findMany({
-            where: {
-                OR: [
-                    {
-                        name: {
-                            contains: searchTerm,
-                            mode: "insensitive",
-                        },
-                    },
-                    {
-                        id: {
-                            in: ids,
-                        },
-                    },
-                ],
-            },
-            include: {
-                SuperCategory: {
-                    select: {
-                        name: true,
-                    },
+        const include = {
+            SuperCategory: {
+                select: {
+                    name: true,
                 },
             },
+        }
+
+        let suggestions = await db.category.findMany({
+            where: {
+                name: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                },
+            },
+            include,
             take: 10,
         })
 
-        return categories.map((category) => ({
-            value: category.id,
-            label: `${category.SuperCategory?.name ?? "N/A"}->${category.name}`,
+        if (ids && !suggestions.some((suggestion) => ids.includes(suggestion.id))) {
+            const suggenstionWithId = await db.category.findMany({
+                where: {
+                    id: {
+                        in: ids,
+                    },
+                },
+                include,
+                take: 20,
+            })
+
+            if (suggenstionWithId) {
+                suggestions = [...suggenstionWithId, ...suggestions]
+            }
+        }
+
+        return suggestions.map((s) => ({
+            value: s.id,
+            label: `${s.SuperCategory?.name ?? "N/A"}->${s.name}`,
         }))
     })

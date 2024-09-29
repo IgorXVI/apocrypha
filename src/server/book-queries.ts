@@ -99,10 +99,13 @@ export const bookCreateOne = async (data: BookSchemaType) =>
 export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
     errorHandler(async () => {
         const allAuthorIds = [data.mainAuthorId, ...data.authorIds]
+
         const allTranslatorIds = data.translatorIds
         if (data.mainTranslatorId) {
             allTranslatorIds.unshift(data.mainTranslatorId)
         }
+
+        const allCategoryIds = [data.mainCategoryId, ...data.categoryIds]
 
         const bookDBData = await db.book.findUnique({
             where: {
@@ -138,6 +141,16 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
                         translatorId: true,
                     },
                 },
+                CategoryOnBook: {
+                    where: {
+                        categoryId: {
+                            notIn: allCategoryIds,
+                        },
+                    },
+                    select: {
+                        categoryId: true,
+                    },
+                },
             },
         })
 
@@ -165,6 +178,11 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
         const deleteTranslatorOnBook = bookDBData?.TranslatorOnBook.map((translator) => ({
             bookId: id,
             translatorId: translator.translatorId,
+        }))
+
+        const deleteCategoryOnBook = bookDBData?.CategoryOnBook.map((category) => ({
+            bookId: id,
+            categoryId: category.categoryId,
         }))
 
         const dataForDB = transformBookInput(data)
@@ -225,6 +243,24 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
                                       },
                                       create: {
                                           translatorId,
+                                          main: true,
+                                      },
+                                  }))
+                                : undefined,
+                    },
+                    CategoryOnBook: {
+                        deleteMany: deleteCategoryOnBook.length > 0 ? deleteCategoryOnBook : undefined,
+                        connectOrCreate:
+                            allCategoryIds.length > 0
+                                ? allCategoryIds.map((categoryId) => ({
+                                      where: {
+                                          bookId_categoryId: {
+                                              bookId: id,
+                                              categoryId,
+                                          },
+                                      },
+                                      create: {
+                                          categoryId,
                                           main: true,
                                       },
                                   }))

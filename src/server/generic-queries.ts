@@ -162,6 +162,7 @@ export const getSuggestions =
                         id: true,
                         [searchAttr]: true,
                     },
+                    take: 20,
                 })
 
                 if (suggenstionWithId) {
