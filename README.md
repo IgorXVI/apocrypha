@@ -18,5 +18,5 @@
 -   [ ] Limitar acesso às páginas de admin
 -   [x] Arrumar queries excessivas nas páginas de admin
 -   [x] Transformar línguas em enum no banco dados
--   [ ] Adicionar relação entre lívros
+-   [x] Adicionar relação entre lívros
 -   [ ] Adicionar categorias secundárias para livros
