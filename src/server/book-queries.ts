@@ -173,6 +173,13 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                 data: {
                     ...dataForDB,
                     stripeId,
+                    Series: data.seriesId
+                        ? dataForDB.Series
+                        : {
+                              disconnect: {
+                                  id: bookDBData.seriesId ?? "",
+                              },
+                          },
                     DisplayImage: {
                         updateMany: dataForDB.DisplayImage.createMany.data.map((image) => ({
                             where: {
