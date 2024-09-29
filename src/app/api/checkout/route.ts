@@ -10,10 +10,8 @@ const checkoutValidationSchema = z.object({
     ),
 })
 
-type CheckoutDataInput = z.infer<typeof checkoutValidationSchema>
-
 export type POSTApiCheckoutInput = {
-    data: CheckoutDataInput
+    data: z.infer<typeof checkoutValidationSchema>
 }
 
 export type POSTApiCheckoutOutput =

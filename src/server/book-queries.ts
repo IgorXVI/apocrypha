@@ -1,7 +1,5 @@
 "server-only"
 
-import { type z } from "zod"
-
 import { db } from "~/server/db"
 
 import { errorHandler } from "./generic-queries"
@@ -9,9 +7,7 @@ import { errorHandler } from "./generic-queries"
 import { type BookGetManyOneRowOutput, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "../lib/types"
 import { archiveProduct, createProduct, restoreProduct } from "./stripe-api"
 
-import { type bookValidationSchema } from "~/lib/validation"
-
-type BookDataInput = z.infer<typeof bookValidationSchema>
+import { type BookSchemaType } from "~/lib/validation"
 
 const transformIdsWithMain = (ids: string[], mainId?: string) => {
     let allIds = [...ids]
@@ -22,7 +18,7 @@ const transformIdsWithMain = (ids: string[], mainId?: string) => {
     return allIds
 }
 
-const transformBookInput = (data: BookDataInput) => {
+const transformBookInput = (data: BookSchemaType) => {
     const displayImages = transformIdsWithMain(data.imgUrls, data.mainImgUrl).map((image, index) => ({
         url: image,
         order: index,
@@ -60,7 +56,7 @@ const transformBookInput = (data: BookDataInput) => {
     }
 }
 
-const createStripeProduct = async (data: BookDataInput) => {
+const createStripeProduct = async (data: BookSchemaType) => {
     const stripeResponse = await createProduct({
         name: data.title,
         price: data.price,
@@ -75,7 +71,7 @@ const createStripeProduct = async (data: BookDataInput) => {
     return stripeResponse.productId
 }
 
-export const bookCreateOne = async (data: BookDataInput) =>
+export const bookCreateOne = async (data: BookSchemaType) =>
     errorHandler(async () => {
         const stripeId = await createStripeProduct(data)
 
@@ -96,7 +92,7 @@ export const bookCreateOne = async (data: BookDataInput) =>
         return undefined
     })
 
-export const bookUpdateOne = async (id: string, data: BookDataInput) =>
+export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
     errorHandler(async () => {
         const allAuthorIds = [data.mainAuthorId, ...data.authorIds]
         const allTranslatorIds = data.translatorIds
@@ -242,7 +238,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
         return undefined
     })
 
-export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInput>> =>
+export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaType>> =>
     errorHandler(async () => {
         const row = await db.book.findUnique({
             where: {
