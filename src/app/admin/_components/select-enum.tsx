@@ -1,8 +1,14 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
 
-export default function SelectEnum(props: { onChange: (value: string) => void; value?: string; enumLikeObject: Record<string, string> }) {
+export default function SelectEnum(props: {
+    disabled?: boolean
+    onChange: (value: string) => void
+    value?: string
+    enumLikeObject: Record<string, string>
+}) {
     return (
         <Select
+            disabled={props.disabled}
             value={props.value}
             onValueChange={(value) => props.onChange(value)}
             defaultValue={props.value}

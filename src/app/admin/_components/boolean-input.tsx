@@ -1,8 +1,9 @@
-import { Checkbox } from "~/components/ui/checkbox"
+import { Switch } from "~/components/ui/switch"
 
-export default function BooleanInput(props: { value?: boolean; onChange: (value: boolean) => void }) {
+export default function BooleanInput(props: { disabled?: boolean; value?: boolean; onChange: (value: boolean) => void }) {
     return (
-        <Checkbox
+        <Switch
+            disabled={props.disabled}
             checked={props.value}
             onCheckedChange={(checked) => props.onChange(Boolean(checked.valueOf()))}
         />

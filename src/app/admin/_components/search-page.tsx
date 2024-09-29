@@ -322,18 +322,18 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                                                                 height="64"
                                                                 width="64"
                                                             />
-                                                        ) : typeof row[attr] === "string" && attr.endsWith("Date") ? (
-                                                            new Date(row[attr]).toLocaleDateString()
-                                                        ) : !row[attr] ? (
-                                                            "N/A"
-                                                        ) : row[attr] instanceof Date ? (
-                                                            row[attr].toLocaleDateString()
                                                         ) : typeof row[attr] === "boolean" ? (
                                                             row[attr] ? (
                                                                 <CheckIcon className="w-4 h-4 text-green-500" />
                                                             ) : (
                                                                 <XIcon className="w-4 h-4 text-red-500" />
                                                             )
+                                                        ) : typeof row[attr] === "string" && attr.endsWith("Date") ? (
+                                                            new Date(row[attr]).toLocaleDateString()
+                                                        ) : !row[attr] ? (
+                                                            "N/A"
+                                                        ) : row[attr] instanceof Date ? (
+                                                            row[attr].toLocaleDateString()
                                                         ) : typeof row[attr] === "string" ? (
                                                             <FieldTooLong
                                                                 content={row[attr]}

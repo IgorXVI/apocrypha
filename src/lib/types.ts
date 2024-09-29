@@ -44,8 +44,8 @@ export type BookGetManyOneRowOutput = {
 }
 
 export type CommonSuggestion = {
-    id: string
-    name: string
+    value: string
+    label: string
 }
 
 export type CategoryPayload = Prisma.CategoryGetPayload<Prisma.CategoryDefaultArgs>

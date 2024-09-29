@@ -135,9 +135,9 @@ interface HasId {
 
 export const getSuggestions =
     <T extends HasId>(model: AnyModel, searchAttr: keyof T) =>
-    async (searchTerm: string, id?: string) =>
+    async (searchTerm: string, ids?: string[]) =>
         errorHandler(async () => {
-            const suggestions = await (model as PrivateAnyModel).findMany({
+            let suggestions = await (model as PrivateAnyModel).findMany({
                 where: {
                     [searchAttr]: {
                         startsWith: searchTerm,
@@ -150,10 +150,12 @@ export const getSuggestions =
                 take: 5,
             })
 
-            if (id && !suggestions.some((suggestion) => (suggestion as unknown as T).id === id)) {
-                const suggenstionWithId = await (model as PrivateAnyModel).findUnique({
+            if (ids && !suggestions.some((suggestion) => ids.includes(suggestion.id as unknown as string))) {
+                const suggenstionWithId = await (model as PrivateAnyModel).findMany({
                     where: {
-                        id,
+                        id: {
+                            in: ids,
+                        },
                     },
                     select: {
                         id: true,
@@ -162,12 +164,12 @@ export const getSuggestions =
                 })
 
                 if (suggenstionWithId) {
-                    suggestions.unshift(suggenstionWithId)
+                    suggestions = [...suggenstionWithId, ...suggestions]
                 }
             }
 
             return (suggestions as unknown as T[]).map((suggestion) => ({
-                id: suggestion.id,
-                name: suggestion[searchAttr] ?? "",
+                value: suggestion.id,
+                label: suggestion[searchAttr] ?? "",
             }))
         })

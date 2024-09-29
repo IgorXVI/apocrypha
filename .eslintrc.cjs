@@ -5,11 +5,7 @@ const config = {
         project: true,
     },
     plugins: ["@typescript-eslint"],
-    extends: [
-        "next/core-web-vitals",
-        "plugin:@typescript-eslint/recommended-type-checked",
-        "plugin:@typescript-eslint/stylistic-type-checked",
-    ],
+    extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended-type-checked", "plugin:@typescript-eslint/stylistic-type-checked"],
     rules: {
         "@typescript-eslint/no-unsafe-argument": "off",
         "@typescript-eslint/no-unsafe-assignment": "off",

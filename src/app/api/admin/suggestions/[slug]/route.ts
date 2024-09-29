@@ -50,11 +50,11 @@ export const decideQueries = (slug: string) => {
 export async function GET(req: Request, { params: { slug } }: { params: { slug: string } }) {
     const queryParams = new URLSearchParams(new URL(req.url).search)
 
-    const paramsId = queryParams.get("id")
+    const paramsIds = queryParams.get("ids")
 
-    const id = paramsId && paramsId !== "" ? paramsId : undefined
+    const ids = paramsIds && paramsIds !== "" ? paramsIds.split(",") : undefined
 
-    const result = await decideQueries(slug).getSuggestions(queryParams.get("searchTerm") ?? "", id)
+    const result = await decideQueries(slug).getSuggestions(queryParams.get("searchTerm") ?? "", ids)
 
     if (!result.success) {
         return Response.json(

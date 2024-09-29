@@ -1,31 +1,27 @@
 "use client"
 
-import { CheckIcon, ChevronsUpDownIcon, Loader2Icon } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Button } from "~/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
-import { Input } from "~/components/ui/input"
-import { type CommonSuggestion } from "~/lib/types"
-import { cn } from "~/lib/utils"
-import { useDebouncedCallback } from "use-debounce"
 import { dbQueryWithToast, toastError } from "~/components/toast/toasting"
 
-export default function IdInput(props: { slug: string; onChange: (value?: string) => void; value?: string; disabled?: boolean; label: string }) {
-    const [suggestions, setSuggestions] = useState<CommonSuggestion[]>([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [open, setOpen] = useState(false)
-    const [searchTerm, setSearchTerm] = useState("")
+import { useCallback, useEffect, useMemo, useState } from "react"
+import MultipleSelector, { type Option } from "~/components/ui/multiple-select"
+
+export default function IdInput(props: {
+    slug: string
+    onChange: (value?: string[] | string) => void
+    value?: string[] | string
+    disabled?: boolean
+    label: string
+    maxSelected?: number
+}) {
+    const [options, setOptions] = useState<Option[]>([])
 
     useEffect(() => {
-        const searchSuggestions = async (searchTerm: string) => {
-            setIsLoading(true)
-
+        if (props.value && props.value.length > 0) {
             const paramsForRequest = new URLSearchParams({
-                id: props.value ?? "",
-                searchTerm: searchTerm,
+                ids: typeof props.value === "string" ? props.value : props.value.join(","),
             })
 
-            const result = await dbQueryWithToast({
+            dbQueryWithToast({
                 dbQuery: () =>
                     fetch(`/api/admin/suggestions/${props.slug}?${paramsForRequest.toString()}`, {
                         headers: {
@@ -55,67 +51,98 @@ export default function IdInput(props: { slug: string; onChange: (value?: string
                 waitingMessage: `Buscando ${props.label}...`,
                 successMessage: `Dados de ${props.label} encontrados!`,
             })
+                .then((results) => setOptions(results))
+                .catch((error) => {
+                    toastError((error as Error).message)
+                    return []
+                })
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.value])
 
-            setIsLoading(false)
+    const searchSuggestions = useCallback(
+        (searchTerm: string) => {
+            const paramsForRequest = new URLSearchParams({
+                searchTerm: searchTerm,
+            })
 
-            setSuggestions(result)
+            return dbQueryWithToast({
+                dbQuery: () =>
+                    fetch(`/api/admin/suggestions/${props.slug}?${paramsForRequest.toString()}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    })
+                        .then((res) => res.json())
+                        .then((json) => {
+                            if (json.success) {
+                                return {
+                                    data: json.data,
+                                    success: true,
+                                    errorMessage: "",
+                                }
+                            }
+
+                            throw new Error(json.errorMessage)
+                        })
+                        .catch((error) => {
+                            return {
+                                data: undefined,
+                                success: false,
+                                errorMessage: error.message,
+                            }
+                        }),
+                mutationName: `${props.slug}-suggestions`,
+                waitingMessage: `Buscando ${props.label}...`,
+                successMessage: `Dados de ${props.label} encontrados!`,
+            }).catch((error) => {
+                toastError((error as Error).message)
+                return []
+            })
+        },
+        [props.label, props.slug],
+    )
+
+    const value = useMemo(() => {
+        if (typeof props.value === "string") {
+            const option = options.find((o) => o.value === props.value)
+
+            return option ? [option] : []
         }
 
-        searchSuggestions(searchTerm).catch((error) => {
-            toastError((error as Error).message)
-        })
-    }, [props.label, props.slug, props.value, searchTerm])
+        return options.filter((o) => props.value?.includes(o.value))
+    }, [options, props.value])
+
+    const { onChange } = props
+
+    const handleSelect = useCallback(
+        (options: Option[]) => {
+            if (props.maxSelected === 1) {
+                onChange(options[0]?.value)
+            } else {
+                onChange(options.map((o) => o.value))
+            }
+        },
+        [onChange, props.maxSelected],
+    )
 
     return (
-        <Popover
-            open={open}
-            onOpenChange={setOpen}
-        >
-            <PopoverTrigger asChild>
-                <Button
-                    type="button"
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="ml-2 justify-between"
-                    disabled={props.disabled ?? isLoading}
-                >
-                    {props.value && props.value !== ""
-                        ? (suggestions.find((s) => s.id === props.value)?.name ?? "N/A")
-                        : `Selecione ${props.label}...`}
-                    <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent>
-                <div className="flex flex-col gap-3">
-                    <Input
-                        type="text"
-                        placeholder={`Pesquise ${props.label}...`}
-                        className="h-9"
-                        onChange={useDebouncedCallback((e) => setSearchTerm(e.target.value), 500)}
-                    />
-
-                    {isLoading && <Loader2Icon className="animate-spin" />}
-                    {!isLoading &&
-                        suggestions.map((s) => (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                key={s.id}
-                                onClick={() => {
-                                    if (s.id === props.value) {
-                                        props.onChange(undefined)
-                                    } else {
-                                        props.onChange(s.id)
-                                    }
-                                    setOpen(false)
-                                }}
-                            >
-                                {s.name} <CheckIcon className={cn("ml-auto h-4 w-4", props.value === s.id ? "opacity-100" : "opacity-0")} />
-                            </Button>
-                        ))}
-                </div>
-            </PopoverContent>
-        </Popover>
+        <div className="w-full">
+            <MultipleSelector
+                value={value}
+                options={options}
+                disabled={props.disabled}
+                maxSelected={props.maxSelected}
+                delay={500}
+                onSearch={searchSuggestions}
+                triggerSearchOnFocus={true}
+                onChange={handleSelect}
+                onMaxSelected={(maxLimit) => {
+                    toastError(`Seleção de ${props.label}: Não é possível selecionar mais de ${maxLimit}.`)
+                }}
+                placeholder={`Pesquise ${props.label}...`}
+                emptyIndicator={<p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">Nenhum resultado encontrado.</p>}
+            />
+        </div>
     )
 }

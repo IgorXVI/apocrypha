@@ -124,6 +124,7 @@ const inputKeyMap: Record<
             <IdInput
                 label="categoria"
                 slug="category"
+                maxSelected={1}
                 {...field}
             />
         ),
@@ -135,6 +136,7 @@ const inputKeyMap: Record<
             <IdInput
                 label="editora"
                 slug="publisher"
+                maxSelected={1}
                 {...field}
             />
         ),
@@ -146,6 +148,7 @@ const inputKeyMap: Record<
             <IdInput
                 label="série"
                 slug="series"
+                maxSelected={1}
                 {...field}
             />
         ),
@@ -204,6 +207,7 @@ const inputKeyMap: Record<
             <IdInput
                 slug="book"
                 label="livro relacionado"
+                maxSelected={1}
                 {...field}
             />
         ),
