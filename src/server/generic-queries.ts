@@ -12,7 +12,7 @@ type AnyModel =
     | Prisma.CategoryDelegate<DefaultArgs>
     | Prisma.SeriesDelegate<DefaultArgs>
     | Prisma.BookDelegate<DefaultArgs>
-
+    | Prisma.SuperCategoryDelegate<DefaultArgs>
 type PrivateAnyModel = Prisma.AuthorDelegate<DefaultArgs>
 
 export async function errorHandler<T>(fun: () => Promise<T>): Promise<CommonDBReturn<T>> {
@@ -101,7 +101,7 @@ export const getOne =
         })
 
 export const getMany =
-    <T>(model: AnyModel, searchAttr: keyof T) =>
+    <T, K = never>(model: AnyModel, searchAttr: keyof T, include?: K) =>
     (input: GetManyInput): Promise<CommonDBReturn<GetManyOutput<T>>> =>
         errorHandler(async () => {
             const [rows, total] = await db.$transaction([
@@ -113,6 +113,7 @@ export const getMany =
                             startsWith: input.searchTerm,
                         },
                     },
+                    include: include as Prisma.AuthorInclude,
                 }),
                 (model as PrivateAnyModel).count({
                     where: {

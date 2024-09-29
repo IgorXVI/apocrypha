@@ -19,4 +19,4 @@
 -   [x] Arrumar queries excessivas nas páginas de admin
 -   [x] Transformar línguas em enum no banco dados
 -   [x] Adicionar relação entre lívros
--   [ ] Adicionar categorias secundárias para livros
+-   [x] Adicionar categorias secundárias para livros

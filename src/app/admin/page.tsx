@@ -29,6 +29,10 @@ export default function Admin() {
                 <Link href="/admin/category">
                     <Button className="text-2xl w-full p-8">Categorias</Button>
                 </Link>
+
+                <Link href="/admin/super-category">
+                    <Button className="text-2xl w-full p-8">Categorias Mães</Button>
+                </Link>
             </div>
         </main>
     )

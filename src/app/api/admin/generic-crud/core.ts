@@ -12,6 +12,8 @@ import {
     type PublisherInput,
     type SeriesInput,
     type CategoryInput,
+    type SuperCategoryPayload,
+    type SuperCategoryInput,
 } from "~/lib/types"
 import {
     authorValidationSchema,
@@ -19,7 +21,9 @@ import {
     publisherValidationSchema,
     seriesValidationSchema,
     categoryValidationSchema,
+    superCategoryValidationSchema,
 } from "~/lib/validation"
+import { type Prisma } from "@prisma/client"
 
 export const decideQueries = (slug: string) => {
     switch (slug) {
@@ -61,12 +65,27 @@ export const decideQueries = (slug: string) => {
             }
         case "category":
             return {
-                getMany: getMany<CategoryPayload>(db.category, "name"),
+                getMany: getMany<CategoryPayload, Prisma.CategoryInclude>(db.category, "name", {
+                    SuperCategory: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                }),
                 createOne: createOne<CategoryInput>(db.category),
                 getOne: getOne<CategoryInput>(db.category),
                 updateOne: updateOne<CategoryInput>(db.category),
                 deleteOne: deleteOne(db.category),
                 validationSchema: categoryValidationSchema,
+            }
+        case "super-category":
+            return {
+                getMany: getMany<SuperCategoryPayload>(db.superCategory, "name"),
+                createOne: createOne<SuperCategoryInput>(db.superCategory),
+                getOne: getOne<SuperCategoryInput>(db.superCategory),
+                updateOne: updateOne<SuperCategoryInput>(db.superCategory),
+                deleteOne: deleteOne(db.superCategory),
+                validationSchema: superCategoryValidationSchema,
             }
         default: {
             const defaultResult = {

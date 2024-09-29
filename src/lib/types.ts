@@ -49,6 +49,7 @@ export type CommonSuggestion = {
 }
 
 export type CategoryPayload = Prisma.CategoryGetPayload<Prisma.CategoryDefaultArgs>
+export type SuperCategoryPayload = Prisma.SuperCategoryGetPayload<Prisma.SuperCategoryDefaultArgs>
 export type PublisherPayload = Prisma.PublisherGetPayload<Prisma.PublisherDefaultArgs>
 export type SeriesPayload = Prisma.SeriesGetPayload<Prisma.SeriesDefaultArgs>
 export type AuthorPayload = Prisma.AuthorGetPayload<Prisma.AuthorDefaultArgs>
@@ -56,6 +57,7 @@ export type TranslatorPayload = Prisma.TranslatorGetPayload<Prisma.TranslatorDef
 export type BookPayload = Prisma.BookGetPayload<Prisma.BookDefaultArgs>
 
 export type CategoryInput = Prisma.CategoryCreateInput
+export type SuperCategoryInput = Prisma.SuperCategoryCreateInput
 export type PublisherInput = Prisma.PublisherCreateInput
 export type SeriesInput = Prisma.SeriesCreateInput
 export type AuthorInput = Prisma.AuthorCreateInput

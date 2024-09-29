@@ -41,10 +41,25 @@ export const categoryValidationSchema = z.object({
             message: "Nome deve ter ao menos 3 caracteres.",
         })
         .default(""),
-    iconUrl: z.string().url("Selecione uma imagem.").default(""),
+    iconUrl: z.preprocess((value) => (value === "" ? undefined : value), z.string().url("Selecione uma imagem.").optional()),
+    superCategoryId: z.preprocess(
+        (value) => (value === "" ? undefined : value),
+        z.string().uuid({ message: "O ID da categoria mãe é inválido." }).optional(),
+    ),
 })
 
 export type CategorySchemaType = z.infer<typeof categoryValidationSchema>
+
+export const superCategoryValidationSchema = z.object({
+    name: z
+        .string()
+        .min(3, {
+            message: "Nome deve ter ao menos 3 caracteres.",
+        })
+        .default(""),
+})
+
+export type SuperCategorySchemaType = z.infer<typeof superCategoryValidationSchema>
 
 export const bookValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }).default(0),
