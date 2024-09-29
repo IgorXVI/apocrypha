@@ -1,10 +1,11 @@
 "use client"
 
-import { dbQueryWithToast, toastError } from "~/components/toast/toasting"
+import { toast } from "sonner"
+import { toastError, toastLoading } from "~/components/toast/toasting"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef } from "react"
 import MultipleSelector, { type Option } from "~/components/ui/multiple-select"
-
+import { mainApi } from "~/lib/redux/apis/main-api/main"
 export default function IdInput(props: {
     slug: string
     onChange: (value?: string[] | string) => void
@@ -13,105 +14,39 @@ export default function IdInput(props: {
     label: string
     maxSelected?: number
 }) {
-    const [options, setOptions] = useState<Option[]>([])
+    const searchTerm = useRef("")
 
-    useEffect(() => {
-        if (props.value && props.value.length > 0) {
-            const paramsForRequest = new URLSearchParams({
-                ids: typeof props.value === "string" ? props.value : props.value.join(","),
-            })
+    const optionsQuery = mainApi.useGetSuggestionsQuery({
+        slug: props.slug,
+        searchTerm: searchTerm.current,
+        ids: typeof props.value === "string" ? [props.value] : props.value,
+    })
 
-            dbQueryWithToast({
-                dbQuery: () =>
-                    fetch(`/api/admin/suggestions/${props.slug}?${paramsForRequest.toString()}`, {
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    })
-                        .then((res) => res.json())
-                        .then((json) => {
-                            if (json.success) {
-                                return {
-                                    data: json.data,
-                                    success: true,
-                                    errorMessage: "",
-                                }
-                            }
+    if (optionsQuery.isLoading) {
+        toastLoading("Carregando sugestões...", "optionsQuery")
+    } else {
+        toast.dismiss("optionsQuery")
+    }
 
-                            throw new Error(json.errorMessage)
-                        })
-                        .catch((error) => {
-                            return {
-                                data: undefined,
-                                success: false,
-                                errorMessage: error.message,
-                            }
-                        }),
-                mutationName: `${props.slug}-suggestions`,
-                waitingMessage: `Buscando ${props.label}...`,
-                successMessage: `Dados de ${props.label} encontrados!`,
-            })
-                .then((results) => setOptions(results))
-                .catch((error) => {
-                    toastError((error as Error).message)
-                    return []
-                })
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.value])
+    if (optionsQuery.error) {
+        toastError(optionsQuery.error as string)
+    }
 
-    const searchSuggestions = useCallback(
-        (searchTerm: string) => {
-            const paramsForRequest = new URLSearchParams({
-                searchTerm: searchTerm,
-            })
-
-            return dbQueryWithToast({
-                dbQuery: () =>
-                    fetch(`/api/admin/suggestions/${props.slug}?${paramsForRequest.toString()}`, {
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    })
-                        .then((res) => res.json())
-                        .then((json) => {
-                            if (json.success) {
-                                return {
-                                    data: json.data,
-                                    success: true,
-                                    errorMessage: "",
-                                }
-                            }
-
-                            throw new Error(json.errorMessage)
-                        })
-                        .catch((error) => {
-                            return {
-                                data: undefined,
-                                success: false,
-                                errorMessage: error.message,
-                            }
-                        }),
-                mutationName: `${props.slug}-suggestions`,
-                waitingMessage: `Buscando ${props.label}...`,
-                successMessage: `Dados de ${props.label} encontrados!`,
-            }).catch((error) => {
-                toastError((error as Error).message)
-                return []
-            })
-        },
-        [props.label, props.slug],
-    )
+    const suggestions = useMemo(() => optionsQuery.data?.data ?? [], [optionsQuery.data])
 
     const value = useMemo(() => {
+        if (suggestions.length === 0) {
+            return undefined
+        }
+
         if (typeof props.value === "string") {
-            const option = options.find((o) => o.value === props.value)
+            const option = suggestions.find((o) => o.value === props.value)
 
             return option ? [option] : []
         }
 
-        return options.filter((o) => props.value?.includes(o.value))
-    }, [options, props.value])
+        return suggestions.filter((o) => props.value?.includes(o.value))
+    }, [suggestions, props.value])
 
     const { onChange } = props
 
@@ -130,11 +65,16 @@ export default function IdInput(props: {
         <div className="w-full">
             <MultipleSelector
                 value={value}
-                options={options}
+                options={suggestions}
                 disabled={props.disabled}
                 maxSelected={props.maxSelected}
-                delay={500}
-                onSearch={searchSuggestions}
+                onSearch={async (value) => {
+                    searchTerm.current = value
+
+                    const result = await optionsQuery.refetch()
+
+                    return result.data?.data ?? []
+                }}
                 triggerSearchOnFocus={true}
                 onChange={handleSelect}
                 onMaxSelected={(maxLimit) => {

@@ -8,6 +8,19 @@ export const toastError = (errorMessage: string) => {
     })
 }
 
+export const toastLoading = (loadingMessage: string, id: string) => {
+    toast(
+        <div className="flex flex-row items-center gap-4">
+            <LoaderCircle className="animate-spin"></LoaderCircle>
+            <span className="text-lg">{loadingMessage}</span>
+        </div>,
+        {
+            duration: 100000,
+            id,
+        },
+    )
+}
+
 export async function dbQueryWithToast<T>({
     dbQuery,
     mutationName,
