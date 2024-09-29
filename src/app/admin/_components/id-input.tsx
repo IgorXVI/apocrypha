@@ -26,13 +26,15 @@ export default function IdInput(props: {
         toastLoading("Carregando sugestões...", "optionsQuery")
     } else {
         toast.dismiss("optionsQuery")
+
+        if (optionsQuery.error) {
+            toastError(optionsQuery.error as string)
+        } else if (!optionsQuery.data?.success) {
+            toastError(optionsQuery.data?.errorMessage ?? "Erro desconhecido")
+        }
     }
 
-    if (optionsQuery.error) {
-        toastError(optionsQuery.error as string)
-    }
-
-    const suggestions = useMemo(() => optionsQuery.data?.data ?? [], [optionsQuery.data])
+    const suggestions = useMemo(() => (optionsQuery.data ? (optionsQuery.data.success ? optionsQuery.data.data : []) : []), [optionsQuery.data])
 
     const value = useMemo(() => {
         if (suggestions.length === 0) {
@@ -73,7 +75,17 @@ export default function IdInput(props: {
 
                     const result = await optionsQuery.refetch()
 
-                    return result.data?.data ?? []
+                    if (result.error) {
+                        toastError(result.error as string)
+                        return suggestions
+                    }
+
+                    if (!result.data?.success) {
+                        toastError(result.data?.errorMessage ?? "Erro desconhecido")
+                        return suggestions
+                    }
+
+                    return result.data?.success ? result.data.data : []
                 }}
                 triggerSearchOnFocus={true}
                 onChange={handleSelect}

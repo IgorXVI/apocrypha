@@ -3,13 +3,12 @@ import { getSuggestions } from "~/server/generic-queries"
 import {
     type BookPayload,
     type AuthorPayload,
-    type CategoryPayload,
     type PublisherPayload,
     type SeriesPayload,
     type TranslatorPayload,
     type CommonSuggestion,
-    type SuperCategoryPayload,
 } from "~/lib/types"
+import { getSuperCategoryCompositeSuggestions } from "~/server/category-queries"
 
 export const decideQueries = (slug: string) => {
     switch (slug) {
@@ -29,18 +28,15 @@ export const decideQueries = (slug: string) => {
             return {
                 getSuggestions: getSuggestions<SeriesPayload>(db.series, "name"),
             }
-        case "category":
-            return {
-                getSuggestions: getSuggestions<CategoryPayload>(db.category, "name"),
-            }
         case "book":
             return {
                 getSuggestions: getSuggestions<BookPayload>(db.book, "title"),
             }
-        case "super-category":
+        case "super-category-composite": {
             return {
-                getSuggestions: getSuggestions<SuperCategoryPayload>(db.superCategory, "name"),
+                getSuggestions: getSuperCategoryCompositeSuggestions,
             }
+        }
         default: {
             return {
                 getSuggestions: async () => ({

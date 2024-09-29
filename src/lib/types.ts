@@ -33,7 +33,6 @@ export type BookGetManyOneRowOutput = {
     edition: number
     categoryName: string
     publisherName: string
-    literatureType: string
     language: string
     seriesName?: string
     relatedBookTitle?: string

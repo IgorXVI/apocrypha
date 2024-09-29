@@ -1,4 +1,4 @@
-import { Langs, LiteratureType } from "@prisma/client"
+import { Langs } from "@prisma/client"
 import { z } from "zod"
 
 export const translatorValidationSchema = z.object({
@@ -81,24 +81,24 @@ export const bookValidationSchema = z.object({
     ),
     edition: z.number().int().positive({ message: "A edição deve ser um número inteiro positivo." }).default(1),
 
-    literatureType: z.nativeEnum(LiteratureType).optional(),
     language: z.nativeEnum(Langs).optional(),
 
     imgUrls: z.array(z.string().url({ message: "URL da imagem inválida." })).default([]),
     mainImgUrl: z.string().url({ message: "URL da imagem inválida." }).default(""),
 
-    categoryId: z.string().uuid({ message: "O ID da categoria é inválido." }).default(""),
     publisherId: z.string().uuid({ message: "O ID da editora é inválido." }).default(""),
     seriesId: z.string().uuid({ message: "O ID da série é inválido." }).optional(),
 
     authorIds: z.array(z.string().uuid({ message: "ID do autor inválido." })).default([]),
     translatorIds: z.array(z.string().uuid({ message: "ID do tradutor inválido." })).default([]),
+    categoryIds: z.array(z.string().uuid({ message: "ID da categoria inválido." })).default([]),
 
     mainAuthorId: z.string().uuid({ message: "ID do autor inválido." }).default(""),
     mainTranslatorId: z.preprocess(
         (value) => (value === "" ? undefined : value),
         z.string().uuid({ message: "ID do tradutor inválido." }).optional(),
     ),
+    mainCategoryId: z.string().uuid({ message: "ID da categoria inválido." }).default(""),
 
     relatedBookId: z.preprocess(
         (value) => (value === "" ? undefined : value),

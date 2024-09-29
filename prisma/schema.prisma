@@ -10,11 +10,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-enum LiteratureType {
-    BRAZILIAN
-    INTERNATIONAL
-}
-
 enum Langs {
     PORTUGUESE
     ENGLISH
@@ -40,12 +35,10 @@ model Book {
     isbn10Code       String?            @db.VarChar(10)
     isbn13Code       String?            @db.VarChar(13)
     edition          Int                @default(1)
-    literatureType   LiteratureType     @default(BRAZILIAN)
     language         Langs              @default(PORTUGUESE_BRAZILIAN)
     AuthorOnBook     AuthorOnBook[]
     TranslatorOnBook TranslatorOnBook[]
-    Category         Category           @relation(fields: [categoryId], references: [id])
-    categoryId       String             @db.Uuid
+    CategoryOnBook   CategoryOnBook[]
     Publisher        Publisher          @relation(fields: [publisherId], references: [id])
     publisherId      String             @db.Uuid
     DisplayImage     DisplayImage[]
@@ -116,11 +109,21 @@ model SuperCategory {
     Category Category[]
 }
 
+model CategoryOnBook {
+    Book       Book     @relation(fields: [bookId], references: [id])
+    bookId     String   @db.Uuid
+    Category   Category @relation(fields: [categoryId], references: [id])
+    categoryId String   @db.Uuid
+    main       Boolean
+
+    @@id([bookId, categoryId])
+}
+
 model Category {
-    id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     name            String
-    iconUrl         String?        @default("https://utfs.io/f/V4ibhetxoONefMluzf4Pp09QXZSnIkmVbD4fvTJYieGacygE")
-    Book            Book[]
-    SuperCategory   SuperCategory? @relation(fields: [superCategoryId], references: [id])
-    superCategoryId String?        @db.Uuid
+    iconUrl         String?          @default("https://utfs.io/f/V4ibhetxoONefMluzf4Pp09QXZSnIkmVbD4fvTJYieGacygE")
+    CategoryOnBook  CategoryOnBook[]
+    SuperCategory   SuperCategory?   @relation(fields: [superCategoryId], references: [id])
+    superCategoryId String?          @db.Uuid
 }

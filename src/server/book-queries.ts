@@ -34,6 +34,11 @@ const transformBookInput = (data: BookSchemaType) => {
         main: index === 0,
     }))
 
+    const categories = transformIdsWithMain(data.categoryIds, data.mainCategoryId).map((categoryId, index) => ({
+        categoryId,
+        main: index === 0,
+    }))
+
     return {
         isAvailable: data.isAvailable,
         title: data.title,
@@ -44,12 +49,11 @@ const transformBookInput = (data: BookSchemaType) => {
         isbn10Code: data.isbn10Code,
         isbn13Code: data.isbn13Code,
         edition: data.edition,
-        literatureType: data.literatureType,
         language: data.language,
         DisplayImage: { createMany: { data: displayImages } },
         AuthorOnBook: { createMany: { data: authors } },
         TranslatorOnBook: { createMany: { data: translators } },
-        Category: { connect: { id: data.categoryId } },
+        CategoryOnBook: { createMany: { data: categories } },
         Publisher: { connect: { id: data.publisherId } },
         Series: data.seriesId ? { connect: { id: data.seriesId } } : undefined,
         RelatedBook: data.relatedBookId ? { connect: { id: data.relatedBookId } } : undefined,
@@ -261,6 +265,14 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaT
                         main: "asc",
                     },
                 },
+                CategoryOnBook: {
+                    select: {
+                        categoryId: true,
+                    },
+                    orderBy: {
+                        main: "asc",
+                    },
+                },
                 DisplayImage: {
                     orderBy: {
                         order: "asc",
@@ -280,6 +292,7 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaT
 
         const allAuthorIds = row.AuthorOnBook.map((author) => author.authorId)
         const allTranslatorIds = row.TranslatorOnBook.map((translator) => translator.translatorId)
+        const allCategoryIds = row.CategoryOnBook.map((category) => category.categoryId)
 
         return {
             ...row,
@@ -290,6 +303,8 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaT
             authorIds: allAuthorIds.slice(1),
             mainTranslatorId: allTranslatorIds[0] ?? "",
             translatorIds: allTranslatorIds.slice(1),
+            mainCategoryId: allCategoryIds[0] ?? "",
+            categoryIds: allCategoryIds.slice(1),
             mainImgUrl: allImgUrls[0] ?? "",
             imgUrls: allImgUrls.slice(1),
             edition: row.edition ?? undefined,
@@ -353,10 +368,22 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                         take: 1,
                     },
 
-                    Category: {
+                    CategoryOnBook: {
                         select: {
-                            name: true,
+                            Category: {
+                                include: {
+                                    SuperCategory: {
+                                        select: {
+                                            name: true,
+                                        },
+                                    },
+                                },
+                            },
                         },
+                        orderBy: {
+                            main: "asc",
+                        },
+                        take: 1,
                     },
 
                     Publisher: {
@@ -406,7 +433,7 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
             mainImageUrl: row.DisplayImage[0]?.url ?? "",
             mainAuthorName: row.AuthorOnBook[0]?.Author.name ?? "",
             mainTranslatorName: row.TranslatorOnBook[0]?.Translator.name ?? "",
-            categoryName: row.Category.name,
+            categoryName: `${row.CategoryOnBook[0]?.Category.SuperCategory?.name ?? "N/A"}->${row.CategoryOnBook[0]?.Category.name ?? "N/A"}`,
             publisherName: row.Publisher.name,
             seriesName: row.Series?.name ?? undefined,
             relatedBookTitle: row.RelatedBook?.title ?? undefined,

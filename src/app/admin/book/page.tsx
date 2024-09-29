@@ -31,11 +31,6 @@ const langsMap: Record<string, string> = {
     PORTUGUESE_BRAZILIAN: "Português (Brasil)",
 }
 
-const literatureTypeMap: Record<string, string> = {
-    INTERNATIONAL: "Internacional",
-    BRAZILIAN: "Nacional",
-}
-
 const inputKeyMap: Record<
     ModelAttrs,
     {
@@ -53,8 +48,8 @@ const inputKeyMap: Record<
     },
     imgUrls: {
         node: (field) => <MultipleImageField {...field}></MultipleImageField>,
-        label: "Imagens",
-        description: "Selecione as imagens para o anúncio do livro.",
+        label: "Outras Imagens",
+        description: "Selecione as outras imagens do livro.",
         className: "admin-input-md-center",
     },
     title: {
@@ -118,18 +113,6 @@ const inputKeyMap: Record<
         node: (field) => <NumberInput {...field} />,
         label: "Edição",
         description: "Esse é a edição do livro.",
-    },
-    categoryId: {
-        node: (field) => (
-            <IdInput
-                label="categoria"
-                slug="category"
-                maxSelected={1}
-                {...field}
-            />
-        ),
-        label: "Categoria",
-        description: "Escolha a categoria do livro.",
     },
     publisherId: {
         node: (field) => (
@@ -201,6 +184,29 @@ const inputKeyMap: Record<
         label: "Outros Tradutores",
         description: "Escolha os demais tradutores do livro.",
     },
+    mainCategoryId: {
+        node: (field) => (
+            <IdInput
+                label="categoria principal"
+                slug="super-category-composite"
+                maxSelected={1}
+                {...field}
+            />
+        ),
+        label: "Categoria Principal",
+        description: "Escolha a categoria principal do livro.",
+    },
+    categoryIds: {
+        node: (field) => (
+            <IdInput
+                label="categorias"
+                slug="super-category-composite"
+                {...field}
+            />
+        ),
+        label: "Outras Categorias",
+        description: "Escolha as demais categorias do livro.",
+    },
     isAvailable: {
         node: (field) => <BooleanInput {...field} />,
         label: "Disponível",
@@ -215,16 +221,6 @@ const inputKeyMap: Record<
         ),
         label: "Idioma",
         description: "Escolha o idioma do livro.",
-    },
-    literatureType: {
-        node: (field) => (
-            <SelectEnum
-                {...field}
-                enumLikeObject={literatureTypeMap}
-            ></SelectEnum>
-        ),
-        label: "Tipo de Literatura",
-        description: "Escolha o tipo de literatura do livro.",
     },
     relatedBookId: {
         node: (field) => (
@@ -260,7 +256,6 @@ export default function MainPage() {
                 edition: "Edição",
                 categoryName: "Categoria",
                 publisherName: "Editora",
-                literatureType: "Tipo de Literatura",
                 language: "Idioma",
                 seriesName: "Série",
                 relatedBookTitle: "Livro Relacionado",
@@ -269,7 +264,6 @@ export default function MainPage() {
             }}
             tableValuesMap={{
                 price: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
-                literatureType: (value: string) => <span className="text-nowrap">{literatureTypeMap[value] ?? value}</span>,
                 language: (value: string) => <span className="text-nowrap">{langsMap[value] ?? value}</span>,
             }}
             slug="book"
