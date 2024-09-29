@@ -155,6 +155,18 @@ const inputKeyMap: Record<
         label: "Série",
         description: "Escolha a série do livro.",
     },
+    mainAuthorId: {
+        node: (field) => (
+            <IdInput
+                slug="author"
+                label="autor"
+                maxSelected={1}
+                {...field}
+            />
+        ),
+        label: "Autor Principal",
+        description: "Escolha o autor principal do livro.",
+    },
     authorIds: {
         node: (field) => (
             <IdInput
@@ -163,8 +175,20 @@ const inputKeyMap: Record<
                 {...field}
             />
         ),
-        label: "Autor",
-        description: "Escolha o autor do livro.",
+        label: "Outros Autores",
+        description: "Escolha os demais autores do livro.",
+    },
+    mainTranslatorId: {
+        node: (field) => (
+            <IdInput
+                slug="translator"
+                label="tradutor"
+                maxSelected={1}
+                {...field}
+            />
+        ),
+        label: "Tradutor Principal",
+        description: "Escolha o tradutor principal do livro.",
     },
     translatorIds: {
         node: (field) => (
@@ -174,8 +198,8 @@ const inputKeyMap: Record<
                 {...field}
             />
         ),
-        label: "Tradutor",
-        description: "Escolha o tradutor do livro.",
+        label: "Outros Tradutores",
+        description: "Escolha os demais tradutores do livro.",
     },
     isAvailable: {
         node: (field) => <BooleanInput {...field} />,

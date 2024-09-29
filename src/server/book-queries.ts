@@ -14,17 +14,17 @@ import { type bookValidationSchema } from "~/lib/validation"
 type BookDataInput = z.infer<typeof bookValidationSchema>
 
 const transformBookInput = (data: BookDataInput) => {
-    const displayImages = [data.mainImgUrl].concat(data.imgUrls).map((image, index) => ({
+    const displayImages = [data.mainImgUrl, ...data.imgUrls].map((image, index) => ({
         url: image,
         order: index,
     }))
 
-    const authors = data.authorIds.map((authorId, index) => ({
+    const authors = [data.mainAuthorId, ...data.authorIds].map((authorId, index) => ({
         authorId,
         main: index === 0,
     }))
 
-    const translators = data.translatorIds.map((translatorId, index) => ({
+    const translators = [data.mainTranslatorId, ...data.translatorIds].map((translatorId, index) => ({
         translatorId,
         main: index === 0,
     }))
@@ -88,6 +88,9 @@ export const bookCreateOne = async (data: BookDataInput) =>
 
 export const bookUpdateOne = async (id: string, data: BookDataInput) =>
     errorHandler(async () => {
+        const allAuthorIds = [data.mainAuthorId, ...data.authorIds]
+        const allTranslatorIds = [data.mainTranslatorId, ...data.translatorIds]
+
         const bookDBData = await db.book.findUnique({
             where: {
                 id,
@@ -105,7 +108,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                 AuthorOnBook: {
                     where: {
                         authorId: {
-                            notIn: data.authorIds,
+                            notIn: allAuthorIds,
                         },
                     },
                     select: {
@@ -115,7 +118,7 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                 TranslatorOnBook: {
                     where: {
                         translatorId: {
-                            notIn: data.translatorIds,
+                            notIn: allTranslatorIds,
                         },
                     },
                     select: {
@@ -174,8 +177,8 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                     AuthorOnBook: {
                         deleteMany: deleteAuthorOnBook.length > 0 ? deleteAuthorOnBook : undefined,
                         connectOrCreate:
-                            data.authorIds.length > 0
-                                ? data.authorIds.map((authorId) => ({
+                            allAuthorIds.length > 0
+                                ? allAuthorIds.map((authorId) => ({
                                       where: {
                                           bookId_authorId: {
                                               bookId: id,
@@ -192,8 +195,8 @@ export const bookUpdateOne = async (id: string, data: BookDataInput) =>
                     TranslatorOnBook: {
                         deleteMany: deleteTranslatorOnBook.length > 0 ? deleteTranslatorOnBook : undefined,
                         connectOrCreate:
-                            data.translatorIds.length > 0
-                                ? data.translatorIds.map((translatorId) => ({
+                            allTranslatorIds.length > 0
+                                ? allTranslatorIds.map((translatorId) => ({
                                       where: {
                                           bookId_translatorId: {
                                               bookId: id,
@@ -265,13 +268,18 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookDataInp
 
         const allImgUrls = row.DisplayImage.map((image) => image.url)
 
+        const allAuthorIds = row.AuthorOnBook.map((author) => author.authorId)
+        const allTranslatorIds = row.TranslatorOnBook.map((translator) => translator.translatorId)
+
         return {
             ...row,
             isbn10Code: row.isbn10Code ?? undefined,
             isbn13Code: row.isbn13Code ?? undefined,
             relatedBookId: row.relatedBookId ?? undefined,
-            authorIds: row.AuthorOnBook.map((author) => author.authorId),
-            translatorIds: row.TranslatorOnBook.map((translator) => translator.translatorId),
+            mainAuthorId: allAuthorIds[0] ?? "",
+            authorIds: allAuthorIds.slice(1),
+            mainTranslatorId: allTranslatorIds[0] ?? "",
+            translatorIds: allTranslatorIds.slice(1),
             mainImgUrl: allImgUrls[0] ?? "",
             imgUrls: allImgUrls.slice(1),
             edition: row.edition ?? undefined,
