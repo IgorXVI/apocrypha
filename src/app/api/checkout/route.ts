@@ -10,6 +10,23 @@ const checkoutValidationSchema = z.object({
     ),
 })
 
+type CheckoutDataInput = z.infer<typeof checkoutValidationSchema>
+
+export type POSTApiCheckoutInput = {
+    data: CheckoutDataInput
+}
+
+export type POSTApiCheckoutOutput =
+    | {
+          success: true
+          url: string
+      }
+    | {
+          success: false
+          errorMessage: string
+          issues?: z.ZodIssue[]
+      }
+
 export async function POST(req: Request) {
     const reqBodyResult = await req
         .json()

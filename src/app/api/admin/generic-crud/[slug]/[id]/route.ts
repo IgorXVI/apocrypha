@@ -1,4 +1,20 @@
+import { type z } from "zod"
 import { decideQueries } from "../../core"
+
+export type GETApiGenericCrudGetOneInput = {
+    slug: string
+    id: string
+}
+
+export type GETApiGenericCrudGetOneOutput =
+    | {
+          success: true
+          data: unknown
+      }
+    | {
+          success: false
+          errorMessage: string
+      }
 
 export async function GET(_: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
     const result = await decideQueries(slug).getOne(id)
@@ -21,6 +37,20 @@ export async function GET(_: Request, { params: { slug, id } }: { params: { slug
     })
 }
 
+export type DELETEApiGenericCrudDeleteOneInput = {
+    slug: string
+    id: string
+}
+
+export type DELETEApiGenericCrudDeleteOneOutput =
+    | {
+          success: true
+      }
+    | {
+          success: false
+          errorMessage: string
+      }
+
 export async function DELETE(_: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
     const result = await decideQueries(slug).deleteOne(id)
 
@@ -40,6 +70,22 @@ export async function DELETE(_: Request, { params: { slug, id } }: { params: { s
         success: true,
     })
 }
+
+export type PATCHApiGenericCrudUpdateOneInput = {
+    slug: string
+    id: string
+    data: unknown
+}
+
+export type PATCHApiGenericCrudUpdateOneOutput =
+    | {
+          success: true
+      }
+    | {
+          success: false
+          errorMessage: string
+          issues?: z.ZodIssue[]
+      }
 
 export async function PATCH(req: Request, { params: { slug, id } }: { params: { slug: string; id: string } }) {
     const slugger = decideQueries(slug)

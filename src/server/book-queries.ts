@@ -13,23 +13,27 @@ import { type bookValidationSchema } from "~/lib/validation"
 
 type BookDataInput = z.infer<typeof bookValidationSchema>
 
+const transformIdsWithMain = (ids: string[], mainId?: string) => {
+    let allIds = [...ids]
+    if (mainId) {
+        allIds = allIds.filter((id) => id !== mainId)
+        allIds.unshift(mainId)
+    }
+    return allIds
+}
+
 const transformBookInput = (data: BookDataInput) => {
-    const displayImages = [data.mainImgUrl, ...data.imgUrls].map((image, index) => ({
+    const displayImages = transformIdsWithMain(data.imgUrls, data.mainImgUrl).map((image, index) => ({
         url: image,
         order: index,
     }))
 
-    const authors = [data.mainAuthorId, ...data.authorIds].map((authorId, index) => ({
+    const authors = transformIdsWithMain(data.authorIds, data.mainAuthorId).map((authorId, index) => ({
         authorId,
         main: index === 0,
     }))
 
-    const allTranslatorIds = data.translatorIds
-    if (data.mainTranslatorId) {
-        allTranslatorIds.unshift(data.mainTranslatorId)
-    }
-
-    const translators = allTranslatorIds.map((translatorId, index) => ({
+    const translators = transformIdsWithMain(data.translatorIds, data.mainTranslatorId).map((translatorId, index) => ({
         translatorId,
         main: index === 0,
     }))

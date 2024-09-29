@@ -4,11 +4,13 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { dbQueryWithToast } from "~/components/toast/toasting"
 import { Button } from "~/components/ui/button"
+import { mainApi } from "~/lib/redux/apis/main-api/main"
 import { useAppSelector } from "~/lib/redux/hooks"
 
 export default function CartPage() {
     const cartContent = useAppSelector((state) => state.bookCart.value)
     const router = useRouter()
+    const [triggerCheckout] = mainApi.useCheckoutMutation()
 
     const handleCheckout = async () => {
         const products = cartContent.map((item) => ({
@@ -18,21 +20,18 @@ export default function CartPage() {
 
         const stripeUrl = await dbQueryWithToast({
             dbQuery: () =>
-                fetch("/api/checkout", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ products }),
-                })
-                    .then((res) => res.json())
-                    .then((data) => {
-                        if (!data.success) {
-                            throw new Error(data.errorMessage)
+                triggerCheckout({ data: { products } })
+                    .then((result) => {
+                        if (result.error) {
+                            throw new Error(result.error as string)
+                        }
+
+                        if (!result.data.success) {
+                            throw new Error(result.data.errorMessage)
                         }
 
                         return {
-                            data: data.url as string,
+                            data: result.data.url,
                             success: true,
                             errorMessage: "",
                         }

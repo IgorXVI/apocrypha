@@ -3,11 +3,12 @@
 import { type ZodObject, type ZodRawShape, z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, type ControllerRenderProps, type FieldValues } from "react-hook-form"
-import React from "react"
+import React, { useMemo } from "react"
 
 import { Button } from "~/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
-import { dbQueryWithToast } from "~/components/toast/toasting"
+import { dbQueryWithToast, toastError } from "~/components/toast/toasting"
+import { mainApi } from "~/lib/redux/apis/main-api/main"
 
 function getDefaults<Schema extends ZodObject<ZodRawShape>>(schema: Schema) {
     return Object.fromEntries(
@@ -38,82 +39,73 @@ export default function CreateOrUpdate<I>(props: {
     >
     waitingMessage: string
     successMessage: string
+    refetchParentQuery?: () => Promise<unknown>
 }) {
-    const fieldNames = Object.keys(props.inputKeyMap)
+    const fieldNames = useMemo(() => Object.keys(props.inputKeyMap), [props.inputKeyMap])
+    const [triggerGetOne] = mainApi.useLazyGetOneQuery()
+    const [triggerUpdateOne] = mainApi.useUpdateOneMutation()
+    const [triggerCreateOne] = mainApi.useCreateOneMutation()
 
     const form = useForm<ZodRawShape>({
         resolver: zodResolver(props.formSchema),
-        defaultValues: async () => {
-            if (!props.id) {
-                return getDefaults(props.formSchema)
-            }
+        defaultValues: async () =>
+            props.id
+                ? await triggerGetOne({ slug: props.slug, id: props.id })
+                      .then((result) => {
+                          if (result.error) {
+                              throw new Error(result.error as string)
+                          }
 
-            const dbResult = await dbQueryWithToast({
-                dbQuery: () =>
-                    fetch(`/api/admin/${props.slug}/${props.id}`, {
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    })
-                        .then((res) => res.json())
-                        .then((json) => {
-                            if (json.success) {
-                                return {
-                                    data: json.data,
-                                    success: true,
-                                    errorMessage: "",
-                                }
-                            }
-                            throw new Error(json.errorMessage)
-                        })
-                        .catch((error) => {
-                            return {
-                                data: undefined,
-                                success: false,
-                                errorMessage: (error as Error).message,
-                            }
-                        }),
-                mutationName: "getting",
-                waitingMessage: "Buscando dados...",
-                successMessage: "Busca realizada com sucesso",
-            })
-            if (dbResult) {
-                return dbResult as ZodRawShape
-            }
-            return getDefaults(props.formSchema)
-        },
+                          if (!result.data?.success) {
+                              throw new Error(result.data?.errorMessage ?? "Erro desconhecido")
+                          }
+
+                          return result.data.data as ZodRawShape
+                      })
+                      .catch((error) => {
+                          toastError((error as Error).message)
+                          return getDefaults(props.formSchema)
+                      })
+                : getDefaults(props.formSchema),
     })
 
     const onSubmit = async (values: ZodRawShape) => {
-        const method = props.id ? "PATCH" : "POST"
-        const url = props.id ? `/api/admin/${props.slug}/${props.id}` : `/api/admin/${props.slug}`
+        const method = props.id ? triggerUpdateOne : triggerCreateOne
+
         await dbQueryWithToast({
             dbQuery: () =>
-                fetch(url, {
-                    method: method,
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(values),
+                method({
+                    slug: props.slug,
+                    id: props.id ?? "",
+                    data: values,
                 })
-                    .then((res) => res.json())
-                    .then((json) => {
-                        if (json.success) {
-                            return {
-                                data: json.data,
-                                success: true,
-                                errorMessage: "",
-                            }
+                    .then((result) => {
+                        if (result.error) {
+                            throw new Error(result.error as string)
                         }
-                        throw new Error(json.errorMessage)
-                    })
-                    .catch((error) => {
+
+                        if (!result.data.success) {
+                            throw new Error(result.data.errorMessage)
+                        }
+
                         return {
                             data: undefined,
-                            success: false,
-                            errorMessage: (error as Error).message,
+                            success: result.data.success,
+                            errorMessage: "",
                         }
-                    }),
+                    })
+                    .then((prevResult) => {
+                        if (props.refetchParentQuery) {
+                            return props.refetchParentQuery().then(() => prevResult)
+                        }
+
+                        return prevResult
+                    })
+                    .catch((error) => ({
+                        data: undefined,
+                        success: false,
+                        errorMessage: (error as Error).message,
+                    })),
             mutationName: "saving",
             waitingMessage: props.waitingMessage,
             successMessage: props.successMessage,

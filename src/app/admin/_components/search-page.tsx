@@ -3,7 +3,7 @@
 import * as R from "remeda"
 import { MoreHorizontal, PlusCircle, Search, LoaderCircle, CircleX, AlertCircle, CheckIcon, XIcon } from "lucide-react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { useDebouncedCallback } from "use-debounce"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 import { type ZodObject, type ZodRawShape } from "zod"
@@ -30,6 +30,7 @@ import DeleteOne from "./delete-one"
 import { type PossibleDBOutput } from "~/lib/types"
 import CreateOrUpdate from "./create-or-update"
 import { toastError } from "~/components/toast/toasting"
+import { mainApi } from "~/lib/redux/apis/main-api/main"
 
 type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
 
@@ -53,25 +54,37 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
         tableValuesMap?: Record<keyof K, (value: any) => React.ReactNode | string>
     }>,
 ) {
-    const [rows, setRows] = useState<D[]>([])
-    const [total, setTotal] = useState(0)
-    const [getRowsDone, setGetRowsDone] = useState(false)
-    const [showErrorIndicator, setShowErrorIndicator] = useState(false)
-
     const searchParams = useSearchParams()
     const pathname = usePathname()
     const router = useRouter()
-
-    const toastDBRowsError = useCallback((errorMessage: string) => {
-        setShowErrorIndicator(true)
-        toastError(errorMessage)
-    }, [])
 
     const currentSearchTerm = useMemo(() => searchParams.get("search") ?? "", [searchParams])
 
     const currentPage = useMemo(() => Number(searchParams.get("page")) || 1, [searchParams])
 
     const currentTake = useMemo(() => Number(searchParams.get("take")) || 10, [searchParams])
+
+    const getRowsQuery = mainApi.useGetManyQuery({
+        slug: props.slug,
+        take: currentTake,
+        skip: currentTake * (currentPage - 1),
+        searchTerm: currentSearchTerm,
+    })
+
+    if (getRowsQuery.isError) {
+        toastError(getRowsQuery.error as string)
+    }
+
+    if (!getRowsQuery.isLoading && !getRowsQuery.data?.success) {
+        toastError(getRowsQuery.data?.errorMessage ?? "Erro desconhecido")
+    }
+
+    const rows = useMemo(
+        () => (getRowsQuery.data ? (getRowsQuery.data.success ? (getRowsQuery.data.data.rows as D[]) : []) : []),
+        [getRowsQuery.data],
+    )
+
+    const total = useMemo(() => (getRowsQuery.data ? (getRowsQuery.data.success ? getRowsQuery.data.data.total : 0) : 0), [getRowsQuery.data])
 
     const maxPage = useMemo(() => Math.ceil(total / currentTake), [total, currentTake])
 
@@ -103,64 +116,6 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
         [searchParams, pathname, currentPage],
     )
 
-    const getRows = useCallback(async () => {
-        try {
-            setGetRowsDone(false)
-
-            const paramsForRequest = new URLSearchParams({
-                take: currentTake.toString(),
-                skip: (currentTake * (currentPage - 1)).toString(),
-                searchTerm: currentSearchTerm,
-            })
-
-            const result = await fetch(`/api/admin/${props.slug}?${paramsForRequest.toString()}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            })
-                .then((res) => res.json())
-                .then((json) => {
-                    if (json.success) {
-                        return {
-                            data: json.data,
-                            success: true,
-                            errorMessage: "",
-                        }
-                    }
-
-                    throw new Error(json.errorMessage)
-                })
-                .catch((error) => {
-                    return {
-                        data: undefined,
-                        success: false,
-                        errorMessage: (error as Error).message,
-                    }
-                })
-
-            if (!result.success) {
-                toastDBRowsError(result.errorMessage)
-                return
-            }
-
-            setGetRowsDone(true)
-
-            if (result.data) {
-                setShowErrorIndicator(false)
-                setRows(result.data.rows)
-                setTotal(result.data.total)
-            }
-        } catch (error) {
-            toastDBRowsError((error as Error).message)
-        }
-    }, [props.slug, currentPage, currentSearchTerm, currentTake, toastDBRowsError])
-
-    useEffect(() => {
-        getRows().catch((error) => {
-            toastDBRowsError((error as Error).message)
-        })
-    }, [getRows, toastDBRowsError])
-
     enum ModalParams {
         delete = "delete_id",
         update = "update_id",
@@ -175,10 +130,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
             }
         })
         router.replace(`${pathname}?${params.toString()}`)
-        getRows().catch((error) => {
-            toastDBRowsError((error as Error).message)
-        })
-    }, [getRows, pathname, router, searchParams, toastDBRowsError])
+    }, [pathname, router, searchParams])
 
     const setNewModalParams = useCallback(
         (key: string, value: string) => {
@@ -251,7 +203,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
             </div>
 
             <Card x-chunk="dashboard-06-chunk-0">
-                {!getRowsDone && !showErrorIndicator && (
+                {getRowsQuery.isLoading && (
                     <div className="flex w-full justify-center items-center h-[80vh]">
                         <LoaderCircle
                             width={100}
@@ -260,7 +212,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                         ></LoaderCircle>
                     </div>
                 )}
-                {showErrorIndicator && (
+                {getRowsQuery.isError && (
                     <div className="flex w-full justify-center items-center h-[80vh]">
                         <CircleX
                             width={100}
@@ -269,7 +221,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                         ></CircleX>
                     </div>
                 )}
-                {getRowsDone && rows.length === 0 && (
+                {getRowsQuery.isSuccess && rows.length === 0 && (
                     <div className="flex flex-col items-center justify-center p-6 text-center h-[80vh]">
                         <AlertCircle className="h-10 w-10 text-yellow-500 mb-4" />
                         <h3 className="text-lg font-semibold mb-2">Sem {props.namePlural}</h3>
@@ -283,7 +235,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                         </Button>
                     </div>
                 )}
-                {getRowsDone && rows.length !== 0 && (
+                {getRowsQuery.isSuccess && rows.length !== 0 && (
                     <>
                         <CardHeader>
                             <CardTitle>{R.capitalize(props.namePlural)}</CardTitle>
@@ -482,6 +434,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                                 slug={props.slug}
                                 id={searchParams.get(ModalParams.delete) ?? ""}
                                 onConfirm={() => closeModal()}
+                                refetchParentQuery={() => getRowsQuery.refetch().unwrap()}
                             ></DeleteOne>
                         </>
                     )}
@@ -504,6 +457,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                                 inputKeyMap={props.inputKeyMap}
                                 slug={props.slug}
                                 id={searchParams.get(ModalParams.update) ?? ""}
+                                refetchParentQuery={() => getRowsQuery.refetch().unwrap()}
                             ></CreateOrUpdate>
                         </>
                     )}
@@ -520,6 +474,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                                 formSchema={props.formSchema}
                                 inputKeyMap={props.inputKeyMap}
                                 slug={props.slug}
+                                refetchParentQuery={() => getRowsQuery.refetch().unwrap()}
                             ></CreateOrUpdate>
                         </>
                     )}

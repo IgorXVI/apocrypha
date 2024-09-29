@@ -7,6 +7,7 @@ import {
     type PublisherPayload,
     type SeriesPayload,
     type TranslatorPayload,
+    type CommonSuggestion,
 } from "~/lib/types"
 
 export const decideQueries = (slug: string) => {
@@ -46,6 +47,22 @@ export const decideQueries = (slug: string) => {
         }
     }
 }
+
+export type GETApiSuggestionInput = {
+    slug: string
+    searchTerm?: string
+    ids?: string[]
+}
+
+export type GETApiSuggestionOutput =
+    | {
+          success: true
+          data: CommonSuggestion[]
+      }
+    | {
+          success: false
+          errorMessage: string
+      }
 
 export async function GET(req: Request, { params: { slug } }: { params: { slug: string } }) {
     const queryParams = new URLSearchParams(new URL(req.url).search)

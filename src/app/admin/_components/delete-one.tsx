@@ -3,44 +3,58 @@
 import { useState } from "react"
 import { dbQueryWithToast } from "~/components/toast/toasting"
 import { Button } from "~/components/ui/button"
+import { mainApi } from "~/lib/redux/apis/main-api/main"
 
-export default function DeleteOne(props: { id: string; slug: string; onConfirm: () => void; waitingMessage: string; successMessage: string }) {
+export default function DeleteOne(props: {
+    id: string
+    slug: string
+    onConfirm: () => void
+    waitingMessage: string
+    successMessage: string
+    refetchParentQuery?: () => Promise<unknown>
+}) {
     const [inputDisabled, setInputDisabled] = useState(false)
+    const [triggerDeleteOne] = mainApi.useDeleteOneMutation()
 
-    const clickedYes = () => {
+    const clickedYes = async () => {
         setInputDisabled(true)
 
-        return dbQueryWithToast({
+        await dbQueryWithToast({
             dbQuery: () =>
-                fetch(`/api/admin/${props.slug}/${props.id}`, {
-                    method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                })
-                    .then((res) => res.json())
-                    .then((json) => {
-                        if (json.success) {
-                            return {
-                                data: undefined,
-                                success: true,
-                                errorMessage: "",
-                            }
+                triggerDeleteOne({ id: props.id, slug: props.slug })
+                    .then((result) => {
+                        if (result.error) {
+                            throw new Error(result.error as string)
                         }
 
-                        throw new Error(json.errorMessage)
-                    })
-                    .catch((error) => {
+                        if (!result.data.success) {
+                            throw new Error(result.data.errorMessage)
+                        }
+
                         return {
                             data: undefined,
-                            success: false,
-                            errorMessage: (error as Error).message,
+                            success: result.data.success,
+                            errorMessage: "",
                         }
-                    }),
+                    })
+                    .then((prevResult) => {
+                        if (props.refetchParentQuery) {
+                            return props.refetchParentQuery().then(() => prevResult)
+                        }
+
+                        return prevResult
+                    })
+                    .catch((error) => ({
+                        data: undefined,
+                        success: false,
+                        errorMessage: (error as Error).message,
+                    })),
             mutationName: "deleting",
             successMessage: props.successMessage,
             waitingMessage: props.waitingMessage,
-        }).then(() => props.onConfirm())
+        })
+
+        props.onConfirm()
     }
 
     return (
