@@ -1,7 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel"
 import { db } from "~/server/db"
 
 export default async function MainCommercePage() {
@@ -15,6 +14,7 @@ export default async function MainCommercePage() {
                 orderBy: {
                     order: "asc",
                 },
+                take: 1,
             },
             AuthorOnBook: {
                 orderBy: {
@@ -32,28 +32,34 @@ export default async function MainCommercePage() {
     })
 
     return (
-        <main className="flex gap-5 flex-col items-center justify-center">
+        <main className="flex gap-5 flex-col items-center justify-center mb-5">
             <h1 className="text-4xl font-bold">Livros</h1>
-            <div className="flex flex-col md:flex-row md:flex-wrap gap-5 items-center justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {books.map((book) => (
                     <Card
                         key={book.id}
-                        className="flex flex-col justify-center max-w-sm"
+                        className="grid grid-rows-15 grid-cols-1 mx-3 md:mx-0 bg-black bg-opacity-30 text-neutral-200 border-none"
                     >
-                        <CardHeader>
+                        <CardHeader className="row-span-3">
                             <CardTitle>
                                 <Link
-                                    className="hover:underline hover:text-blue-700"
+                                    className="hover:underline hover:text-white"
                                     href={`/commerce/book/${book.id}`}
                                 >
-                                    {book.title}
+                                    {book.title.split(":")[0]}
+                                    {book.title.includes(":") && ":"}
+                                    <br />
+                                    <span className="text-sm">{book.title.split(":")[1]}</span>
                                 </Link>
                             </CardTitle>
                             <CardDescription>
                                 {book.AuthorOnBook.map((author, index) => (
-                                    <span key={author.authorId}>
+                                    <span
+                                        key={author.authorId}
+                                        className="text-neutral-200"
+                                    >
                                         <Link
-                                            className="hover:underline hover:text-blue-700"
+                                            className="hover:underline hover:text-white"
                                             href={`/author/${author.authorId}`}
                                         >
                                             {author.Author.name}
@@ -63,36 +69,20 @@ export default async function MainCommercePage() {
                                 ))}
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="flex self-center items-center justify-center">
-                            <div className="flex flex-col items-center justify-center">
-                                <Carousel
-                                    opts={{ loop: true }}
-                                    className="flex flex-row w-[80%] h-full items-center justify-center"
-                                >
-                                    <CarouselContent className="flex items-center h-full">
-                                        {book.DisplayImage.map((image) => (
-                                            <CarouselItem
-                                                key={image.id}
-                                                className="flex flex-col items-center justify-center h-full w-full"
-                                            >
-                                                <Link href={`/commerce/book/${book.id}`}>
-                                                    <Image
-                                                        src={image.url}
-                                                        alt={book.title}
-                                                        width={500}
-                                                        height={500}
-                                                        className="object-contain aspect-square"
-                                                    ></Image>
-                                                </Link>
-                                            </CarouselItem>
-                                        ))}
-                                    </CarouselContent>
-                                    <CarouselPrevious />
-                                    <CarouselNext />
-                                </Carousel>
-                            </div>
+                        <CardContent className="row-span-11 grid place-items-center">
+                            <Link href={`/commerce/book/${book.id}`}>
+                                <Image
+                                    src={book.DisplayImage[0]?.url ?? ""}
+                                    alt={book.title}
+                                    width={250}
+                                    height={250}
+                                    className="object-contain hover:scale-110 duration-300"
+                                ></Image>
+                            </Link>
                         </CardContent>
-                        <CardFooter className="text-xl font-extrabold">R$ {book.price.toFixed(2)}</CardFooter>
+                        <CardFooter className="flex items-center">
+                            <span className="text-xl font-bold text-green-500 bg-black p-2 rounded-md">R$ {book.price.toFixed(2)}</span>
+                        </CardFooter>
                     </Card>
                 ))}
             </div>

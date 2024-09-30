@@ -38,7 +38,7 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
         return (
             <div className="flex flex-col items-center justify-center h-screen">
                 <h1 className="text-4xl font-bold mb-4">Livro não encontrado</h1>
-                <p className="text-xl text-gray-600">Desculpe, não conseguimos encontrar o livro que você está procurando.</p>
+                <p className="text-xl text-neutral-600">Desculpe, não conseguimos encontrar o livro que você está procurando.</p>
             </div>
         )
     }
@@ -53,7 +53,7 @@ export default async function BookPage({ params: { id } }: { params: { id: strin
             />
             <div className="flex flex-col gap-4 items-center justify-center">
                 <h1 className="text-2xl font-bold">{book.title}</h1>
-                <p className="text-sm text-gray-600">{book.description}</p>
+                <p className="text-sm text-neutral-600">{book.description}</p>
                 <AddToCartButton
                     author={book.AuthorOnBook[0]?.Author?.name ?? ""}
                     title={book.title}

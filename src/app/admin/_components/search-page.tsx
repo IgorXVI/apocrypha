@@ -187,7 +187,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                         <SelectTrigger className="w-24">
                             <SelectValue placeholder="Linhas"></SelectValue>
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-50">
+                        <SelectContent>
                             <SelectItem value="10">10</SelectItem>
                             <SelectItem value="50">50</SelectItem>
                             <SelectItem value="100">100</SelectItem>
@@ -195,7 +195,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                     </Select>
                 </div>
                 <Button
-                    className="h-7 p-5"
+                    className="h-7 p-5 bg-green-500"
                     onClick={() => setNewModalParams(ModalParams.create, "true")}
                 >
                     <PlusCircle />
@@ -225,7 +225,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                     <div className="flex flex-col items-center justify-center p-6 text-center h-[80vh]">
                         <AlertCircle className="h-10 w-10 text-yellow-500 mb-4" />
                         <h3 className="text-lg font-semibold mb-2">Sem {props.namePlural}</h3>
-                        <p className="text-sm text-gray-500 mb-4">Parece que não há dados para {props.namePlural} cadastrados ainda.</p>
+                        <p className="text-sm text-neutral-500 mb-4">Parece que não há dados para {props.namePlural} cadastrados ainda.</p>
                         <Button
                             onClick={() => setNewModalParams(ModalParams.create, "true")}
                             className="flex items-center"
