@@ -27,7 +27,7 @@ export default function CartPage() {
     }
 
     const removeItem = (id: string) => {
-        dispatch(bookCartSlice.actions.removeAmount({ id, amount: 1 }))
+        dispatch(bookCartSlice.actions.remove(id))
     }
 
     const total = cartContent.reduce((sum, item) => sum + item.price * item.amount, 0)
@@ -73,7 +73,7 @@ export default function CartPage() {
 
     return (
         <main className="flex-grow container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+            <h1 className="text-3xl font-bold mb-8">Carrinho de compras</h1>
 
             {cartContent.length > 0 ? (
                 <div className="flex flex-col lg:flex-row gap-8">
@@ -82,11 +82,11 @@ export default function CartPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[100px]">Product</TableHead>
-                                    <TableHead>Details</TableHead>
-                                    <TableHead>Quantity</TableHead>
-                                    <TableHead className="text-right">Price</TableHead>
-                                    <TableHead className="w-[100px]">Actions</TableHead>
+                                    <TableHead className="w-[100px]">Produto</TableHead>
+                                    <TableHead>Detalhes</TableHead>
+                                    <TableHead>Quantidade</TableHead>
+                                    <TableHead className="text-right">Preço</TableHead>
+                                    <TableHead className="w-[100px]">Ações</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -149,12 +149,8 @@ export default function CartPage() {
                     {/* Order Summary */}
                     <div className="lg:w-1/3">
                         <div className="bg-muted p-6 rounded-lg">
-                            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+                            <h2 className="text-xl font-semibold mb-4">Resumo do pedido</h2>
                             <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span>Subtotal</span>
-                                    <span>${total.toFixed(2)}</span>
-                                </div>
                                 <div className="flex justify-between font-semibold text-lg">
                                     <span>Total</span>
                                     <span>${total.toFixed(2)}</span>
@@ -165,16 +161,16 @@ export default function CartPage() {
                                 type="button"
                                 onClick={handleCheckout}
                             >
-                                Proceed to Checkout
+                                Finalizar compra
                             </Button>
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="text-center">
-                    <p className="text-xl mb-4">Your cart is empty</p>
+                <div className="text-center min-h-[50vh] flex flex-col justify-center items-center">
+                    <p className="text-3xl mb-4">Seu carrinho está vazio</p>
                     <Button asChild>
-                        <Link href="/books">Continue Shopping</Link>
+                        <Link href="/commerce">Continuar comprando</Link>
                     </Button>
                 </div>
             )}

@@ -39,10 +39,13 @@ export const bookCartSlice = createSlice({
             if (book) {
                 book.amount -= action.payload.amount
 
-                if (book.amount === 0) {
+                if (book.amount <= 0) {
                     state.value = state.value.filter((book) => book.id !== action.payload.id)
                 }
             }
+        },
+        remove: (state, action: PayloadAction<string>) => {
+            state.value = state.value.filter((book) => book.id !== action.payload)
         },
     },
 })
