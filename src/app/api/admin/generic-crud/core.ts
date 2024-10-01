@@ -69,6 +69,7 @@ export const decideQueries = (slug: string) => {
                     SuperCategory: {
                         select: {
                             name: true,
+                            iconSvg: true,
                         },
                     },
                 }),

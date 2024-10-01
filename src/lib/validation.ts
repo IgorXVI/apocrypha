@@ -41,12 +41,6 @@ export const categoryValidationSchema = z.object({
             message: "Nome deve ter ao menos 3 caracteres.",
         })
         .default(""),
-    iconSvg: z
-        .string()
-        .min(10, {
-            message: "SVG deve ter ao menos 10 caracteres.",
-        })
-        .default(""),
     superCategoryId: z.preprocess(
         (value) => (value === "" ? undefined : value),
         z.string().uuid({ message: "O ID da categoria mãe é inválido." }).optional(),

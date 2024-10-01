@@ -7,6 +7,7 @@ import SearchPage from "~/app/admin/_components/search-page"
 
 import { categoryValidationSchema, type CategorySchemaType } from "~/lib/validation"
 import IdInput from "../_components/id-input"
+import { convertSvgToImgSrc } from "~/lib/utils"
 
 type ModelAttrs = keyof CategorySchemaType
 
@@ -19,17 +20,6 @@ const inputKeyMap: Record<
         className?: string
     }
 > = {
-    iconSvg: {
-        node: (field) => (
-            <Input
-                placeholder="SVG Code"
-                {...field}
-            ></Input>
-        ),
-        label: "Imagem do ícone da categoria.",
-        description: "Escolha imagem para servir como ícone da categoria.",
-        className: "admin-input-md-center",
-    },
     name: {
         node: (field) => (
             <Input
@@ -63,14 +53,26 @@ export default function MainPage() {
             namePlural="categorias"
             tableHeaders={{
                 id: "ID",
-                iconSvg: "Ícone",
                 name: "Nome",
                 SuperCategory: "Categoria Mãe",
             }}
             slug="generic-crud/category"
             inputKeyMap={inputKeyMap}
             tableValuesMap={{
-                SuperCategory: (value: { name: string } | null) => <span className="text-nowrap">{value?.name ?? "N/A"}</span>,
+                SuperCategory: (value: { name: string; iconSvg: string | null } | null) => (
+                    <div className="flex flex-row items-center gap-2">
+                        {value?.iconSvg && (
+                            <img
+                                src={convertSvgToImgSrc(value.iconSvg)}
+                                alt={value.name}
+                                className="aspect-square rounded-md object-cover"
+                                height="24"
+                                width="24"
+                            ></img>
+                        )}
+                        <span className="text-nowrap">{value?.name ?? "N/A"}</span>
+                    </div>
+                ),
             }}
             formSchema={categoryValidationSchema}
         ></SearchPage>

@@ -24,7 +24,6 @@ function SuperCategoriesSection(props: {
         categories: {
             id: string
             name: string
-            iconSvg?: string
         }[]
     }[]
 }) {
@@ -60,23 +59,12 @@ function SuperCategoriesSection(props: {
                                 <ul className="space-y-2">
                                     {superCategory.categories.map((category) => (
                                         <li key={category.id}>
-                                            <div className="flex flex-row items-center gap-2">
-                                                {category.iconSvg && (
-                                                    <img
-                                                        src={convertSvgToImgSrc(category.iconSvg)}
-                                                        alt={category.name}
-                                                        className="aspect-square rounded-md object-cover"
-                                                        height="24"
-                                                        width="24"
-                                                    ></img>
-                                                )}
-                                                <Link
-                                                    href={`/category/${category.id}`}
-                                                    className="text-sm text-muted-foreground hover:text-foreground"
-                                                >
-                                                    {category.name}
-                                                </Link>
-                                            </div>
+                                            <Link
+                                                href={`/category/${category.id}`}
+                                                className="text-sm text-muted-foreground hover:text-foreground"
+                                            >
+                                                {category.name}
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>
@@ -124,7 +112,6 @@ export default async function MainCommercePage() {
                     select: {
                         id: true,
                         name: true,
-                        iconSvg: true,
                     },
                 },
             },
@@ -157,7 +144,6 @@ export default async function MainCommercePage() {
                         categories: sc.Category.map((c) => ({
                             id: c.id,
                             name: c.name,
-                            iconSvg: c.iconSvg ?? undefined,
                         })),
                     }))}
                 />
