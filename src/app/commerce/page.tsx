@@ -1,7 +1,66 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { db } from "~/server/db"
+import AddToCartButton from "./_components/add-to-cart-button"
+
+function BookCard(props: {
+    id: string
+    stripeId: string
+    author: string
+    authorId: string
+    title: string
+    description: string
+    price: number
+    mainImg: string
+    imgSize: number
+}) {
+    return (
+        <Card className="w-full max-w-sm overflow-hidden">
+            <div className="aspect-[3/4] relative">
+                <Link
+                    href={`/commerce/book/${props.id}`}
+                    className="w-full h-full"
+                >
+                    <Image
+                        src={props.mainImg}
+                        alt={`Cover of ${props.title}`}
+                        className="object-cover w-full h-full"
+                        width={props.imgSize}
+                        height={props.imgSize}
+                    ></Image>
+                </Link>
+            </div>
+            <CardHeader>
+                <CardTitle>
+                    <Link href={`/commerce/book/${props.id}`}>
+                        <p className="hover:underline">
+                            <span className="line-clamp-1 hover:line-clamp-none">
+                                {props.title.split(":")[0]}
+                                {props.title.includes(":") && ":"}
+                            </span>
+                            <span className="line-clamp-1 text-base font-normal hover:line-clamp-none">
+                                {props.title.includes(":") ? props.title.split(":")[1] : <br />}
+                            </span>
+                        </p>
+                    </Link>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Link href={`/commerce/author/${props.authorId}`}>
+                    <p className="text-sm text-muted-foreground hover:underline">{props.author}</p>
+                </Link>
+                <p className="mt-2 text-2xl font-bold">R$ {props.price.toFixed(2)}</p>
+            </CardContent>
+            <CardFooter>
+                <AddToCartButton
+                    {...props}
+                    amount={1}
+                ></AddToCartButton>
+            </CardFooter>
+        </Card>
+    )
+}
 
 export default async function MainCommercePage() {
     const books = await db.book.findMany({
@@ -27,6 +86,7 @@ export default async function MainCommercePage() {
                         },
                     },
                 },
+                take: 1,
             },
         },
     })
@@ -36,54 +96,18 @@ export default async function MainCommercePage() {
             <h1 className="text-4xl font-bold">Livros</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {books.map((book) => (
-                    <Card
+                    <BookCard
                         key={book.id}
-                        className="grid grid-rows-15 grid-cols-1 mx-3 md:mx-0 bg-black bg-opacity-30 text-neutral-200 border-none"
-                    >
-                        <CardHeader className="row-span-3">
-                            <CardTitle>
-                                <Link
-                                    className="hover:underline hover:text-white"
-                                    href={`/commerce/book/${book.id}`}
-                                >
-                                    {book.title.split(":")[0]}
-                                    {book.title.includes(":") && ":"}
-                                    <br />
-                                    <span className="text-sm">{book.title.split(":")[1]}</span>
-                                </Link>
-                            </CardTitle>
-                            <CardDescription>
-                                {book.AuthorOnBook.map((author, index) => (
-                                    <span
-                                        key={author.authorId}
-                                        className="text-neutral-200"
-                                    >
-                                        <Link
-                                            className="hover:underline hover:text-white"
-                                            href={`/author/${author.authorId}`}
-                                        >
-                                            {author.Author.name}
-                                        </Link>
-                                        {index < book.AuthorOnBook.length - 1 && <span>, </span>}
-                                    </span>
-                                ))}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="row-span-11 grid place-items-center">
-                            <Link href={`/commerce/book/${book.id}`}>
-                                <Image
-                                    src={book.DisplayImage[0]?.url ?? ""}
-                                    alt={book.title}
-                                    width={250}
-                                    height={250}
-                                    className="object-contain hover:scale-110 duration-300"
-                                ></Image>
-                            </Link>
-                        </CardContent>
-                        <CardFooter className="flex items-center">
-                            <span className="text-xl font-bold text-green-500 bg-black p-2 rounded-md">R$ {book.price.toFixed(2)}</span>
-                        </CardFooter>
-                    </Card>
+                        id={book.id}
+                        title={book.title}
+                        description={book.description}
+                        price={book.price.toNumber()}
+                        mainImg={book.DisplayImage[0]?.url ?? ""}
+                        author={book.AuthorOnBook[0]?.Author.name ?? ""}
+                        authorId={book.AuthorOnBook[0]?.authorId ?? ""}
+                        imgSize={250}
+                        stripeId={book.stripeId}
+                    />
                 ))}
             </div>
         </main>

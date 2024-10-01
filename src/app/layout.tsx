@@ -21,7 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 lang="pt"
                 className={`${GeistSans.variable}`}
             >
-                <body className="dark min-h-screen bg-gradient-to-r from-neutral-900 via-zinc-700 to-stone-900 text-neutral-200 font-sans">
+                <body className="min-h-screen">
                     <StoreProvider>{children}</StoreProvider>
                     <Toaster></Toaster>
                 </body>
