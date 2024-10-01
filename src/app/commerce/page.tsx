@@ -1,114 +1,143 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { db } from "~/server/db"
-import AddToCartButton from "./_components/add-to-cart-button"
 
-function BookCard(props: {
-    id: string
-    stripeId: string
-    author: string
-    authorId: string
-    title: string
-    description: string
-    price: number
-    mainImg: string
-    imgSize: number
-}) {
+import Link from "next/link"
+import { Button } from "~/components/ui/button"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion"
+import HorizontalList from "./_components/horizontal-list"
+
+function HeroSection() {
     return (
-        <Card className="w-full max-w-sm overflow-hidden">
-            <div className="aspect-[3/4] relative">
-                <Link
-                    href={`/commerce/book/${props.id}`}
-                    className="w-full h-full"
+        <div className="bg-primary text-white bg-hero-pattern rounded-md">
+            <div className="px-4 text-center bg-black bg-opacity-35 min-h-full min-w-full py-20 rounded-md">
+                <h1 className="text-5xl font-bold mb-4">Descubra seu próximo livro favorito</h1>
+                <p className="text-xl mb-8">Explore nossa vasta coleção de livros em todos os gêneros</p>
+                <Button
+                    size="lg"
+                    variant="secondary"
                 >
-                    <Image
-                        src={props.mainImg}
-                        alt={`Cover of ${props.title}`}
-                        className="object-cover w-full h-full"
-                        width={props.imgSize}
-                        height={props.imgSize}
-                    ></Image>
-                </Link>
+                    Começar a navegar
+                </Button>
             </div>
-            <CardHeader>
-                <CardTitle>
-                    <Link href={`/commerce/book/${props.id}`}>
-                        <p className="hover:underline">
-                            <span className="line-clamp-1 hover:line-clamp-none">
-                                {props.title.split(":")[0]}
-                                {props.title.includes(":") && ":"}
-                            </span>
-                            <span className="line-clamp-1 text-base font-normal hover:line-clamp-none">
-                                {props.title.includes(":") ? props.title.split(":")[1] : <br />}
-                            </span>
-                        </p>
-                    </Link>
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <Link href={`/commerce/author/${props.authorId}`}>
-                    <p className="text-sm text-muted-foreground hover:underline">{props.author}</p>
-                </Link>
-                <p className="mt-2 text-2xl font-bold">R$ {props.price.toFixed(2)}</p>
-            </CardContent>
-            <CardFooter>
-                <AddToCartButton
-                    {...props}
-                    amount={1}
-                ></AddToCartButton>
-            </CardFooter>
-        </Card>
+        </div>
+    )
+}
+
+function SuperCategoriesSection(props: {
+    superCategories: {
+        id: string
+        name: string
+        categories: {
+            id: string
+            name: string
+        }[]
+    }[]
+}) {
+    const { superCategories } = props
+
+    return (
+        <section className="mb-16">
+            <h2 className="text-3xl font-bold mb-8 text-center">Compre por Categoria</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {superCategories.map((superCategory) => (
+                    <Accordion
+                        key={superCategory.id}
+                        type="single"
+                        collapsible
+                        className="w-full"
+                    >
+                        <AccordionItem value={superCategory.name}>
+                            <AccordionTrigger className="text-lg font-semibold">{superCategory.name}</AccordionTrigger>
+                            <AccordionContent>
+                                <ul className="space-y-2">
+                                    {superCategory.categories.map((category) => (
+                                        <li key={category.id}>
+                                            <Link
+                                                href={`/category/${category.id}`}
+                                                className="text-sm text-muted-foreground hover:text-foreground"
+                                            >
+                                                {category.name}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                ))}
+            </div>
+        </section>
     )
 }
 
 export default async function MainCommercePage() {
-    const books = await db.book.findMany({
-        include: {
-            DisplayImage: {
-                select: {
-                    id: true,
-                    url: true,
+    const [books, superCategories] = await Promise.all([
+        db.book.findMany({
+            include: {
+                DisplayImage: {
+                    select: {
+                        id: true,
+                        url: true,
+                    },
+                    orderBy: {
+                        order: "asc",
+                    },
+                    take: 1,
                 },
-                orderBy: {
-                    order: "asc",
-                },
-                take: 1,
-            },
-            AuthorOnBook: {
-                orderBy: {
-                    main: "asc",
-                },
-                include: {
-                    Author: {
-                        select: {
-                            name: true,
+                AuthorOnBook: {
+                    orderBy: {
+                        main: "asc",
+                    },
+                    include: {
+                        Author: {
+                            select: {
+                                name: true,
+                            },
                         },
                     },
+                    take: 1,
                 },
-                take: 1,
             },
-        },
-    })
+        }),
+        db.superCategory.findMany({
+            include: {
+                Category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        }),
+    ])
 
     return (
-        <main className="flex gap-5 flex-col items-center justify-center mb-5">
-            <h1 className="text-4xl font-bold">Livros</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {books.map((book) => (
-                    <BookCard
-                        key={book.id}
-                        id={book.id}
-                        title={book.title}
-                        description={book.description}
-                        price={book.price.toNumber()}
-                        mainImg={book.DisplayImage[0]?.url ?? ""}
-                        author={book.AuthorOnBook[0]?.Author.name ?? ""}
-                        authorId={book.AuthorOnBook[0]?.authorId ?? ""}
-                        imgSize={250}
-                        stripeId={book.stripeId}
-                    />
-                ))}
+        <main className="flex-grow">
+            <HeroSection />
+            <div className="container mx-auto px-4 py-12">
+                <HorizontalList
+                    title="Livros mais vendidos"
+                    books={books.map((book) => ({
+                        id: book.id,
+                        title: book.title,
+                        mainImg: book.DisplayImage[0]?.url ?? "",
+                        author: book.AuthorOnBook[0]?.Author.name ?? "",
+                        price: book.price.toNumber(),
+                        authorId: book.AuthorOnBook[0]?.authorId ?? "",
+                        stripeId: book.stripeId,
+                        description: book.description,
+                    }))}
+                />
+
+                <SuperCategoriesSection
+                    superCategories={superCategories.map((sc) => ({
+                        id: sc.id,
+                        name: sc.name,
+                        categories: sc.Category.map((c) => ({
+                            id: c.id,
+                            name: c.name,
+                        })),
+                    }))}
+                />
             </div>
         </main>
     )

@@ -6,6 +6,7 @@ import ProductSearch from "./product-search"
 import CompanyIconButton from "~/components/header/company-icon-button"
 import DesktopAddressHeader from "./desktop-address-header"
 import CartButton from "./cart-button"
+import DesktopHeaderNav from "~/components/header/desktop-header-nav"
 
 export default function CommerceHeader() {
     return (
@@ -16,6 +17,8 @@ export default function CommerceHeader() {
                     <CompanyIconButton></CompanyIconButton>
                     <DesktopAddressHeader></DesktopAddressHeader>
                 </div>
+
+                <DesktopHeaderNav></DesktopHeaderNav>
 
                 <ProductSearch></ProductSearch>
 

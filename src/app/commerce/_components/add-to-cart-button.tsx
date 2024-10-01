@@ -1,5 +1,6 @@
 "use client"
 
+import { MinusIcon, PlusIcon, ShoppingCartIcon } from "lucide-react"
 import { useMemo } from "react"
 import { Button } from "~/components/ui/button"
 import { bookCartSlice, type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
@@ -13,10 +14,19 @@ export default function AddToCartButton(props: BookCartState) {
 
     return (
         <Button
+            className="flex flex-col items-center"
             variant={isInCart ? "destructive" : "default"}
-            onClick={() => (isInCart ? dispatch(bookCartSlice.actions.remove(props)) : dispatch(bookCartSlice.actions.add(props)))}
+            onClick={() => (isInCart ? dispatch(bookCartSlice.actions.removeAmount(props)) : dispatch(bookCartSlice.actions.add(props)))}
         >
-            {isInCart ? "Remover do carrinho" : "Adicionar ao carrinho"}
+            {isInCart ? (
+                <span className="flex items-center">
+                    <MinusIcon size={16}></MinusIcon> <ShoppingCartIcon></ShoppingCartIcon>
+                </span>
+            ) : (
+                <span className="flex items-center">
+                    <PlusIcon size={16}></PlusIcon> <ShoppingCartIcon></ShoppingCartIcon>
+                </span>
+            )}
         </Button>
     )
 }

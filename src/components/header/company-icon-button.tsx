@@ -1,13 +1,14 @@
+import { BookOpen } from "lucide-react"
 import Link from "next/link"
 
 export default function CompanyIconButton() {
     return (
-        <Link href="/commerce">
-            <img
-                src="favicon.ico"
-                alt="Logo da loja"
-                className="h-7"
-            />
+        <Link
+            href="/commerce"
+            className="flex items-center space-x-2"
+        >
+            <BookOpen className="h-6 w-6" />
+            <span className="text-xl font-bold">BookStore</span>
         </Link>
     )
 }

@@ -24,7 +24,17 @@ export const bookCartSlice = createSlice({
                 state.value.push(action.payload)
             }
         },
-        remove: (state, action: PayloadAction<BookCartState>) => {
+        updateAmount: (state, action: PayloadAction<{ id: string; amount: number }>) => {
+            if (action.payload.amount < 0) {
+                return
+            }
+
+            const book = state.value.find((book) => book.id === action.payload.id)
+            if (book) {
+                book.amount = action.payload.amount
+            }
+        },
+        removeAmount: (state, action: PayloadAction<{ id: string; amount: number }>) => {
             const book = state.value.find((book) => book.id === action.payload.id)
             if (book) {
                 book.amount -= action.payload.amount
