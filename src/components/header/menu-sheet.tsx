@@ -1,9 +1,9 @@
-import Link from "next/link"
-
 import { Menu } from "lucide-react"
 
 import { Sheet, SheetTrigger, SheetContent } from "~/components/ui/sheet"
 import { Button } from "~/components/ui/button"
+
+import { headerLinks } from "./header-links"
 
 export default function MenuSheet() {
     return (
@@ -22,38 +22,7 @@ export default function MenuSheet() {
                     side="left"
                     className="sm:max-w-xs bg-black opacity-50 text-white"
                 >
-                    <nav className="grid gap-6 text-lg font-medium pt-5 text-white">
-                        <Link
-                            href="/admin"
-                            className="hover:underline"
-                        >
-                            Admin
-                        </Link>
-                        <Link
-                            href="/books"
-                            className="hover:underline"
-                        >
-                            Books
-                        </Link>
-                        <Link
-                            href="/categories"
-                            className="hover:underline"
-                        >
-                            Categories
-                        </Link>
-                        <Link
-                            href="/about"
-                            className="hover:underline"
-                        >
-                            About
-                        </Link>
-                        <Link
-                            href="/contact"
-                            className="hover:underline"
-                        >
-                            Contact
-                        </Link>
-                    </nav>
+                    <nav className="grid gap-6 text-lg font-medium pt-5 text-white">{...headerLinks}</nav>
                 </SheetContent>
             </Sheet>
         </div>

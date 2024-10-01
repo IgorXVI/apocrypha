@@ -139,7 +139,7 @@ export default function CategoriesPage() {
                             className="flex items-center space-x-2"
                         >
                             <BookOpen className="h-6 w-6" />
-                            <span className="text-xl font-bold">BookStore</span>
+                            <span className="text-xl font-bold">Magnaura</span>
                         </Link>
                         <div className="hidden md:flex space-x-4">
                             <Link
@@ -277,7 +277,7 @@ export default function CategoriesPage() {
                         <div>
                             <h3 className="text-lg font-semibold mb-4">About Us</h3>
                             <p className="text-sm">
-                                BookStore is your one-stop shop for all your reading needs. We offer a wide selection of books across various genres.
+                                Magnaura is your one-stop shop for all your reading needs. We offer a wide selection of books across various genres.
                             </p>
                         </div>
                         <div>
@@ -357,7 +357,7 @@ export default function CategoriesPage() {
                         </div>
                     </div>
                     <div className="mt-8 pt-8 border-t border-primary-foreground/10 text-center">
-                        <p className="text-sm">&copy; 2024 BookStore. All rights reserved.</p>
+                        <p className="text-sm">&copy; 2024 Magnaura. All rights reserved.</p>
                     </div>
                 </div>
             </footer>

@@ -14,7 +14,7 @@ export default function BookCard(props: {
     mainImg: string
 }) {
     return (
-        <Card className="min-w-[250px]">
+        <Card className="min-w-[350px] md:min-w-[250px]">
             <div className="aspect-[3/4] relative">
                 <Link
                     href={`/commerce/book/${props.id}`}
@@ -24,8 +24,8 @@ export default function BookCard(props: {
                         src={props.mainImg}
                         alt={`Cover of ${props.title}`}
                         className="object-cover w-full h-full rounded-t-md"
-                        width={150}
-                        height={150}
+                        width={200}
+                        height={200}
                     ></Image>
                 </Link>
             </div>

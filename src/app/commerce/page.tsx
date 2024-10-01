@@ -1,7 +1,6 @@
 import { db } from "~/server/db"
 
 import Link from "next/link"
-import { Button } from "~/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion"
 import HorizontalList from "./_components/horizontal-list"
 
@@ -11,12 +10,6 @@ function HeroSection() {
             <div className="px-4 text-center bg-black bg-opacity-35 min-h-full min-w-full py-20 rounded-md">
                 <h1 className="text-5xl font-bold mb-4">Descubra seu próximo livro favorito</h1>
                 <p className="text-xl mb-8">Explore nossa vasta coleção de livros em todos os gêneros</p>
-                <Button
-                    size="lg"
-                    variant="secondary"
-                >
-                    Começar a navegar
-                </Button>
             </div>
         </div>
     )
