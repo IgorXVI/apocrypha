@@ -9,3 +9,5 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const UploadButton = generateUploadButton<OurFileRouter>()
+
+export const convertSvgToImgSrc = (svg: string) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`

@@ -3,6 +3,7 @@ import { db } from "~/server/db"
 import Link from "next/link"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion"
 import HorizontalList from "./_components/horizontal-list"
+import { convertSvgToImgSrc } from "~/lib/utils"
 
 function HeroSection() {
     return (
@@ -19,9 +20,11 @@ function SuperCategoriesSection(props: {
     superCategories: {
         id: string
         name: string
+        iconSvg?: string
         categories: {
             id: string
             name: string
+            iconSvg?: string
         }[]
     }[]
 }) {
@@ -39,17 +42,41 @@ function SuperCategoriesSection(props: {
                         className="w-full"
                     >
                         <AccordionItem value={superCategory.name}>
-                            <AccordionTrigger className="text-lg font-semibold">{superCategory.name}</AccordionTrigger>
+                            <AccordionTrigger className="text-lg font-semibold">
+                                <div className="flex flex-row items-center gap-2">
+                                    {superCategory.iconSvg && (
+                                        <img
+                                            src={convertSvgToImgSrc(superCategory.iconSvg)}
+                                            alt={superCategory.name}
+                                            className="aspect-square rounded-md object-cover"
+                                            height="32"
+                                            width="32"
+                                        ></img>
+                                    )}
+                                    {superCategory.name}
+                                </div>
+                            </AccordionTrigger>
                             <AccordionContent>
                                 <ul className="space-y-2">
                                     {superCategory.categories.map((category) => (
                                         <li key={category.id}>
-                                            <Link
-                                                href={`/category/${category.id}`}
-                                                className="text-sm text-muted-foreground hover:text-foreground"
-                                            >
-                                                {category.name}
-                                            </Link>
+                                            <div className="flex flex-row items-center gap-2">
+                                                {category.iconSvg && (
+                                                    <img
+                                                        src={convertSvgToImgSrc(category.iconSvg)}
+                                                        alt={category.name}
+                                                        className="aspect-square rounded-md object-cover"
+                                                        height="24"
+                                                        width="24"
+                                                    ></img>
+                                                )}
+                                                <Link
+                                                    href={`/category/${category.id}`}
+                                                    className="text-sm text-muted-foreground hover:text-foreground"
+                                                >
+                                                    {category.name}
+                                                </Link>
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -97,6 +124,7 @@ export default async function MainCommercePage() {
                     select: {
                         id: true,
                         name: true,
+                        iconSvg: true,
                     },
                 },
             },
@@ -124,10 +152,12 @@ export default async function MainCommercePage() {
                 <SuperCategoriesSection
                     superCategories={superCategories.map((sc) => ({
                         id: sc.id,
+                        iconSvg: sc.iconSvg ?? undefined,
                         name: sc.name,
                         categories: sc.Category.map((c) => ({
                             id: c.id,
                             name: c.name,
+                            iconSvg: c.iconSvg ?? undefined,
                         })),
                     }))}
                 />

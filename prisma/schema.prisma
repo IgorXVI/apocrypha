@@ -106,6 +106,7 @@ model Translator {
 model SuperCategory {
     id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     name     String
+    iconSvg  String?
     Category Category[]
 }
 
@@ -122,7 +123,7 @@ model CategoryOnBook {
 model Category {
     id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     name            String
-    iconUrl         String?          @default("https://utfs.io/f/V4ibhetxoONefMluzf4Pp09QXZSnIkmVbD4fvTJYieGacygE")
+    iconSvg         String?
     CategoryOnBook  CategoryOnBook[]
     SuperCategory   SuperCategory?   @relation(fields: [superCategoryId], references: [id])
     superCategoryId String?          @db.Uuid

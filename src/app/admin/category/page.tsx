@@ -3,7 +3,6 @@
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 
 import { Input } from "~/components/ui/input"
-import SingleImageField from "../_components/single-image-field"
 import SearchPage from "~/app/admin/_components/search-page"
 
 import { categoryValidationSchema, type CategorySchemaType } from "~/lib/validation"
@@ -20,8 +19,13 @@ const inputKeyMap: Record<
         className?: string
     }
 > = {
-    iconUrl: {
-        node: (field) => <SingleImageField {...field}></SingleImageField>,
+    iconSvg: {
+        node: (field) => (
+            <Input
+                placeholder="SVG Code"
+                {...field}
+            ></Input>
+        ),
         label: "Imagem do ícone da categoria.",
         description: "Escolha imagem para servir como ícone da categoria.",
         className: "admin-input-md-center",
@@ -59,7 +63,7 @@ export default function MainPage() {
             namePlural="categorias"
             tableHeaders={{
                 id: "ID",
-                iconUrl: "Ícone",
+                iconSvg: "Ícone",
                 name: "Nome",
                 SuperCategory: "Categoria Mãe",
             }}

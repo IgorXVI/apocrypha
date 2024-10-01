@@ -31,6 +31,7 @@ import { type PossibleDBOutput } from "~/lib/types"
 import CreateOrUpdate from "./create-or-update"
 import { toastError } from "~/components/toast/toasting"
 import { mainApi } from "~/lib/redux/apis/main-api/main"
+import { convertSvgToImgSrc } from "~/lib/utils"
 
 type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
 
@@ -266,11 +267,19 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                                                     <div className="flex items-center justify-center w-full">
                                                         {props.tableValuesMap?.[attr] ? (
                                                             props.tableValuesMap[attr](row[attr])
-                                                        ) : attr.includes("Url") ? (
+                                                        ) : attr.includes("Url") && row[attr] ? (
                                                             <Image
-                                                                alt="Product image"
+                                                                alt={attr}
                                                                 className="aspect-square rounded-md object-cover"
                                                                 src={row[attr]}
+                                                                height="64"
+                                                                width="64"
+                                                            />
+                                                        ) : attr.endsWith("Svg") && row[attr] ? (
+                                                            <img
+                                                                src={convertSvgToImgSrc(row[attr])}
+                                                                alt={attr}
+                                                                className="aspect-square rounded-md object-cover"
                                                                 height="64"
                                                                 width="64"
                                                             />

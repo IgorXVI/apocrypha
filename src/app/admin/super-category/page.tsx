@@ -19,6 +19,17 @@ const inputKeyMap: Record<
         className?: string
     }
 > = {
+    iconSvg: {
+        node: (field) => (
+            <Input
+                placeholder="SVG Code"
+                {...field}
+            ></Input>
+        ),
+        label: "Imagem do ícone da categoria.",
+        description: "Escolha imagem para servir como ícone da categoria.",
+        className: "admin-input-md-center",
+    },
     name: {
         node: (field) => (
             <Input
@@ -39,6 +50,7 @@ export default function MainPage() {
             namePlural="categorias mães"
             tableHeaders={{
                 id: "ID",
+                iconSvg: "Icone",
                 name: "Nome",
             }}
             slug="generic-crud/super-category"

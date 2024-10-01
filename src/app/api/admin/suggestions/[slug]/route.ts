@@ -7,6 +7,7 @@ import {
     type SeriesPayload,
     type TranslatorPayload,
     type CommonSuggestion,
+    type SuperCategoryPayload,
 } from "~/lib/types"
 import { getSuperCategoryCompositeSuggestions } from "~/server/category-queries"
 
@@ -31,6 +32,10 @@ export const decideQueries = (slug: string) => {
         case "book":
             return {
                 getSuggestions: getSuggestions<BookPayload>(db.book, "title"),
+            }
+        case "super-category":
+            return {
+                getSuggestions: getSuggestions<SuperCategoryPayload>(db.superCategory, "name"),
             }
         case "super-category-composite": {
             return {

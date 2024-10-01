@@ -10,14 +10,14 @@ export const headerLinks = [
     </Link>,
     <Link
         key="/books"
-        href="/books"
+        href="/commerce/book"
         className="hover:underline"
     >
         Livros
     </Link>,
     <Link
-        key="/categories"
-        href="/categories"
+        key="/super-category"
+        href="/commerce/super-category"
         className="hover:underline"
     >
         Categorias
