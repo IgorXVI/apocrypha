@@ -9,6 +9,15 @@ import { Button } from "~/components/ui/button"
 export default function BookDetailsImages({ images, title }: { images: string[]; title: string }) {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
+    const [zoomedImage, setZoomedImage] = useState("")
+
+    const openZoomedImage = () => {
+        setZoomedImage(images[selectedImageIndex] ?? "")
+    }
+
+    const closeZoomedImage = () => {
+        setZoomedImage("")
+    }
 
     const scrollToImage = (index: number) => {
         if (scrollContainerRef.current) {
@@ -35,13 +44,32 @@ export default function BookDetailsImages({ images, title }: { images: string[];
     return (
         <div className="mt-6">
             <div className="mb-4 relative">
-                <Image
-                    src={images[selectedImageIndex] ?? ""}
-                    alt={`${title} - Selected Image`}
-                    width={400}
-                    height={200}
-                    className="rounded-md object-cover mx-auto mb-10"
-                />
+                <>
+                    {
+                        <Image
+                            src={images[selectedImageIndex] ?? ""}
+                            alt={`${title} - Selected Image`}
+                            width={400}
+                            height={200}
+                            className="rounded-md object-cover mx-auto mb-10"
+                            onClick={openZoomedImage}
+                        />
+                    }
+                    {zoomedImage !== "" && (
+                        <div
+                            className="zoomed-image-container"
+                            onClick={closeZoomedImage}
+                        >
+                            <Image
+                                src={zoomedImage}
+                                alt={`${title} - Selected Image zoomed`}
+                                layout="fill"
+                                objectFit="contain"
+                            />
+                        </div>
+                    )}
+                </>
+
                 {images.length > 1 && (
                     <>
                         <Button
