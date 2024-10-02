@@ -51,7 +51,7 @@ export default function BookDetailsImages({ images, title }: { images: string[];
                             alt={`${title} - Selected Image`}
                             width={400}
                             height={200}
-                            className="rounded-md object-cover mx-auto mb-10"
+                            className="rounded-md object-cover mx-auto mb-10 cursor-zoom-in"
                             onClick={openZoomedImage}
                         />
                     }

@@ -84,9 +84,5 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    cursor: pointer;
-}
-.zoomed-image {
-    max-width: 90vw;
-    max-height: 90vh;
+    cursor: zoom-out;
 }
