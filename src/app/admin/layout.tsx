@@ -5,7 +5,7 @@ export default function CommerceLayout({ children }: Readonly<{ children: React.
     return (
         <>
             <AdminHeader></AdminHeader>
-            <div className="md:mr-[7vw] md:ml-[7vw] mt-5 mb-auto min-h-screen">{children}</div>
+            {children}
             <AdminFooter></AdminFooter>
         </>
     )

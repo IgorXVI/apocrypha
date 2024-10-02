@@ -1,4 +1,4 @@
-"server-only"
+import "server-only"
 
 import { type Prisma } from "prisma/prisma-client"
 import { type CommonDBReturn, type GetManyInput, type GetManyOutput } from "../lib/types"

@@ -20,4 +20,3 @@
 -   [x] Transformar línguas em enum no banco dados
 -   [x] Adicionar relação entre lívros
 -   [x] Adicionar categorias secundárias para livros
--   [ ] Remover dependência de "Remeda" do projeto

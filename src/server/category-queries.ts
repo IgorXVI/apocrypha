@@ -1,4 +1,4 @@
-"server-only"
+import "server-only"
 
 import { type CommonDBReturn, type CommonSuggestion } from "~/lib/types"
 import { db } from "./db"

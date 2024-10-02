@@ -9,8 +9,8 @@ import { Toaster } from "~/components/ui/sonner"
 import StoreProvider from "~/components/redux/StoreProvider"
 
 export const metadata: Metadata = {
-    title: "Magnaura",
-    description: "Magnaura é sua loja de livros online. Oferecemos uma ampla seleção de livros em vários gêneros. Criada por Igor Almeida.",
+    title: "Apocrypha",
+    description: "Apocrypha é sua loja de livros online. Oferecemos uma ampla seleção de livros em vários gêneros. Criada por Igor Almeida.",
     icons: [{ rel: "icon", url: "/favicon.svg" }],
 }
 

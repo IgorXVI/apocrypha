@@ -8,7 +8,7 @@ export default function CompanyIconButton() {
             className="flex items-center space-x-2"
         >
             <BookOpen className="h-6 w-6" />
-            <span className="text-xl font-bold">Magnaura</span>
+            <span className="text-xl font-bold">Apocrypha</span>
         </Link>
     )
 }

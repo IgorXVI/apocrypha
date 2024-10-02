@@ -16,13 +16,6 @@ export const headerLinks = [
         Livros
     </Link>,
     <Link
-        key="/super-category"
-        href="/commerce/super-category"
-        className="hover:underline"
-    >
-        Categorias
-    </Link>,
-    <Link
         key="/about"
         href="/about"
         className="hover:underline"
