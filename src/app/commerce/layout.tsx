@@ -1,4 +1,4 @@
-import CommerceFooter from "./_components/commer-footer"
+import CommerceFooter from "./_components/commerce-footer"
 import CommerceHeader from "./_components/commerce-header"
 
 export default function CommerceLayout({ children }: Readonly<{ children: React.ReactNode }>) {

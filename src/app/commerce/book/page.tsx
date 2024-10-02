@@ -275,8 +275,10 @@ export default async function CategoriesPage({
                                     <div className="flex flex-row items-center justify-between">
                                         <p className="font-bold">R$ {book.price.toFixed(2)}</p>
                                         <AddToCartButton
-                                            {...book}
-                                            amount={1}
+                                            bookForCart={{
+                                                ...book,
+                                                amount: 1,
+                                            }}
                                         ></AddToCartButton>
                                     </div>
                                 </div>
