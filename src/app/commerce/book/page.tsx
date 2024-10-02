@@ -1,10 +1,8 @@
 import { type Prisma } from "@prisma/client"
-import { Label } from "~/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
-import { Slider } from "~/components/ui/slider"
 
 import { db } from "~/server/db"
 import BookCard from "../_components/book-card"
+import { BooksFilters } from "../_components/books-filters"
 
 type SuperCategory = {
     id: string
@@ -66,13 +64,19 @@ export default async function CategoriesPage({
 }) {
     const priceRangeFrom = searchParams.priceRangeFrom ? Number(searchParams.priceRangeFrom) : 0
     const priceRangeTo = searchParams.priceRangeTo ? Number(searchParams.priceRangeTo) : 20
-    const priceRange = [priceRangeFrom, priceRangeTo]
+    const priceRange: [number, number] = [priceRangeFrom, priceRangeTo]
 
     const sortBy = searchParams.sortBy ?? "title"
 
     const allSuperCategories: SuperCategoryWithAll[] = await db.superCategory.findMany({
+        orderBy: {
+            name: "asc",
+        },
         include: {
             Category: {
+                orderBy: {
+                    name: "asc",
+                },
                 select: {
                     id: true,
                     name: true,
@@ -87,40 +91,45 @@ export default async function CategoriesPage({
         Category: [],
     })
 
-    let superCategory: SuperCategory | null = searchParams.superCategoryId
-        ? await db.superCategory.findUnique({
-              where: {
-                  id: searchParams.superCategoryId,
-              },
-              include: {
-                  Category: {
-                      include: {
-                          CategoryOnBook: {
-                              include: {
-                                  Book: {
-                                      include: {
-                                          DisplayImage: {
-                                              select: {
-                                                  url: true,
+    let superCategory: SuperCategory | null =
+        searchParams.superCategoryId && searchParams.superCategoryId !== "all"
+            ? await db.superCategory.findUnique({
+                  where: {
+                      id: searchParams.superCategoryId,
+                  },
+                  include: {
+                      Category: {
+                          orderBy: {
+                              name: "asc",
+                          },
+                          include: {
+                              CategoryOnBook: {
+                                  include: {
+                                      Book: {
+                                          include: {
+                                              DisplayImage: {
+                                                  select: {
+                                                      url: true,
+                                                  },
+                                                  orderBy: {
+                                                      order: "asc",
+                                                  },
+                                                  take: 1,
                                               },
-                                              orderBy: {
-                                                  order: "asc",
-                                              },
-                                              take: 1,
-                                          },
-                                          AuthorOnBook: {
-                                              include: {
-                                                  Author: {
-                                                      select: {
-                                                          name: true,
-                                                          id: true,
+                                              AuthorOnBook: {
+                                                  include: {
+                                                      Author: {
+                                                          select: {
+                                                              name: true,
+                                                              id: true,
+                                                          },
                                                       },
                                                   },
+                                                  orderBy: {
+                                                      main: "asc",
+                                                  },
+                                                  take: 1,
                                               },
-                                              orderBy: {
-                                                  main: "asc",
-                                              },
-                                              take: 1,
                                           },
                                       },
                                   },
@@ -128,12 +137,14 @@ export default async function CategoriesPage({
                           },
                       },
                   },
-              },
-          })
-        : null
+              })
+            : null
 
     if (!superCategory) {
         const allBooks = await db.book.findMany({
+            orderBy: {
+                title: "asc",
+            },
             include: {
                 DisplayImage: {
                     select: {
@@ -199,88 +210,52 @@ export default async function CategoriesPage({
         stripeId: book.stripeId,
     }))
 
+    const categories = superCategory.Category.map((category) => ({
+        id: category.id,
+        name: category.name,
+    }))
+
+    if (selectedSuperCategoryId !== "all") {
+        categories.unshift({
+            id: "all",
+            name: "Todos",
+        })
+    }
+
     return (
-        <main className="grid grid-cols-1 md:grid-cols-7 container mx-auto px-4 py-8 md:gap-7 gap-2 md:place-content-start place-content-center">
+        <main className="grid grid-cols-1 md:grid-cols-7 container mx-auto px-4 py-8 gap-7 md:place-content-start place-content-center">
             <h1 className="text-3xl font-bold col-span-full">Livros</h1>
 
-            {/* Sidebar for desktop */}
-            <aside className="md:col-span-1 flex flex-col gap-6 px-4 md:px-0">
-                <div>
-                    <Label htmlFor="category">Categoria</Label>
-                    <Select value={selectedSuperCategoryId}>
-                        <SelectTrigger id="category">
-                            <SelectValue placeholder="Selecione a categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {allSuperCategories.map((superCategory) => (
-                                <SelectItem
-                                    key={superCategory.id}
-                                    value={superCategory.id}
-                                >
-                                    {superCategory.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div>
-                    <Label htmlFor="subcategory">Subcategoria</Label>
-                    <Select value={selectedCategoryId}>
-                        <SelectTrigger id="subcategory">
-                            <SelectValue placeholder="Selecione a subcategoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {superCategory?.Category.map((category) => (
-                                <SelectItem
-                                    key={category.id}
-                                    value={category.id}
-                                >
-                                    {category.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div>
-                    <Label>Preço</Label>
-                    <Slider
-                        min={0}
-                        max={20}
-                        step={1}
-                        value={priceRange}
-                        className="mt-2"
-                    />
-                    <div className="flex justify-between mt-2">
-                        <span>${priceRange[0]}</span>
-                        <span>${priceRange[1]}</span>
-                    </div>
-                </div>
-                <div>
-                    <Label htmlFor="sort">Ordenar por</Label>
-                    <Select value={sortBy}>
-                        <SelectTrigger id="sort">
-                            <SelectValue placeholder="Ordenar por" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="title">Título</SelectItem>
-                            <SelectItem value="author">Autor</SelectItem>
-                            <SelectItem value="price-asc">Preço: Menor para maior</SelectItem>
-                            <SelectItem value="price-desc">Preço: Maior para menor</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </aside>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:col-span-6 col-span-full">
-                {books.map((book) => (
-                    <BookCard
-                        key={book.id}
-                        {...book}
-                    />
-                ))}
+            <div className="md:col-span-1 col-span-full">
+                <BooksFilters
+                    superCategories={allSuperCategories.map((superCategory) => ({
+                        id: superCategory.id,
+                        name: superCategory.name,
+                    }))}
+                    categories={categories}
+                    selectedSuperCategoryId={selectedSuperCategoryId}
+                    selectedCategoryId={selectedCategoryId}
+                    priceRange={priceRange}
+                    sortBy={sortBy}
+                />
             </div>
 
-            {books.length === 0 && <p className="text-center text-muted-foreground mt-8 col-span-full">Nenhum livro encontrado nesta categoria.</p>}
+            {books.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:col-span-6 col-span-full">
+                    {books.map((book) => (
+                        <BookCard
+                            key={book.id}
+                            {...book}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {books.length === 0 && (
+                <p className="md:col-span-6 col-span-ful place-self-center text-center min-h-[50vh] flex flex-col items-center justify-center">
+                    Nenhum livro encontrado nesta categoria.
+                </p>
+            )}
         </main>
     )
 }

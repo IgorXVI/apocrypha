@@ -20,7 +20,7 @@ export const headerLinks = [
         href="/about"
         className="hover:underline"
     >
-        Sobre nós
+        Sobre
     </Link>,
     <Link
         key="/contact"

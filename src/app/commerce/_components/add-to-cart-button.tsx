@@ -14,17 +14,18 @@ export default function AddToCartButton(props: BookCartState) {
 
     return (
         <Button
+            size="sm"
             className="flex flex-col items-center"
             variant={isInCart ? "destructive" : "default"}
             onClick={() => (isInCart ? dispatch(bookCartSlice.actions.removeAmount(props)) : dispatch(bookCartSlice.actions.add(props)))}
         >
             {isInCart ? (
                 <span className="flex items-center">
-                    <MinusIcon size={16}></MinusIcon> <ShoppingCartIcon></ShoppingCartIcon>
+                    <MinusIcon size={16}></MinusIcon> <ShoppingCartIcon size={16}></ShoppingCartIcon>
                 </span>
             ) : (
                 <span className="flex items-center">
-                    <PlusIcon size={16}></PlusIcon> <ShoppingCartIcon></ShoppingCartIcon>
+                    <PlusIcon size={16}></PlusIcon> <ShoppingCartIcon size={16}></ShoppingCartIcon>
                 </span>
             )}
         </Button>

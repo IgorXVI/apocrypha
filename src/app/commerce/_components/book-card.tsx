@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
+import { Card, CardContent } from "~/components/ui/card"
 import AddToCartButton from "./add-to-cart-button"
 
 export default function BookCard(props: {
@@ -12,9 +12,11 @@ export default function BookCard(props: {
     description: string
     price: number
     mainImg: string
+    imgWidth?: number
+    imgHeight?: number
 }) {
     return (
-        <Card className="min-w-[350px] md:min-w-[250px]">
+        <Card className={`min-w-[${props.imgWidth ?? 200}px]`}>
             <div className="aspect-[3/4] relative">
                 <Link
                     href={`/commerce/book/${props.id}`}
@@ -24,38 +26,30 @@ export default function BookCard(props: {
                         src={props.mainImg}
                         alt={`Cover of ${props.title}`}
                         className="object-cover w-full h-full rounded-t-md"
-                        width={200}
-                        height={200}
+                        width={props.imgWidth ?? 200}
+                        height={props.imgHeight ?? 200}
                     ></Image>
                 </Link>
             </div>
-            <CardHeader>
-                <CardTitle>
+            <CardContent>
+                <div className="flex flex-col gap-2 mt-2">
                     <Link href={`/commerce/book/${props.id}`}>
                         <p className="hover:underline">
-                            <span className="line-clamp-1 hover:line-clamp-none">
-                                {props.title.split(":")[0]}
-                                {props.title.includes(":") && ":"}
-                            </span>
-                            <span className="line-clamp-1 text-base font-normal hover:line-clamp-none">
-                                {props.title.includes(":") ? props.title.split(":")[1] : <br />}
-                            </span>
+                            <span className="line-clamp-1 hover:line-clamp-none text-lg">{props.title}</span>
                         </p>
                     </Link>
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <Link href={`/commerce/author/${props.authorId}`}>
-                    <p className="text-sm text-muted-foreground hover:underline">{props.author}</p>
-                </Link>
-                <p className="mt-2 text-2xl font-bold">R$ {props.price.toFixed(2)}</p>
+                    <Link href={`/commerce/author/${props.authorId}`}>
+                        <p className="text-sm text-muted-foreground hover:underline">{props.author}</p>
+                    </Link>
+                    <div className="flex flex-row items-center justify-between">
+                        <p className="font-bold">R$ {props.price.toFixed(2)}</p>
+                        <AddToCartButton
+                            {...props}
+                            amount={1}
+                        ></AddToCartButton>
+                    </div>
+                </div>
             </CardContent>
-            <CardFooter>
-                <AddToCartButton
-                    {...props}
-                    amount={1}
-                ></AddToCartButton>
-            </CardFooter>
         </Card>
     )
 }
