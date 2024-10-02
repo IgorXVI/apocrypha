@@ -307,7 +307,7 @@ export default async function CategoriesPage({
 
     return (
         <main className="grid grid-cols-1 md:grid-cols-10 container mx-auto px-4 py-8 gap-7 md:place-content-start place-content-center">
-            <h1 className="text-3xl font-bold col-span-full">Livros</h1>
+            <h1 className="text-3xl font-bold col-span-full">Livros{searchTerm !== "" && ` - ${searchTerm}`}</h1>
 
             <div className="md:col-span-2 col-span-full">
                 <BooksFilters
@@ -369,7 +369,7 @@ export default async function CategoriesPage({
 
             {books.length === 0 && (
                 <p className="md:col-span-8 col-span-ful place-self-center text-center min-h-[50vh] flex flex-col items-center justify-center">
-                    Nenhum livro encontrado nesta categoria.
+                    Nenhum livro encontrado.
                 </p>
             )}
         </main>
