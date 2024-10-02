@@ -64,11 +64,13 @@ export default async function CategoriesPage({
         priceRangeFrom?: string
         priceRangeTo?: string
         sortBy?: string
+        searchTerm?: string
     }
 }) {
     const priceRangeFrom = searchParams.priceRangeFrom ? Number(searchParams.priceRangeFrom) : 0
-    const priceRangeTo = searchParams.priceRangeTo ? Number(searchParams.priceRangeTo) : 20
+    const priceRangeTo = searchParams.priceRangeTo ? Number(searchParams.priceRangeTo) : 999
     const priceRange: [number, number] = [priceRangeFrom, priceRangeTo]
+    const searchTerm = searchParams.searchTerm ?? ""
 
     const sortBy = searchParams.sortBy ?? "title"
 
@@ -108,6 +110,48 @@ export default async function CategoriesPage({
                           },
                           include: {
                               CategoryOnBook: {
+                                  orderBy: {
+                                      Book:
+                                          sortBy === "title"
+                                              ? {
+                                                    title: "asc",
+                                                }
+                                              : sortBy === "price-asc"
+                                                ? {
+                                                      price: "asc",
+                                                  }
+                                                : {
+                                                      price: "desc",
+                                                  },
+                                  },
+                                  where: {
+                                      Book: {
+                                          OR: [
+                                              {
+                                                  title: {
+                                                      contains: searchTerm,
+                                                      mode: "insensitive",
+                                                  },
+                                              },
+                                              {
+                                                  AuthorOnBook: {
+                                                      some: {
+                                                          Author: {
+                                                              name: {
+                                                                  contains: searchTerm,
+                                                                  mode: "insensitive",
+                                                              },
+                                                          },
+                                                      },
+                                                  },
+                                              },
+                                          ],
+                                          price: {
+                                              gte: priceRange[0],
+                                              lte: priceRange[1],
+                                          },
+                                      },
+                                  },
                                   include: {
                                       Book: {
                                           include: {
@@ -146,9 +190,44 @@ export default async function CategoriesPage({
 
     if (!superCategory) {
         const allBooks = await db.book.findMany({
-            orderBy: {
-                title: "asc",
+            where: {
+                OR: [
+                    {
+                        title: {
+                            contains: searchTerm,
+                            mode: "insensitive",
+                        },
+                    },
+                    {
+                        AuthorOnBook: {
+                            some: {
+                                Author: {
+                                    name: {
+                                        contains: searchTerm,
+                                        mode: "insensitive",
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                price: {
+                    gte: priceRange[0],
+                    lte: priceRange[1],
+                },
             },
+            orderBy:
+                sortBy === "title"
+                    ? {
+                          title: "asc",
+                      }
+                    : sortBy === "price-asc"
+                      ? {
+                            price: "asc",
+                        }
+                      : {
+                            price: "desc",
+                        },
             include: {
                 DisplayImage: {
                     select: {

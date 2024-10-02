@@ -51,7 +51,7 @@ function SuperCategoriesSection(props: {
                                     {superCategory.categories.map((category) => (
                                         <li key={category.id}>
                                             <Link
-                                                href={`/category/${category.id}`}
+                                                href={`/commerce/book?superCategoryId=${superCategory.id}&categoryId=${category.id}&sortBy=title`}
                                                 className="text-sm text-muted-foreground hover:text-foreground"
                                             >
                                                 {category.name}

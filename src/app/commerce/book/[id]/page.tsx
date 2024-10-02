@@ -2,7 +2,6 @@ import Link from "next/link"
 import { Star, ChevronRight } from "lucide-react"
 import sanitizeHtml from "sanitize-html"
 
-import { Button } from "~/components/ui/button"
 import { Card, CardContent } from "~/components/ui/card"
 import { Separator } from "~/components/ui/separator"
 import { Avatar, AvatarFallback } from "~/components/ui/avatar"
@@ -27,15 +26,14 @@ const langsMap: Record<string, string> = {
 
 function BookPriceCard(book: BookCartState) {
     return (
-        <Card className="bg-green-200 ">
+        <Card className="border-none">
             <CardContent className="p-6">
-                <div className="w-full mb-4 grid grid-rows-2 gap-4 place-items-center">
+                <div className="w-full mb-4 grid grid-cols-1 gap-4 place-items-center">
                     <div className="text-3xl font-bold mb-4">R$ {book.price.toFixed(2)}</div>
                     <AddToCartButton
                         bookForCart={book}
                         showButtonText={true}
                     ></AddToCartButton>
-                    <Button variant="outline">Adicionar à lista de desejos</Button>
                 </div>
             </CardContent>
         </Card>

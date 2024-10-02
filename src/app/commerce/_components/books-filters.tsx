@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback } from "react"
+import { useDebouncedCallback } from "use-debounce"
 import { Input } from "~/components/ui/input"
 
 import { Label } from "~/components/ui/label"
@@ -28,6 +29,7 @@ export function BooksFilters(props: {
     const updateQueryParams = useCallback(
         (name: string, value: string) => {
             const params = new URLSearchParams(searchParams.toString())
+
             params.set(name, value)
 
             router.push(`${pathname}?${params.toString()}`)
@@ -46,7 +48,7 @@ export function BooksFilters(props: {
                         Ordenar por
                     </Label>
                     <Select
-                        value={props.sortBy}
+                        defaultValue={props.sortBy}
                         onValueChange={(value) => updateQueryParams("sortBy", value)}
                     >
                         <SelectTrigger id="sort">
@@ -54,7 +56,6 @@ export function BooksFilters(props: {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="title">Título</SelectItem>
-                            <SelectItem value="author">Autor</SelectItem>
                             <SelectItem value="price-asc">Preço: Menor para maior</SelectItem>
                             <SelectItem value="price-desc">Preço: Maior para menor</SelectItem>
                         </SelectContent>
@@ -68,7 +69,7 @@ export function BooksFilters(props: {
                         Categoria
                     </Label>
                     <Select
-                        value={props.selectedSuperCategoryId}
+                        defaultValue={props.selectedSuperCategoryId}
                         onValueChange={(value) => updateQueryParams("superCategoryId", value)}
                     >
                         <SelectTrigger id="super-category">
@@ -94,7 +95,7 @@ export function BooksFilters(props: {
                         Subcategoria
                     </Label>
                     <Select
-                        value={props.selectedCategoryId}
+                        defaultValue={props.selectedCategoryId}
                         onValueChange={(value) => updateQueryParams("categoryId", value)}
                     >
                         <SelectTrigger id="category">
@@ -121,8 +122,8 @@ export function BooksFilters(props: {
                             type="number"
                             id="price-range-from"
                             placeholder="Mínimo"
-                            value={props.priceRange[0]}
-                            onChange={(e) => updateQueryParams("priceRangeFrom", e.target.value)}
+                            defaultValue={props.priceRange[0]}
+                            onChange={useDebouncedCallback((e) => updateQueryParams("priceRangeFrom", e.target.value), 300)}
                         />
                         <Label htmlFor="price-range-to">Até</Label>
                         <Input
@@ -130,8 +131,8 @@ export function BooksFilters(props: {
                             type="number"
                             id="price-range-to"
                             placeholder="Máximo"
-                            value={props.priceRange[1]}
-                            onChange={(e) => updateQueryParams("priceRangeTo", e.target.value)}
+                            defaultValue={props.priceRange[1]}
+                            onChange={useDebouncedCallback((e) => updateQueryParams("priceRangeTo", e.target.value), 300)}
                         />
                     </div>
                 </div>
