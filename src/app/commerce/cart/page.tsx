@@ -130,7 +130,7 @@ export default function CartPage() {
                                                 </Button>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right">${(item.price * item.amount).toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">R$ {(item.price * item.amount).toFixed(2)}</TableCell>
                                         <TableCell>
                                             <Button
                                                 variant="ghost"
@@ -153,7 +153,7 @@ export default function CartPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between font-semibold text-lg">
                                     <span>Total</span>
-                                    <span>${total.toFixed(2)}</span>
+                                    <span>R$ {total.toFixed(2)}</span>
                                 </div>
                             </div>
                             <Button

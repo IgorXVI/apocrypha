@@ -40,28 +40,30 @@ export default function BookDetailsImages({ images, title }: { images: string[];
                     alt={`${title} - Selected Image`}
                     width={400}
                     height={200}
-                    className="rounded-md object-cover mx-auto"
+                    className="rounded-md object-cover mx-auto mb-10"
                 />
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
-                    aria-label="Previous image"
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setSelectedImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
-                    aria-label="Next image"
-                >
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
-            </div>
-            <div className="relative">
+                {images.length > 1 && (
+                    <>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="absolute left-2 top-1/2 transform -translate-y-1/2"
+                            onClick={() => setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
+                            aria-label="Previous image"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                            onClick={() => setSelectedImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
+                            aria-label="Next image"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </>
+                )}
                 <div
                     ref={scrollContainerRef}
                     className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
