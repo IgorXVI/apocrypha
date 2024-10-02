@@ -93,6 +93,7 @@ export const bookValidationSchema = z.object({
 
     publisherId: z.string().uuid({ message: "O ID da editora é inválido." }).default(""),
     seriesId: z.string().uuid({ message: "O ID da série é inválido." }).optional(),
+    placeInSeries: z.number().int().positive({ message: "A posição na série deve ser um número inteiro positivo." }).default(0),
 
     authorIds: z.array(z.string().uuid({ message: "ID do autor inválido." })).default([]),
     translatorIds: z.array(z.string().uuid({ message: "ID do tradutor inválido." })).default([]),

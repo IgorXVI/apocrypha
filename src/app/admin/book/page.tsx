@@ -138,6 +138,11 @@ const inputKeyMap: Record<
         label: "Série",
         description: "Escolha a série do livro.",
     },
+    placeInSeries: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Posição na Série",
+        description: "Esse é a posição do livro na série.",
+    },
     mainAuthorId: {
         node: (field) => (
             <IdInput
@@ -258,6 +263,7 @@ export default function MainPage() {
                 publisherName: "Editora",
                 language: "Idioma",
                 seriesName: "Série",
+                placeInSeries: "Posição na Série",
                 relatedBookTitle: "Livro Relacionado",
                 mainAuthorName: "Autor Principal",
                 mainTranslatorName: "Tradutor Principal",

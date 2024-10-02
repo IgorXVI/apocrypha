@@ -56,6 +56,7 @@ const transformBookInput = (data: BookSchemaType) => {
         CategoryOnBook: { createMany: { data: categories } },
         Publisher: { connect: { id: data.publisherId } },
         Series: data.seriesId ? { connect: { id: data.seriesId } } : undefined,
+        placeInSeries: data.placeInSeries,
         RelatedBook: data.relatedBookId ? { connect: { id: data.relatedBookId } } : undefined,
     }
 }

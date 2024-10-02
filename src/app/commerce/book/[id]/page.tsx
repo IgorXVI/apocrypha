@@ -134,6 +134,10 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         select: {
                             id: true,
                             title: true,
+                            placeInSeries: true,
+                        },
+                        orderBy: {
+                            placeInSeries: "asc",
                         },
                     },
                 },
@@ -180,7 +184,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         },
         series: {
             name: DBBook.Series?.name ?? "",
-            books: DBBook.Series?.Book.map((book) => book.title) ?? [],
+            books: DBBook.Series?.Book ?? [],
         },
         translators: DBBook.TranslatorOnBook.map((translator) => translator.Translator.name),
         description: DBBook.description,
@@ -286,11 +290,18 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         <>
                             <Separator className="my-6" />
                             <div>
-                                <h3 className="text-lg font-semibold mb-4">Saga</h3>
-                                <p className="text-muted-foreground">{book.series.name}</p>
+                                <h3 className="text-2xl font-extrabold">Série: {book.series.name}</h3>
                                 <ul className="mt-2 space-y-1">
-                                    {book.series.books.map((book, index) => (
-                                        <li key={index}>{book}</li>
+                                    {book.series.books.map((seriesBook, index) => (
+                                        <li key={index}>
+                                            {seriesBook.placeInSeries}º Livro -{" "}
+                                            <Link
+                                                href={`/commerce/book/${seriesBook.id}`}
+                                                className="font-medium hover:underline"
+                                            >
+                                                {seriesBook.title}
+                                            </Link>
+                                        </li>
                                     ))}
                                 </ul>
                             </div>

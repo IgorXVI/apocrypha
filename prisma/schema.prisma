@@ -42,6 +42,7 @@ model Book {
     Publisher        Publisher          @relation(fields: [publisherId], references: [id])
     publisherId      String             @db.Uuid
     DisplayImage     DisplayImage[]
+    placeInSeries    Int                @default(0)
     Series           Series?            @relation(fields: [seriesId], references: [id])
     seriesId         String?            @db.Uuid
     RelatedBook      Book?              @relation("BookToBook", fields: [relatedBookId], references: [id])
