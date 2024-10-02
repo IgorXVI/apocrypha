@@ -1,7 +1,11 @@
 import { type Prisma } from "@prisma/client"
 
+import Image from "next/image"
+import Link from "next/link"
+import { Card, CardContent } from "~/components/ui/card"
+import AddToCartButton from "../_components/add-to-cart-button"
+
 import { db } from "~/server/db"
-import BookCard from "../_components/book-card"
 import { BooksFilters } from "../_components/books-filters"
 
 type SuperCategory = {
@@ -223,10 +227,10 @@ export default async function CategoriesPage({
     }
 
     return (
-        <main className="grid grid-cols-1 md:grid-cols-7 container mx-auto px-4 py-8 gap-7 md:place-content-start place-content-center">
+        <main className="grid grid-cols-1 md:grid-cols-10 container mx-auto px-4 py-8 gap-7 md:place-content-start place-content-center">
             <h1 className="text-3xl font-bold col-span-full">Livros</h1>
 
-            <div className="md:col-span-1 col-span-full">
+            <div className="md:col-span-2 col-span-full">
                 <BooksFilters
                     superCategories={allSuperCategories.map((superCategory) => ({
                         id: superCategory.id,
@@ -241,18 +245,49 @@ export default async function CategoriesPage({
             </div>
 
             {books.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:col-span-6 col-span-full">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:col-span-8 col-span-full">
                     {books.map((book) => (
-                        <BookCard
-                            key={book.id}
-                            {...book}
-                        />
+                        <Card key={book.id}>
+                            <div className="aspect-[3/4] relative">
+                                <Link
+                                    href={`/commerce/book/${book.id}`}
+                                    className="w-full h-full"
+                                >
+                                    <Image
+                                        src={book.mainImg}
+                                        alt={book.title}
+                                        className="object-cover w-full h-full rounded-t-md"
+                                        width={200}
+                                        height={200}
+                                    ></Image>
+                                </Link>
+                            </div>
+                            <CardContent>
+                                <div className="flex flex-col gap-2 mt-2">
+                                    <Link href={`/commerce/book/${book.id}`}>
+                                        <p className="hover:underline">
+                                            <span className="line-clamp-1 hover:line-clamp-none text-lg">{book.title}</span>
+                                        </p>
+                                    </Link>
+                                    <Link href={`/commerce/author/${book.authorId}`}>
+                                        <p className="text-sm text-muted-foreground hover:underline">{book.author}</p>
+                                    </Link>
+                                    <div className="flex flex-row items-center justify-between">
+                                        <p className="font-bold">R$ {book.price.toFixed(2)}</p>
+                                        <AddToCartButton
+                                            {...book}
+                                            amount={1}
+                                        ></AddToCartButton>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     ))}
                 </div>
             )}
 
             {books.length === 0 && (
-                <p className="md:col-span-6 col-span-ful place-self-center text-center min-h-[50vh] flex flex-col items-center justify-center">
+                <p className="md:col-span-8 col-span-ful place-self-center text-center min-h-[50vh] flex flex-col items-center justify-center">
                     Nenhum livro encontrado nesta categoria.
                 </p>
             )}

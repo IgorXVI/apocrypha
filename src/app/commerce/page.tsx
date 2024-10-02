@@ -96,6 +96,10 @@ export default async function MainCommercePage() {
                     take: 1,
                 },
             },
+            orderBy: {
+                price: "asc",
+            },
+            take: 10,
         }),
         db.superCategory.findMany({
             include: {

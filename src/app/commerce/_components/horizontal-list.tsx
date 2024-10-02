@@ -3,7 +3,8 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useState, useRef } from "react"
 import { Button } from "~/components/ui/button"
-import BookCard from "./book-card"
+import Image from "next/image"
+import Link from "next/link"
 
 type Book = {
     id: string
@@ -38,13 +39,22 @@ export default function HorizontalList({ title, books }: { title: string; books:
             <div className="relative">
                 <div
                     ref={sliderRef}
-                    className="flex overflow-x-auto scrollbar-hide space-x-4 pb-4"
+                    className="flex gap-4 overflow-x-scroll scrollbar-none"
                 >
                     {books.map((book) => (
-                        <BookCard
+                        <Link
                             key={book.id}
-                            {...book}
-                        />
+                            href={`/commerce/book/${book.id}`}
+                            className="flex min-w-[250px]"
+                        >
+                            <Image
+                                src={book.mainImg}
+                                alt={book.title}
+                                className="aspect-auto rounded-md"
+                                width={250}
+                                height={500}
+                            ></Image>
+                        </Link>
                     ))}
                 </div>
                 <Button
