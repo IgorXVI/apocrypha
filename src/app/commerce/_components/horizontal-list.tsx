@@ -45,14 +45,14 @@ export default function HorizontalList({ title, books }: { title: string; books:
                         <Link
                             key={book.id}
                             href={`/commerce/book/${book.id}`}
-                            className="flex min-w-[250px]"
+                            className="flex min-w-[150px] min-h-[200px] "
                         >
                             <Image
                                 src={book.mainImg}
                                 alt={book.title}
                                 className="aspect-auto rounded-md"
-                                width={250}
-                                height={500}
+                                width={150}
+                                height={200}
                             ></Image>
                         </Link>
                     ))}
