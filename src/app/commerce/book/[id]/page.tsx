@@ -10,6 +10,7 @@ import Image from "next/image"
 import BookDetailsImages from "../../_components/book-details-images"
 import { db } from "~/server/db"
 import AddToCartButton from "../../_components/add-to-cart-button"
+import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
 
 const langsMap: Record<string, string> = {
     PORTUGUESE: "Português",
@@ -24,6 +25,53 @@ const langsMap: Record<string, string> = {
     PORTUGUESE_BRAZILIAN: "Português (Brasil)",
 }
 
+function BookPriceCard(book: BookCartState) {
+    return (
+        <Card className="bg-green-200 ">
+            <CardContent className="p-6">
+                <div className="w-full mb-4 grid grid-rows-2 gap-4 place-items-center">
+                    <div className="text-3xl font-bold mb-4">R$ {book.price.toFixed(2)}</div>
+                    <AddToCartButton
+                        bookForCart={book}
+                        showButtonText={true}
+                    ></AddToCartButton>
+                    <Button variant="outline">Adicionar à lista de desejos</Button>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+function RelatedBooks({ relatedBooks }: { relatedBooks: { id: string; title: string; author: string; cover: string }[] }) {
+    return (
+        <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">Livros relacionados</h3>
+            <ul className="space-y-4">
+                {relatedBooks.map((relatedBook) => (
+                    <li key={relatedBook.id}>
+                        <Link
+                            href={`/commerce/book/${relatedBook.id}`}
+                            className="flex items-center space-x-4 p-2 hover:bg-muted rounded-md transition-colors"
+                        >
+                            <Image
+                                src={relatedBook.cover}
+                                alt={`Cover of ${relatedBook.title}`}
+                                width={60}
+                                height={90}
+                                className="rounded-md object-cover"
+                            />
+                            <div className="flex-grow">
+                                <p className="font-medium">{relatedBook.title}</p>
+                                <p className="text-sm text-muted-foreground">{relatedBook.author}</p>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )
+}
 export default async function BookDetails({ params: { id } }: { params: { id: string } }) {
     const reviews = [
         {
@@ -231,6 +279,19 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         title={book.title}
                     />
 
+                    <div className="block md:hidden">
+                        <BookPriceCard
+                            id={DBBook.id}
+                            title={DBBook.title}
+                            stripeId={DBBook.stripeId}
+                            amount={1}
+                            mainImg={DBBook.DisplayImage[0]?.url ?? ""}
+                            author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
+                            price={DBBook.price.toNumber()}
+                        />
+                        {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
+                    </div>
+
                     <div className="mt-6">
                         <h3 className="text-lg font-semibold">{book.authors.length > 1 ? "Autores" : "Autor"}</h3>
                         <ul className="mt-2 space-y-1">
@@ -365,56 +426,17 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                     </div>
                 </div>
 
-                <div>
-                    <Card className="bg-green-200">
-                        <CardContent className="p-6">
-                            <div className="w-full mb-4 grid grid-rows-2 gap-4 place-items-center">
-                                <div className="text-3xl font-bold mb-4">R$ {book.price.toFixed(2)}</div>
-                                <AddToCartButton
-                                    bookForCart={{
-                                        id: DBBook.id,
-                                        title: DBBook.title,
-                                        stripeId: DBBook.stripeId,
-                                        amount: 1,
-                                        mainImg: DBBook.DisplayImage[0]?.url ?? "",
-                                        author: DBBook.AuthorOnBook[0]?.Author.name ?? "",
-                                        price: DBBook.price.toNumber(),
-                                    }}
-                                    showButtonText={true}
-                                ></AddToCartButton>
-                                <Button variant="outline">Adicionar à lista de desejos</Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {book.relatedBooks.length > 0 && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold mb-4">Livros relacionados</h3>
-                            <ul className="space-y-4">
-                                {book.relatedBooks.map((relatedBook) => (
-                                    <li key={relatedBook.id}>
-                                        <Link
-                                            href={`/commerce/book/${relatedBook.id}`}
-                                            className="flex items-center space-x-4 p-2 hover:bg-muted rounded-md transition-colors"
-                                        >
-                                            <Image
-                                                src={relatedBook.cover}
-                                                alt={`Cover of ${relatedBook.title}`}
-                                                width={60}
-                                                height={90}
-                                                className="rounded-md object-cover"
-                                            />
-                                            <div className="flex-grow">
-                                                <p className="font-medium">{relatedBook.title}</p>
-                                                <p className="text-sm text-muted-foreground">{relatedBook.author}</p>
-                                            </div>
-                                            <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                <div className="hidden md:block">
+                    <BookPriceCard
+                        id={DBBook.id}
+                        title={DBBook.title}
+                        stripeId={DBBook.stripeId}
+                        amount={1}
+                        mainImg={DBBook.DisplayImage[0]?.url ?? ""}
+                        author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
+                        price={DBBook.price.toNumber()}
+                    />
+                    {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                 </div>
             </div>
         </div>

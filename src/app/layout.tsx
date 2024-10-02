@@ -11,7 +11,20 @@ import StoreProvider from "~/components/redux/StoreProvider"
 export const metadata: Metadata = {
     title: "Apocrypha",
     description: "Apocrypha é sua loja de livros online. Oferecemos uma ampla seleção de livros em vários gêneros. Criada por Igor Almeida.",
-    icons: [{ rel: "icon", url: "/favicon.svg" }],
+    icons: {
+        icon: [
+            {
+                media: "(prefers-color-scheme: light)",
+                url: "/images/favicon-light.svg",
+                href: "/images/favicon-light.svg",
+            },
+            {
+                media: "(prefers-color-scheme: dark)",
+                url: "/images/favicon-dark.svg",
+                href: "/images/favicon-dark.svg",
+            },
+        ],
+    },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

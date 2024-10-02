@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react"
+import { BookOpenTextIcon } from "lucide-react"
 import Link from "next/link"
 
 export default function CompanyIconButton() {
@@ -7,7 +7,7 @@ export default function CompanyIconButton() {
             href="/commerce"
             className="flex items-center space-x-2"
         >
-            <BookOpen className="h-6 w-6" />
+            <BookOpenTextIcon className="h-6 w-6" />
             <span className="text-xl font-bold">Apocrypha</span>
         </Link>
     )
