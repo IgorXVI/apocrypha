@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Star, ChevronRight } from "lucide-react"
+import sanitizeHtml from "sanitize-html"
 
 import { Button } from "~/components/ui/button"
 import { Card, CardContent } from "~/components/ui/card"
@@ -172,6 +173,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         subtitle: DBBook.title.split(":")[1] ?? "",
         authors: DBBook.AuthorOnBook.map((author) => author.Author.name),
         authorInfo: {
+            id: DBBook.AuthorOnBook[0]?.Author.id ?? "N/A",
             name: DBBook.AuthorOnBook[0]?.Author.name ?? "N/A",
             image: DBBook.AuthorOnBook[0]?.Author.imgUrl ?? "N/A",
             bio: DBBook.AuthorOnBook[0]?.Author.about ?? "N/A",
@@ -249,7 +251,9 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
 
                     <div>
                         <h3 className="text-lg font-semibold mb-2">Descrição</h3>
-                        <p className="text-muted-foreground">{book.description}</p>
+                        <div className="text-muted-foreground">
+                            <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.description) }}></div>
+                        </div>
                     </div>
 
                     <Separator className="my-6" />
@@ -257,16 +261,23 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Sobre o Autor</h3>
                         <div className="flex items-start space-x-4">
-                            <Image
-                                src={book.authorInfo.image}
-                                alt={book.authorInfo.name}
-                                width={100}
-                                height={100}
-                                className="rounded-full object-cover"
-                            />
+                            <Link
+                                href={`/commerce/author/${book.authorInfo.id}`}
+                                className="w-full h-full"
+                            >
+                                <Image
+                                    src={book.authorInfo.image}
+                                    alt={book.authorInfo.name}
+                                    width={100}
+                                    height={100}
+                                    className="rounded-full object-cover"
+                                />
+                            </Link>
                             <div>
                                 <h4 className="font-medium">{book.authorInfo.name}</h4>
-                                <p className="text-sm text-muted-foreground mt-2">{book.authorInfo.bio}</p>
+                                <div className="text-sm text-muted-foreground mt-2">
+                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.authorInfo.bio) }}></div>
+                                </div>
                             </div>
                         </div>
                     </div>
