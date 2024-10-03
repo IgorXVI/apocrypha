@@ -3,7 +3,7 @@ import { Button } from "~/components/ui/button"
 
 export default function Admin() {
     return (
-        <main className="flex text-xl gap-10 flex-col items-center justify-center mb-5 container mx-auto h-[75vh]">
+        <main className="pt-10 flex text-xl gap-10 flex-col items-center justify-center mb-5">
             <h1 className="text-6xl font-extrabold text-center text-wrap">Administrar as Tabelas</h1>
             <div className="flex flex-col gap-3 list-none">
                 <Link href="/admin/book">

@@ -20,3 +20,8 @@
 -   [x] Transformar línguas em enum no banco dados
 -   [x] Adicionar relação entre lívros
 -   [x] Adicionar categorias secundárias para livros
+-   [ ] Adicionar imagens flutuantes no hero section
+-   [ ] Adicionar loading quando um link é clicado
+-   [ ] Modificar header para aparecer sempre em mobile
+-   [ ] Adicionar páginação na listagem de livros
+-   [ ] Adicionar simulação de envio da compra
