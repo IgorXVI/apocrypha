@@ -1,10 +1,22 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
+import { NextResponse } from "next/server"
+import { type UserMetadata } from "./lib/types"
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"])
+
+const isAdminRoute = createRouteMatcher(["/admin(.*)", "/api/admin(.*)"])
 
 export default clerkMiddleware((auth, request) => {
     if (!isPublicRoute(request)) {
         auth().protect()
+
+        if (isAdminRoute(request)) {
+            const { sessionClaims } = auth()
+            const userMetadata = sessionClaims?.metadata as UserMetadata | undefined
+            if (!userMetadata?.isAdmin) {
+                return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+            }
+        }
     }
 })
 

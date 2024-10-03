@@ -61,3 +61,7 @@ export type PublisherInput = Prisma.PublisherCreateInput
 export type SeriesInput = Prisma.SeriesCreateInput
 export type AuthorInput = Prisma.AuthorCreateInput
 export type TranslatorInput = Prisma.TranslatorCreateInput
+
+export type UserMetadata = {
+    isAdmin?: boolean
+}

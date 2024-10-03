@@ -25,3 +25,10 @@
 -   [ ] Modificar header para aparecer sempre em mobile
 -   [ ] Adicionar páginação na listagem de livros
 -   [ ] Adicionar simulação de envio da compra
+-   [ ] Fazer página de autores
+-   [ ] Fazer página de sobre
+-   [ ] Fazer página de contato
+-   [ ] Fazer página de perguntas frequentes
+-   [ ] Fazer página de devolução
+-   [ ] Fazer página de entrega
+-   [ ] Fazer página de histórico de compras
