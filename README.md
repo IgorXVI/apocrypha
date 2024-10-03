@@ -15,7 +15,7 @@
 -   [x] Adicionar funcionalidade do carrinho de compras
 -   [x] Adicionar funcionalidade de checkout com stripe
 -   [x] Adicionar busca de livros
--   [ ] Limitar acesso às páginas de admin
+-   [x] Limitar acesso às páginas de admin
 -   [x] Arrumar queries excessivas nas páginas de admin
 -   [x] Transformar línguas em enum no banco dados
 -   [x] Adicionar relação entre lívros

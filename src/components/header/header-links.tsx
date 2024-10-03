@@ -1,21 +1,13 @@
 import Link from "next/link"
-import { auth, clerkClient } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
 import { type UserMetadata } from "~/lib/types"
 
-const cClient = clerkClient()
+export default function HeaderLinks() {
+    const { sessionClaims } = auth()
 
-export default async function HeaderLinks() {
-    const user = auth()
+    const userMetadata = sessionClaims?.metadata as UserMetadata | undefined
 
-    const isAdmin = user.userId
-        ? await cClient.users
-              .getUser(user.userId)
-              .then((user) => (user?.privateMetadata as UserMetadata | undefined)?.isAdmin ?? false)
-              .catch((error) => {
-                  console.error(error)
-                  return false
-              })
-        : false
+    const isAdmin = userMetadata?.isAdmin ?? false
 
     return (
         <>
