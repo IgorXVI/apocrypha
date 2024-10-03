@@ -24,6 +24,7 @@ export default function HorizontalList({ title, books }: { title: string; books:
         <section className="mb-10">
             <h2 className="text-3xl font-bold mb-8 text-center">{title}</h2>
             <AliceCarousel
+                ssrSilentMode
                 controlsStrategy="responsive"
                 autoPlay
                 autoPlayInterval={3000}
