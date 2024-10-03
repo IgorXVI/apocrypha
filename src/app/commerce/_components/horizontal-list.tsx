@@ -1,10 +1,12 @@
 "use client"
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { useState, useRef } from "react"
-import { Button } from "~/components/ui/button"
+import "react-alice-carousel/lib/alice-carousel.css"
+
 import Image from "next/image"
 import Link from "next/link"
+import AliceCarousel from "react-alice-carousel"
+import { Button } from "~/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 type Book = {
     id: string
@@ -18,62 +20,55 @@ type Book = {
 }
 
 export default function HorizontalList({ title, books }: { title: string; books: Book[] }) {
-    const [scrollPosition, setScrollPosition] = useState(0)
-    const sliderRef = useRef<HTMLDivElement>(null)
-
-    const handleScroll = (direction: "left" | "right") => {
-        if (sliderRef.current) {
-            const scrollAmount = 300
-            const newPosition =
-                direction === "left"
-                    ? Math.max(0, scrollPosition - scrollAmount)
-                    : Math.min(sliderRef.current.scrollWidth - sliderRef.current.clientWidth, scrollPosition + scrollAmount)
-            sliderRef.current.scrollTo({ left: newPosition, behavior: "smooth" })
-            setScrollPosition(newPosition)
-        }
-    }
-
     return (
-        <section className="mb-16">
+        <section className="mb-10">
             <h2 className="text-3xl font-bold mb-8 text-center">{title}</h2>
-            <div className="relative">
-                <div
-                    ref={sliderRef}
-                    className="flex gap-4 overflow-x-scroll scrollbar-none"
-                >
-                    {books.map((book) => (
-                        <Link
-                            key={book.id}
-                            href={`/commerce/book/${book.id}`}
-                            className="flex min-w-[150px] min-h-[200px] "
-                        >
-                            <Image
-                                src={book.mainImg}
-                                alt={book.title}
-                                className="aspect-auto rounded-md"
-                                width={150}
-                                height={200}
-                            ></Image>
-                        </Link>
-                    ))}
-                </div>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 z-10 bg-background"
-                    onClick={() => handleScroll("left")}
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 z-10 bg-background"
-                    onClick={() => handleScroll("right")}
-                >
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
-            </div>
+            <AliceCarousel
+                controlsStrategy="responsive"
+                autoPlay
+                autoPlayInterval={3000}
+                animationDuration={1000}
+                infinite
+                responsive={{
+                    0: {
+                        items: 1,
+                    },
+                    1024: {
+                        items: 4,
+                    },
+                }}
+                items={books.map((book) => (
+                    <Link
+                        key={book.id}
+                        href={`/commerce/book/${book.id}`}
+                        className="grid place-items-center cursor-default"
+                    >
+                        <Image
+                            className="cursor-pointer"
+                            src={book.mainImg}
+                            alt={book.title}
+                            width={300}
+                            height={300}
+                        ></Image>
+                    </Link>
+                ))}
+                renderPrevButton={({ isDisabled }) =>
+                    !isDisabled &&
+                    books.length > 1 && (
+                        <Button variant="ghost">
+                            <ChevronLeft></ChevronLeft>
+                        </Button>
+                    )
+                }
+                renderNextButton={({ isDisabled }) =>
+                    !isDisabled &&
+                    books.length > 1 && (
+                        <Button variant="ghost">
+                            <ChevronRight></ChevronRight>
+                        </Button>
+                    )
+                }
+            ></AliceCarousel>
         </section>
     )
 }

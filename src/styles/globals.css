@@ -86,3 +86,11 @@
     z-index: 1000;
     cursor: zoom-out;
 }
+
+.alice-carousel__dots-item.__active {
+    background: black !important;
+}
+
+.alice-carousel__dots-item {
+    background: gray !important;
+}
