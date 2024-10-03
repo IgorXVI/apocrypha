@@ -94,3 +94,7 @@
 .alice-carousel__dots-item {
     background: gray !important;
 }
+
+.alice-carousel.__ssr .alice-carousel__stage-item:not(.__active) {
+    display: none;
+}

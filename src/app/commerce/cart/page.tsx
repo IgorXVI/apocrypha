@@ -93,13 +93,18 @@ export default function CartPage() {
                                 {cartContent.map((item) => (
                                     <TableRow key={item.id}>
                                         <TableCell>
-                                            <Image
-                                                src={item.mainImg}
-                                                alt={`Cover of ${item.title}`}
-                                                className="w-16 h-20 object-cover"
-                                                width={100}
-                                                height={100}
-                                            />
+                                            <Link
+                                                href={`/commerce/book/${item.id}`}
+                                                className="w-full h-full"
+                                            >
+                                                <Image
+                                                    src={item.mainImg}
+                                                    alt={`Cover of ${item.title}`}
+                                                    className="w-16 h-20 object-cover"
+                                                    width={100}
+                                                    height={100}
+                                                />
+                                            </Link>
                                         </TableCell>
                                         <TableCell>
                                             <h3 className="font-semibold">{item.title}</h3>
@@ -130,7 +135,7 @@ export default function CartPage() {
                                                 </Button>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right">R$ {(item.price * item.amount).toFixed(2)}</TableCell>
+                                        <TableCell className="text-right text-nowrap">R$ {(item.price * item.amount).toFixed(2)}</TableCell>
                                         <TableCell>
                                             <Button
                                                 variant="ghost"
