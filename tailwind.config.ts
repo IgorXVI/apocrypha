@@ -94,9 +94,6 @@ export default {
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
             },
-            backgroundImage: {
-                "hero-pattern": "url('https://utfs.io/f/V4ibhetxoONesLH6ugqNya9FQW4pdoSONJztHlc8ZIUhMBu7')",
-            },
         },
     },
     plugins: [tailwindcssAnimate, tailwindcssScrollBar],

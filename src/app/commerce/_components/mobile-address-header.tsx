@@ -2,7 +2,7 @@ import { MapPin } from "lucide-react"
 
 export default function MobileAddressHeader() {
     return (
-        <div className="flex md:hidden bg-slate-600 text-white text-lg items-center gap-10 p-2 md:px-10 w-full">
+        <div className="flex md:hidden bg-black text-white text-lg items-center gap-10 p-2 md:px-10 w-full">
             <div className="flex items-center rounded gap-1">
                 <MapPin className="h-6 w-6"></MapPin>
                 <div className="flex leading-tight">

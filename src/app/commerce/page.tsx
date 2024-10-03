@@ -122,9 +122,23 @@ export default async function MainCommercePage() {
     return (
         <main className="flex-grow">
             <HeroSection></HeroSection>
-            <div className="container mx-auto px-4 py-12">
+            <div className="container mx-auto px-4 py-12 flex flex-col gap-10">
                 <HorizontalList
-                    title="Livros mais vendidos"
+                    title="Lançamentos"
+                    books={books.map((book) => ({
+                        id: book.id,
+                        title: book.title,
+                        mainImg: book.DisplayImage[0]?.url ?? "",
+                        author: book.AuthorOnBook[0]?.Author.name ?? "",
+                        price: book.price.toNumber(),
+                        authorId: book.AuthorOnBook[0]?.authorId ?? "",
+                        stripeId: book.stripeId,
+                        description: book.description,
+                    }))}
+                />
+
+                <HorizontalList
+                    title="Para os pequenos"
                     books={books.map((book) => ({
                         id: book.id,
                         title: book.title,
