@@ -224,7 +224,7 @@ function genYears(yearRange = 50) {
 function Calendar({ className, classNames, showOutsideDays = true, yearRange = 50, ...props }: CalendarProps & { yearRange?: number }) {
     const MONTHS = React.useMemo(() => {
         let locale: Pick<Locale, "options" | "localize" | "formatLong"> = enUS
-        const { options, localize, formatLong } = props.locale || {}
+        const { options, localize, formatLong } = props.locale ?? {}
         if (options && localize && formatLong) {
             locale = {
                 options,
@@ -475,13 +475,13 @@ const TimePickerInput = React.forwardRef<HTMLInputElement, TimePickerInputProps>
         return (
             <Input
                 ref={ref}
-                id={id || picker}
-                name={name || picker}
+                id={id ?? picker}
+                name={name ?? picker}
                 className={cn(
                     "w-[48px] text-center font-mono text-base tabular-nums caret-transparent focus:bg-accent focus:text-accent-foreground [&::-webkit-inner-spin-button]:appearance-none",
                     className,
                 )}
-                value={value || calculatedValue}
+                value={value ?? calculatedValue}
                 onChange={(e) => {
                     e.preventDefault()
                     onChange?.(e)

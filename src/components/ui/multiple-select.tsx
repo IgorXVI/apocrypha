@@ -18,9 +18,7 @@ export interface Option {
     /** Group the options by providing key. */
     [key: string]: string | boolean | undefined
 }
-interface GroupOption {
-    [key: string]: Option[]
-}
+type GroupOption = Record<string, Option[]>
 
 interface MultipleSelectorProps {
     value?: Option[]
@@ -87,7 +85,7 @@ export function useDebounce<T>(value: T, delay?: number): T {
     const [debouncedValue, setDebouncedValue] = React.useState<T>(value)
 
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedValue(value), delay || 500)
+        const timer = setTimeout(() => setDebouncedValue(value), delay ?? 500)
 
         return () => {
             clearTimeout(timer)
@@ -195,16 +193,16 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
         const [isLoading, setIsLoading] = React.useState(false)
         const dropdownRef = React.useRef<HTMLDivElement>(null) // Added this
 
-        const [selected, setSelected] = React.useState<Option[]>(value || [])
+        const [selected, setSelected] = React.useState<Option[]>(value ?? [])
         const [options, setOptions] = React.useState<GroupOption>(transToGroupOption(arrayDefaultOptions, groupBy))
         const [inputValue, setInputValue] = React.useState("")
-        const debouncedSearchTerm = useDebounce(inputValue, delay || 500)
+        const debouncedSearchTerm = useDebounce(inputValue, delay ?? 500)
 
         React.useImperativeHandle(
             ref,
             () => ({
                 selectedValue: [...selected],
-                input: inputRef.current as HTMLInputElement,
+                input: inputRef.current!,
                 focus: () => inputRef?.current?.focus(),
                 reset: () => setSelected([]),
             }),
@@ -240,8 +238,8 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                         if (input.value === "" && selected.length > 0) {
                             const lastSelectOption = selected[selected.length - 1]
                             // If last item is fixed, we should not remove it.
-                            if (!lastSelectOption.fixed) {
-                                handleUnselect(selected[selected.length - 1])
+                            if (!lastSelectOption?.fixed) {
+                                handleUnselect(selected[selected.length - 1]!)
                             }
                         }
                     }
@@ -291,7 +289,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
 
             const doSearchSync = () => {
                 const res = onSearchSync?.(debouncedSearchTerm)
-                setOptions(transToGroupOption(res || [], groupBy))
+                setOptions(transToGroupOption(res ?? [], groupBy))
             }
 
             const exec = async () => {
@@ -316,7 +314,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
             const doSearch = async () => {
                 setIsLoading(true)
                 const res = await onSearch?.(debouncedSearchTerm)
-                setOptions(transToGroupOption(res || [], groupBy))
+                setOptions(transToGroupOption(res ?? [], groupBy))
                 setIsLoading(false)
             }
 
@@ -450,13 +448,13 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                                         badgeClassName,
                                     )}
                                     data-fixed={option.fixed}
-                                    data-disabled={disabled || undefined}
+                                    data-disabled={disabled ?? undefined}
                                 >
                                     {option.label}
                                     <button
                                         className={cn(
                                             "ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                                            (disabled || option.fixed) && "hidden",
+                                            (disabled ?? option.fixed) && "hidden",
                                         )}
                                         onKeyDown={(e) => {
                                             if (e.key === "Enter") {
@@ -492,7 +490,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                             }}
                             onFocus={(event) => {
                                 setOpen(true)
-                                triggerSearchOnFocus && onSearch?.(debouncedSearchTerm)
+                                void (triggerSearchOnFocus && onSearch?.(debouncedSearchTerm))
                                 inputProps?.onFocus?.(event)
                             }}
                             placeholder={hidePlaceholderWhenSelected && selected.length !== 0 ? "" : placeholder}
@@ -515,8 +513,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                             className={cn(
                                 "absolute right-0 h-6 w-6 p-0",
                                 (hideClearAllButton ||
-                                    disabled ||
-                                    selected.length < 1 ||
+                                    (disabled ?? selected.length < 1) ||
                                     selected.filter((s) => s.fixed).length === selected.length) &&
                                     "hidden",
                             )}
