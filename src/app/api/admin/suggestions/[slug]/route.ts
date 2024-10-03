@@ -11,7 +11,7 @@ import {
 } from "~/lib/types"
 import { getSuperCategoryCompositeSuggestions } from "~/server/category-queries"
 
-export const decideQueries = (slug: string) => {
+const decideQueries = (slug: string) => {
     switch (slug) {
         case "author":
             return {
