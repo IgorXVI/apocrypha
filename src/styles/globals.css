@@ -76,6 +76,10 @@
     @apply aspect-square rounded-md object-cover;
 }
 
+.common-form-modal {
+    @apply overflow-y-scroll max-h-full scrollbar-none md:max-w-[60vw];
+}
+
 .zoomed-image-container {
     position: fixed;
     top: 0;
@@ -88,16 +92,4 @@
     align-items: center;
     z-index: 1000;
     cursor: zoom-out;
-}
-
-.alice-carousel__dots-item.__active {
-    background: black !important;
-}
-
-.alice-carousel__dots-item {
-    background: gray !important;
-}
-
-.alice-carousel.__ssr .alice-carousel__stage-item:not(.__active) {
-    display: none;
 }

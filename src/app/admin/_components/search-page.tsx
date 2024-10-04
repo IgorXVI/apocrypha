@@ -425,7 +425,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                     }
                 }}
             >
-                <DialogContent className="overflow-y-scroll max-h-full scrollbar-none md:max-w-[60vw]">
+                <DialogContent className="common-form-modal">
                     {searchParams.has(ModalParams.delete) && (
                         <>
                             <DialogHeader>

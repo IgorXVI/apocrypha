@@ -8,6 +8,8 @@ export const toastError = (errorMessage: string) => {
     })
 }
 
+export const toastSuccess = (successMessage: string) => toast(<span className="text-lg text-green-500">{successMessage}</span>)
+
 export const toastLoading = (loadingMessage: string, id: string) => {
     toast(
         <div className="flex flex-row items-center gap-4">

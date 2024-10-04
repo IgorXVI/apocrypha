@@ -130,3 +130,15 @@ model Category {
     SuperCategory   SuperCategory?   @relation(fields: [superCategoryId], references: [id])
     superCategoryId String?          @db.Uuid
 }
+
+model Address {
+    id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId       String  @unique
+    cep          String
+    state        String
+    city         String
+    neighborhood String
+    street       String
+    number       Int
+    complement   String?
+}
