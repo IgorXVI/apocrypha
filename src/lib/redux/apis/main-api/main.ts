@@ -15,6 +15,7 @@ import {
 } from "~/app/api/admin/generic-crud/[slug]/route"
 import { type GETApiSuggestionOutput, type GETApiSuggestionInput } from "~/app/api/admin/suggestions/[slug]/route"
 import { type POSTApiCheckoutInput, type POSTApiCheckoutOutput } from "~/app/api/checkout/route"
+import { type GETApiUserAddressOutput, type POSTApiUserAddressInput, type POSTApiUserAddressOutput } from "~/app/api/user/address/route"
 
 export const mainApi = createApi({
     reducerPath: "mainApi",
@@ -81,11 +82,21 @@ export const mainApi = createApi({
         checkout: builder.mutation<POSTApiCheckoutOutput, POSTApiCheckoutInput>({
             query: ({ data }) => {
                 return {
-                    url: `checkout`,
+                    url: "checkout",
                     method: "POST",
                     body: data,
                 }
             },
+        }),
+        getUserAddress: builder.query<GETApiUserAddressOutput, undefined>({
+            query: () => ({ url: "user/address" }),
+        }),
+        saveUserAddress: builder.mutation<POSTApiUserAddressOutput, POSTApiUserAddressInput>({
+            query: ({ data }) => ({
+                url: "user/address",
+                method: "POST",
+                body: data,
+            }),
         }),
     }),
 })
