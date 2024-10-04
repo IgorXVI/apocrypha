@@ -3,9 +3,7 @@ import { LoaderCircle } from "lucide-react"
 import { type CommonDBReturn } from "~/lib/types"
 
 export const toastError = (errorMessage: string) => {
-    toast(<span className="text-lg text-red-500">{errorMessage}</span>, {
-        duration: 5000,
-    })
+    toast(<span className="text-lg text-red-500">{errorMessage}</span>)
 }
 
 export const toastSuccess = (successMessage: string) => toast(<span className="text-lg text-green-500">{successMessage}</span>)
@@ -53,9 +51,7 @@ export async function dbQueryWithToast<T>({
         toast.dismiss(beginDBCallId)
 
         if (!result.success) {
-            toast(<span className="text-lg text-red-500">Erro retornado do servidor: {result.errorMessage}</span>, {
-                duration: 5000,
-            })
+            toast(<span className="text-lg text-red-500">Erro retornado do servidor: {result.errorMessage}</span>)
             return
         }
 
@@ -64,8 +60,6 @@ export async function dbQueryWithToast<T>({
         return result.data
     } catch (error) {
         toast.dismiss(beginDBCallId)
-        toast(<span className="text-lg text-red-500">Erro ao tentar chamar o servidor: {(error as Error).message}</span>, {
-            duration: 5000,
-        })
+        toast(<span className="text-lg text-red-500">Erro ao tentar chamar o servidor: {(error as Error).message}</span>)
     }
 }

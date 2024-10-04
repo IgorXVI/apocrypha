@@ -100,6 +100,7 @@ export default function UserAddress() {
                             errorMessage: "",
                         }
                     })
+                    .then((result) => getUserAddress.refetch().then(() => result))
                     .catch((error) => ({
                         data: undefined,
                         success: false,
