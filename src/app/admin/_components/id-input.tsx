@@ -29,7 +29,7 @@ export default function IdInput(props: {
     }
 
     if (optionsQuery.error) {
-        toastError(optionsQuery.error as string)
+        toastError(JSON.stringify(optionsQuery.error))
     }
 
     const suggestions = useMemo(() => (optionsQuery.data ? (optionsQuery.data.success ? optionsQuery.data.data : []) : []), [optionsQuery.data])

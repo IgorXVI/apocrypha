@@ -24,7 +24,7 @@ export default function DeleteOne(props: {
                 triggerDeleteOne({ id: props.id, slug: props.slug })
                     .then((result) => {
                         if (result.error) {
-                            throw new Error(result.error as string)
+                            throw new Error(JSON.stringify(result.error))
                         }
 
                         if (!result.data.success) {

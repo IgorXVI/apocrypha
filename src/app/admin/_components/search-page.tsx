@@ -73,7 +73,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
     })
 
     if (getRowsQuery.isError) {
-        toastError(getRowsQuery.error as string)
+        toastError(JSON.stringify(getRowsQuery.error))
     }
 
     if (!getRowsQuery.isLoading && !getRowsQuery.data?.success) {

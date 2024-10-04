@@ -175,7 +175,7 @@ export async function POST(req: Request) {
 export type GETApiUserAddressOutput =
     | {
           success: true
-          data: UserAdressSchema
+          data: UserAdressSchema | null
       }
     | {
           success: false
@@ -198,7 +198,7 @@ export async function GET() {
     }
 
     const result = await errorHandler(() =>
-        db.address.findUniqueOrThrow({
+        db.address.findUnique({
             where: {
                 userId: user.userId,
             },

@@ -66,7 +66,7 @@ export default function UserAddress() {
     const [triggerSaveUserAddress] = mainApi.useSaveUserAddressMutation()
     const getUserAddress = mainApi.useGetUserAddressQuery(undefined)
 
-    const addressData = getUserAddress.data?.success ? getUserAddress.data.data : undefined
+    const addressData = getUserAddress.data?.success ? (getUserAddress.data.data ?? undefined) : undefined
 
     const form = useForm<UserAddressSchemaType>({
         resolver: zodResolver(userAddressValidationSchema),
@@ -166,7 +166,7 @@ export default function UserAddress() {
     }
 
     if (getUserAddress.isError) {
-        toastError(getUserAddress.error as string)
+        toastError(JSON.stringify(getUserAddress.error))
         return <XCircleIcon color="red"></XCircleIcon>
     }
 
