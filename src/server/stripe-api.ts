@@ -131,6 +131,36 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         quantity: productQantityMap.get(stripeProduct.id),
     }))
 
+    const booksDimensions = await db.book.findMany({
+        where: {
+            stripeId: {
+                in: products.map((p) => p.stripeId),
+            },
+        },
+        select: {
+            stripeId: true,
+            weightGrams: true,
+            widthCm: true,
+            heightCm: true,
+            thicknessCm: true,
+        },
+    })
+
+    const bookDimensionsMap = new Map<
+        string,
+        {
+            stripeId: string
+            weightGrams: number
+            widthCm: number
+            heightCm: number
+            thicknessCm: number
+        }
+    >()
+
+    booksDimensions.forEach((book) => {
+        bookDimensionsMap.set(book.stripeId, book)
+    })
+
     const superFreteResult: {
         name: string
         price: number
@@ -149,7 +179,7 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         body: JSON.stringify({
             from: { postal_code: "99700194" },
             to: { postal_code: userAddress.cep },
-            services: "1,2,17",
+            services: "2,1,17",
             options: {
                 own_hand: false,
                 receipt: false,
@@ -158,15 +188,13 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             },
             products: stripeProducts.value.data.map((stripeProduct) => ({
                 quantity: productQantityMap.get(stripeProduct.id),
-                height: 1,
-                width: 1,
-                length: 1,
-                weight: 1,
+                height: bookDimensionsMap.get(stripeProduct.id)?.heightCm,
+                width: bookDimensionsMap.get(stripeProduct.id)?.widthCm,
+                length: bookDimensionsMap.get(stripeProduct.id)?.thicknessCm,
+                weight: (bookDimensionsMap.get(stripeProduct.id)?.weightGrams ?? 0) / 1000,
             })),
         }),
     }).then((res) => res.json())
-
-    console.log(superFreteResult)
 
     const [checkoutSession] = await Promise.allSettled([
         stripe.checkout.sessions.create({
