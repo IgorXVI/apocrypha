@@ -177,7 +177,7 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             "content-type": "application/json",
         },
         body: JSON.stringify({
-            from: { postal_code: "99700194" },
+            from: { postal_code: "90480000" },
             to: { postal_code: userAddress.cep },
             services: "2,1,17",
             options: {
