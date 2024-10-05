@@ -3,8 +3,10 @@ import "server-only"
 import Stripe from "stripe"
 
 import { env } from "../env"
+import { auth } from "@clerk/nextjs/server"
+import { db } from "./db"
 
-const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
 })
 
@@ -83,6 +85,28 @@ export const restoreProduct = async (stripeId: string) => {
 }
 
 export const createCheckoutSession = async (products: { stripeId: string; quantity: number }[]) => {
+    const user = auth()
+
+    if (!user.userId) {
+        return {
+            success: false,
+            message: `User is not authorized.`,
+        }
+    }
+
+    const userAddress = await db.address.findUnique({
+        where: {
+            userId: user.userId,
+        },
+    })
+
+    if (!userAddress) {
+        return {
+            success: false,
+            message: `User has no address.`,
+        }
+    }
+
     const productQantityMap = new Map<string, number>()
     products.forEach((product) => {
         productQantityMap.set(product.stripeId, product.quantity)
@@ -112,8 +136,51 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             mode: "payment",
             currency: "brl",
             line_items: lineItems,
-            success_url: `${env.URL}/commerce/payment-success`,
+            success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
             cancel_url: `${env.URL}/commerce/payment-canceled`,
+            locale: "pt-BR",
+            shipping_options: [
+                {
+                    shipping_rate_data: {
+                        type: "fixed_amount",
+                        display_name: "Entrega normal",
+                        delivery_estimate: {
+                            minimum: {
+                                unit: "business_day",
+                                value: 5,
+                            },
+                            maximum: {
+                                unit: "business_day",
+                                value: 20,
+                            },
+                        },
+                        fixed_amount: {
+                            amount: 1000,
+                            currency: "brl",
+                        },
+                    },
+                },
+                {
+                    shipping_rate_data: {
+                        type: "fixed_amount",
+                        display_name: "Entrega rápida",
+                        delivery_estimate: {
+                            minimum: {
+                                unit: "business_day",
+                                value: 2,
+                            },
+                            maximum: {
+                                unit: "business_day",
+                                value: 5,
+                            },
+                        },
+                        fixed_amount: {
+                            amount: 5000,
+                            currency: "brl",
+                        },
+                    },
+                },
+            ],
         }),
     ])
 
