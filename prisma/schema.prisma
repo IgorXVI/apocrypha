@@ -146,3 +146,9 @@ model Address {
     number       Int
     complement   String?
 }
+
+model OrderShipping {
+    id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionId       String @unique
+    shippingMethods Json[]
+}

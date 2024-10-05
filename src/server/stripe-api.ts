@@ -5,6 +5,7 @@ import Stripe from "stripe"
 import { env } from "../env"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "./db"
+import { type SuperFreteShipping } from "~/lib/types"
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -161,14 +162,7 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         bookDimensionsMap.set(book.stripeId, book)
     })
 
-    const superFreteResult: {
-        name: string
-        price: number
-        delivery_range: {
-            min: number
-            max: number
-        }
-    }[] = await fetch("https://sandbox.superfrete.com/api/v0/calculator", {
+    const superFreteResult: SuperFreteShipping[] = await fetch("https://sandbox.superfrete.com/api/v0/calculator", {
         method: "POST",
         headers: {
             Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
@@ -202,11 +196,14 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             currency: "brl",
             line_items: lineItems,
             success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
-            cancel_url: `${env.URL}/commerce/payment-canceled`,
+            cancel_url: `${env.URL}/commerce/payment-canceled/{CHECKOUT_SESSION_ID}`,
             locale: "pt-BR",
             shipping_options: superFreteResult.map((el) => ({
                 shipping_rate_data: {
                     type: "fixed_amount",
+                    metadata: {
+                        serviceId: el.id,
+                    },
                     display_name: el.name,
                     delivery_estimate: {
                         minimum: {
@@ -233,6 +230,13 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             message: `Failed to create checkout session: ${checkoutSession.reason}`,
         }
     }
+
+    await db.orderShipping.create({
+        data: {
+            sessionId: checkoutSession.value.id,
+            shippingMethods: superFreteResult,
+        },
+    })
 
     return {
         success: true,
