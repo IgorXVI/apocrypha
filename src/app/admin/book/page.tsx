@@ -114,6 +114,26 @@ const inputKeyMap: Record<
         label: "Edição",
         description: "Esse é a edição do livro.",
     },
+    heightCm: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Altura (cm)",
+        description: "Esse é a altura da capa do livro.",
+    },
+    widthCm: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Largura (cm)",
+        description: "Essa é a largura da capa do livro.",
+    },
+    thicknessCm: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Grossura (cm)",
+        description: "Esse é a grossura (depende da quantidade de páginas) do livro.",
+    },
+    weightGrams: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Peso (g)",
+        description: "Peso do livro (em gramas).",
+    },
     publisherId: {
         node: (field) => (
             <IdInput
@@ -267,6 +287,10 @@ export default function MainPage() {
                 relatedBookTitle: "Livro Relacionado",
                 mainAuthorName: "Autor Principal",
                 mainTranslatorName: "Tradutor Principal",
+                heightCm: "Altura (cm)",
+                widthCm: "Largura (cm)",
+                thicknessCm: "Grossura (cm)",
+                weightGrams: "Peso (g)",
             }}
             tableValuesMap={{
                 price: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,

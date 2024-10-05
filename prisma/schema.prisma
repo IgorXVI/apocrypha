@@ -37,6 +37,10 @@ model Book {
     isbn10Code       String?            @db.VarChar(10)
     isbn13Code       String?            @db.VarChar(13)
     edition          Int                @default(1)
+    heightCm         Float              @default(20)
+    widthCm          Float              @default(15)
+    thicknessCm      Float              @default(3)
+    weightGrams      Float              @default(800)
     language         Langs              @default(PORTUGUESE_BRAZILIAN)
     AuthorOnBook     AuthorOnBook[]
     TranslatorOnBook TranslatorOnBook[]
