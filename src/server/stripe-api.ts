@@ -131,6 +131,43 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         quantity: productQantityMap.get(stripeProduct.id),
     }))
 
+    const superFreteResult: {
+        name: string
+        price: number
+        delivery_range: {
+            min: number
+            max: number
+        }
+    }[] = await fetch("https://sandbox.superfrete.com/api/v0/calculator", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
+            "User-Agent": "Apocrypha (inazumaseleven04@gmail.com)",
+            accept: "application/json",
+            "content-type": "application/json",
+        },
+        body: JSON.stringify({
+            from: { postal_code: "99700194" },
+            to: { postal_code: userAddress.cep },
+            services: "1,2,17",
+            options: {
+                own_hand: false,
+                receipt: false,
+                insurance_value: 0,
+                use_insurance_value: false,
+            },
+            products: stripeProducts.value.data.map((stripeProduct) => ({
+                quantity: productQantityMap.get(stripeProduct.id),
+                height: 1,
+                width: 1,
+                length: 1,
+                weight: 1,
+            })),
+        }),
+    }).then((res) => res.json())
+
+    console.log(superFreteResult)
+
     const [checkoutSession] = await Promise.allSettled([
         stripe.checkout.sessions.create({
             mode: "payment",
@@ -139,48 +176,26 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
             cancel_url: `${env.URL}/commerce/payment-canceled`,
             locale: "pt-BR",
-            shipping_options: [
-                {
-                    shipping_rate_data: {
-                        type: "fixed_amount",
-                        display_name: "Entrega normal",
-                        delivery_estimate: {
-                            minimum: {
-                                unit: "business_day",
-                                value: 5,
-                            },
-                            maximum: {
-                                unit: "business_day",
-                                value: 20,
-                            },
+            shipping_options: superFreteResult.map((el) => ({
+                shipping_rate_data: {
+                    type: "fixed_amount",
+                    display_name: el.name,
+                    delivery_estimate: {
+                        minimum: {
+                            unit: "business_day",
+                            value: el.delivery_range.min,
                         },
-                        fixed_amount: {
-                            amount: 1000,
-                            currency: "brl",
+                        maximum: {
+                            unit: "business_day",
+                            value: el.delivery_range.max,
                         },
                     },
-                },
-                {
-                    shipping_rate_data: {
-                        type: "fixed_amount",
-                        display_name: "Entrega rápida",
-                        delivery_estimate: {
-                            minimum: {
-                                unit: "business_day",
-                                value: 2,
-                            },
-                            maximum: {
-                                unit: "business_day",
-                                value: 5,
-                            },
-                        },
-                        fixed_amount: {
-                            amount: 5000,
-                            currency: "brl",
-                        },
+                    fixed_amount: {
+                        amount: Math.ceil(el.price * 100),
+                        currency: "brl",
                     },
                 },
-            ],
+            })),
         }),
     ])
 
