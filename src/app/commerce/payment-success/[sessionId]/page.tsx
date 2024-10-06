@@ -17,7 +17,6 @@ function PaymentSuccessView({
     return (
         <div className="py-32 flex flex-col items-center space-y-6">
             <p className="text-2xl text-center font-bold text-green-500">O pagamento foi realizado com sucesso!</p>
-            <p>{JSON.stringify(order)}</p>
             <Link
                 href={`/commerce/user-order/${order.id}`}
                 className="text-blue-500 text-center"
@@ -116,7 +115,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             service: Number(sessionShippingChoice!.metadata.serviceId),
             products: shippingProducts,
             volumes: { ...shippingMethodChoice?.packages[0].dimensions, weight: shippingMethodChoice?.packages[0].weight },
-            tag: "Pedido de teste 1",
+            tag: JSON.stringify({ sessionId, userId: user.userId }),
             url: env.URL,
             platform: env.APP_NAME,
             options: {
