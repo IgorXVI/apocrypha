@@ -54,7 +54,7 @@ export default function UserAddress() {
     const user = useUser()
 
     const [isDisabled, setIsDisabled] = useState(false)
-    const [modalClose, setmodalClose] = useState(false)
+    const [modalClose, setmodalClose] = useState(true)
     const [cepDetails, setCepDetails] = useState({
         state: "",
         city: "",

@@ -44,7 +44,7 @@ export default function CommerceFooter() {
                     <ul className="space-y-2">
                         <li>
                             <Link
-                                href="/orders"
+                                href="/commerce/user-order"
                                 className="text-sm hover:underline"
                             >
                                 Histórico de pedidos

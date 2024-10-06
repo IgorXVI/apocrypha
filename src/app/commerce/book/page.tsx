@@ -55,7 +55,7 @@ type SuperCategoryWithAll = {
     }[]
 }
 
-export default async function CategoriesPage({
+export default async function BooksPage({
     searchParams,
 }: {
     searchParams: {
