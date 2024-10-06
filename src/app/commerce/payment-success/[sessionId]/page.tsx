@@ -55,6 +55,10 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
 
         const session = await stripe.checkout.sessions.retrieve(sessionId)
 
+        if (session.status === "expired") {
+            return <p>Stripe session não é mais válida.</p>
+        }
+
         const [sessionShippingChoice, userAddress, userData, orderShippingData] = await Promise.all([
             stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
                 console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)

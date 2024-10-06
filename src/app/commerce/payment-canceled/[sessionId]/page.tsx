@@ -1,7 +1,16 @@
 import Link from "next/link"
 import { db } from "~/server/db"
+import { stripe } from "~/server/stripe-api"
 
 export default async function PaymentCanceled({ params: { sessionId } }: { params: { sessionId: string } }) {
+    const session = await stripe.checkout.sessions.retrieve(sessionId)
+
+    if (session.status === "expired") {
+        return <p>Stripe session não é mais válida.</p>
+    }
+
+    await stripe.checkout.sessions.expire(sessionId)
+
     await db.orderShipping.delete({
         where: {
             sessionId,
