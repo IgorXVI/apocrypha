@@ -1,8 +1,7 @@
 "use client"
 
-import Image from "next/image"
-import Link from "next/link"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel"
+import BookCard from "./book-card"
 
 type Book = {
     id: string
@@ -28,20 +27,9 @@ export default function HorizontalList({ title, books }: { title: string; books:
                     {books.map((book) => (
                         <CarouselItem
                             key={book.id}
-                            className="md:basis-1/2 lg:basis-1/3 pl-2 md:pl-4"
+                            className="pl-2 md:pl-4 max-w-[300px]"
                         >
-                            <Link
-                                href={`/commerce/book/${book.id}`}
-                                className="grid place-items-center cursor-default"
-                            >
-                                <Image
-                                    className="cursor-pointer"
-                                    src={book.mainImg}
-                                    alt={book.title}
-                                    width={300}
-                                    height={300}
-                                ></Image>
-                            </Link>
+                            <BookCard book={book}></BookCard>
                         </CarouselItem>
                     ))}
                 </CarouselContent>

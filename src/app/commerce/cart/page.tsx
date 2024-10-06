@@ -47,6 +47,13 @@ export default function CartPage() {
                 triggerCheckout({ data: { products } })
                     .then((result) => {
                         if (result.error) {
+                            if ("data" in result.error) {
+                                const errorData = result.error.data as Record<string, string> | undefined
+                                if (errorData?.errorMessage === "User has no address.") {
+                                    throw new Error("Por favor, cadastre o seu endereço.")
+                                }
+                            }
+
                             throw new Error(JSON.stringify(result.error))
                         }
 

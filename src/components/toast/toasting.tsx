@@ -51,7 +51,7 @@ export async function dbQueryWithToast<T>({
         toast.dismiss(beginDBCallId)
 
         if (!result.success) {
-            toast(<span className="text-lg text-red-500">Erro retornado do servidor: {result.errorMessage}</span>)
+            toast(<span className="text-lg text-red-500">{result.errorMessage}</span>)
             return
         }
 

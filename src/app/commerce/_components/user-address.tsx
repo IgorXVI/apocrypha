@@ -75,12 +75,13 @@ export default function UserAddress() {
 
     const onSubmit = async (values: UserAddressSchemaType) => {
         setIsDisabled(true)
+
         const result = await dbQueryWithToast({
             dbQuery: () =>
                 triggerSaveUserAddress({
                     data: {
-                        ...values,
                         ...cepDetails,
+                        ...values,
                     },
                 })
                     .then((result) => {

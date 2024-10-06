@@ -146,6 +146,7 @@ export async function POST(req: Request) {
         street: requestData.street,
         number: requestData.number,
         userId: user.userId,
+        complement: requestData.complement,
     }
 
     const result = await errorHandler(() =>
