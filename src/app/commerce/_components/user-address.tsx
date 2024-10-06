@@ -10,10 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 import { Input } from "~/components/ui/input"
 import { brasilApi } from "~/lib/redux/apis/brasil-api/brasil"
-import { useDebouncedCallback } from "use-debounce"
-import { useMemo, useState } from "react"
+import { useState, useMemo } from "react"
 import { mainApi } from "~/lib/redux/apis/main-api/main"
 import { useUser } from "@clerk/nextjs"
+import { useDebouncedCallback } from "use-debounce"
 
 export const userAddressValidationSchema = z.object({
     cep: z.preprocess(
@@ -73,6 +73,7 @@ export default function UserAddress() {
     })
 
     const onSubmit = async (values: UserAddressSchemaType) => {
+        setIsDisabled(true)
         await dbQueryWithToast({
             dbQuery: () =>
                 triggerSaveUserAddress({
@@ -110,55 +111,48 @@ export default function UserAddress() {
             waitingMessage: "Salvando endereço...",
             successMessage: "Endereço salvo.",
         })
+        setIsDisabled(false)
     }
 
     const onCepInput = useDebouncedCallback(async (e) => {
-        setIsDisabled(true)
-
-        const cepResponse = await dbQueryWithToast({
-            dbQuery: () =>
-                triggerGetCepInfo(e.target.value || "0")
-                    .then((result) => {
-                        if (result.error) {
-                            if ("status" in result.error) {
-                                if (result.error.status === 404) {
-                                    throw new Error("CEP não foi encontrado.")
-                                }
-
-                                const erroData = result.error.data as { message: string } | undefined
-
-                                throw new Error(
-                                    erroData?.message ?? `STATUS - ${result.error.status}: DATA - ${JSON.stringify(result.error.data ?? {})}`,
-                                )
-                            } else {
-                                throw new Error(`${result.error.name}: ${result.error.message}`)
-                            }
+        const cepResponse = await triggerGetCepInfo((e.target as HTMLInputElement).value || "0")
+            .then((result) => {
+                if (result.error) {
+                    if ("status" in result.error) {
+                        if (result.error.status === 404) {
+                            throw new Error("CEP não foi encontrado.")
                         }
 
-                        return {
-                            data: result.data,
-                            success: true,
-                            errorMessage: "",
-                        }
-                    })
-                    .catch((error) => ({
-                        data: undefined,
-                        success: false,
-                        errorMessage: (error as Error).message,
-                    })),
-            mutationName: "get-cep-info",
-            waitingMessage: "Buscando dados do CEP...",
-            successMessage: "Dados do CEP encontrados.",
-        })
+                        const erroData = result.error.data as { message: string } | undefined
 
-        setIsDisabled(false)
+                        throw new Error(erroData?.message ?? `STATUS - ${result.error.status}: DATA - ${JSON.stringify(result.error.data ?? {})}`)
+                    } else {
+                        throw new Error(`${result.error.name}: ${result.error.message}`)
+                    }
+                }
 
-        if (!cepResponse) {
+                return {
+                    data: result.data,
+                    success: true,
+                    errorMessage: "",
+                }
+            })
+            .catch((error) => ({
+                data: undefined,
+                success: false,
+                errorMessage: (error as Error).message,
+            }))
+
+        if (!cepResponse.data) {
+            if (cepResponse.errorMessage === "CEP não foi encontrado.") {
+                toastError(cepResponse.errorMessage)
+            }
+
             return
         }
 
-        setCepDetails(cepResponse)
-    }, 500)
+        setCepDetails(cepResponse.data)
+    }, 1000)
 
     const userName = useMemo(() => user.user?.firstName ?? "N/A", [user])
 
