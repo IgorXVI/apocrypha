@@ -119,7 +119,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         } catch (sessionCancelError) {
             console.error("SESSION_SUCCESS_CANCEL_ERROR", sessionCancelError)
             return (
-                <p className="text-6xl text-red-500">
+                <p className="text-6xl text-red-500 font-extrabold">
                     Ocorreu um erro durante a conclusão do checkout, O SEU DINHEIRO NÃO FOI DEVOLVIDO, CONTATE O SUPORTE POR EMAIL:{" "}
                     {env.APP_USER_AGENT}.
                 </p>
