@@ -121,7 +121,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             return (
                 <p className="text-6xl text-red-500 font-extrabold">
                     Ocorreu um erro durante a conclusão do checkout, O SEU DINHEIRO NÃO FOI DEVOLVIDO, CONTATE O SUPORTE POR EMAIL:{" "}
-                    {env.APP_USER_AGENT}.
+                    {env.APP_USER_AGENT}. CHECKOUT_SESSION_ID: {sessionId}
                 </p>
             )
         }
