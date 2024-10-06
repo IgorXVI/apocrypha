@@ -54,6 +54,7 @@ export default function UserAddress() {
     const user = useUser()
 
     const [isDisabled, setIsDisabled] = useState(false)
+    const [modalClose, setmodalClose] = useState(false)
     const [cepDetails, setCepDetails] = useState({
         state: "",
         city: "",
@@ -74,7 +75,7 @@ export default function UserAddress() {
 
     const onSubmit = async (values: UserAddressSchemaType) => {
         setIsDisabled(true)
-        await dbQueryWithToast({
+        const result = await dbQueryWithToast({
             dbQuery: () =>
                 triggerSaveUserAddress({
                     data: {
@@ -112,6 +113,10 @@ export default function UserAddress() {
             successMessage: "Endereço salvo.",
         })
         setIsDisabled(false)
+
+        if (result?.success) {
+            setmodalClose(true)
+        }
     }
 
     const onCepInput = useDebouncedCallback(async (e) => {
@@ -167,6 +172,7 @@ export default function UserAddress() {
 
     return (
         <Dialog
+            open={!modalClose}
             onOpenChange={(open) => {
                 if (open && addressData) {
                     form.setValue("cep", addressData.cep)
@@ -174,6 +180,7 @@ export default function UserAddress() {
                     form.setValue("complement", addressData.complement ?? undefined)
                     setCepDetails(addressData)
                 }
+                setmodalClose(!open)
             }}
         >
             <DialogTrigger>

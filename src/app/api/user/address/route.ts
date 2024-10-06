@@ -50,12 +50,15 @@ const userAddressValidationSchema = z.object({
         })
         .default(""),
     number: z.number().int().positive({ message: "Número deve ser positivo." }).default(0),
-    complement: z
-        .string()
-        .min(2, {
-            message: "Complemento deve ter no mínimo 2 letras.",
-        })
-        .optional(),
+    complement: z.preprocess(
+        (value) => value ?? undefined,
+        z
+            .string()
+            .min(2, {
+                message: "Complemento deve ter no mínimo 2 letras.",
+            })
+            .optional(),
+    ),
 })
 
 type UserAdressSchema = z.infer<typeof userAddressValidationSchema>
