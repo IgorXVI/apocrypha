@@ -115,8 +115,15 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         try {
             const sessionData = await stripe.checkout.sessions.retrieve(sessionId)
             await stripe.paymentIntents.cancel(sessionData.payment_intent?.toString() ?? "")
+            return <p>Ocorreu um erro durante a conclusão do checkout, mas o seu dinheiro foi devolvido.</p>
         } catch (sessionCancelError) {
             console.error("SESSION_SUCCESS_CANCEL_ERROR", sessionCancelError)
+            return (
+                <p className="text-6xl text-red-500">
+                    Ocorreu um erro durante a conclusão do checkout, O SEU DINHEIRO NÃO FOI DEVOLVIDO, CONTATE O SUPORTE POR EMAIL:{" "}
+                    {env.APP_USER_AGENT}.
+                </p>
+            )
         }
     }
 }
