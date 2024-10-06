@@ -114,15 +114,30 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         console.error("SESSION_SUCCESS_ERROR", error)
         try {
             const sessionData = await stripe.checkout.sessions.retrieve(sessionId)
-            await stripe.paymentIntents.cancel(sessionData.payment_intent?.toString() ?? "")
-            return <p>Ocorreu um erro durante a conclusão do checkout, mas o seu dinheiro foi devolvido.</p>
+            await stripe.refunds.create({
+                amount: sessionData.amount_total ?? 0,
+                reason: "requested_by_customer",
+                reverse_transfer: true,
+                refund_application_fee: true,
+                payment_intent: sessionData.payment_intent?.toString(),
+            })
+            return (
+                <div className="container mx-auto grid place-content-center">
+                    <p className="text-2xl">
+                        Ocorreu um erro durante a conclusão do checkout, mas o seu dinheiro foi devolvido. Qualquer dúvida contate o suporte por email{" "}
+                        {env.APP_SUPPORT_EMAIL}
+                    </p>
+                </div>
+            )
         } catch (sessionCancelError) {
             console.error("SESSION_SUCCESS_CANCEL_ERROR", sessionCancelError)
             return (
-                <p className="text-6xl text-red-500 font-extrabold">
-                    Ocorreu um erro durante a conclusão do checkout, O SEU DINHEIRO NÃO FOI DEVOLVIDO, CONTATE O SUPORTE POR EMAIL:{" "}
-                    {env.APP_USER_AGENT}. CHECKOUT_SESSION_ID: {sessionId}
-                </p>
+                <div className="container mx-auto grid place-content-center">
+                    <p className="text-4xl text-red-500 font-extrabold">
+                        Ocorreu um erro durante a conclusão do checkout, O SEU DINHEIRO NÃO FOI DEVOLVIDO, CONTATE O SUPORTE POR EMAIL:{" "}
+                        {env.APP_SUPPORT_EMAIL}. CHECKOUT_SESSION_ID: {sessionId}
+                    </p>
+                </div>
             )
         }
     }

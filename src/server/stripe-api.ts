@@ -238,8 +238,8 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
 
     const productsForOrderShipping: SuperFreteShippingProduct[] = products.map((product) => ({
         name: booksMap.get(product.stripeId)?.title ?? "N/A",
-        quantity: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
-        unitary_value: product.quantity,
+        quantity: product.quantity,
+        unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
     }))
 
     await db.orderShipping.create({

@@ -20,6 +20,7 @@ export const env = createEnv({
         COMPANY_NEIGHBORHOOD: z.string(),
         COMPANY_STREET: z.string(),
         APP_NAME: z.string(),
+        APP_SUPPORT_EMAIL: z.string().email(),
     },
     client: {
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
@@ -51,6 +52,7 @@ export const env = createEnv({
         COMPANY_CITY: process.env.COMPANY_CITY,
         COMPANY_NEIGHBORHOOD: process.env.COMPANY_NEIGHBORHOOD,
         COMPANY_STREET: process.env.COMPANY_STREET,
+        APP_SUPPORT_EMAIL: process.env.APP_SUPPORT_EMAIL,
     },
     skipValidation: !!process.env.SKIP_ENV_VALIDATION,
     emptyStringAsUndefined: true,
