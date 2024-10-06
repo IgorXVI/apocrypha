@@ -95,6 +95,7 @@ export type SuperFreteShipping = {
 }
 
 export type SuperFreteShippingProduct = {
+    bookDBId: string
     name: string
     quantity: number
     unitary_value: number

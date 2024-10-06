@@ -140,6 +140,7 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             },
         },
         select: {
+            id: true,
             title: true,
             price: true,
             stripeId: true,
@@ -153,6 +154,7 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
     const booksMap = new Map<
         string,
         {
+            id: string
             title: string
             price: Prisma.Decimal
             stripeId: string
@@ -237,6 +239,7 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
     }
 
     const productsForOrderShipping: SuperFreteShippingProduct[] = products.map((product) => ({
+        bookDBId: booksMap.get(product.stripeId)?.id ?? "N/A",
         name: booksMap.get(product.stripeId)?.title ?? "N/A",
         quantity: product.quantity,
         unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,

@@ -28,6 +28,7 @@ export const env = createEnv({
         NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string(),
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string(),
         NEXT_PUBLIC_APP_NAME: z.string(),
+        NEXT_PUBLIC_BRASIL_API: z.string().url(),
     },
     runtimeEnv: {
         DATABASE_URL: process.env.DATABASE_URL,
@@ -53,6 +54,7 @@ export const env = createEnv({
         COMPANY_NEIGHBORHOOD: process.env.COMPANY_NEIGHBORHOOD,
         COMPANY_STREET: process.env.COMPANY_STREET,
         APP_SUPPORT_EMAIL: process.env.APP_SUPPORT_EMAIL,
+        NEXT_PUBLIC_BRASIL_API: process.env.NEXT_PUBLIC_BRASIL_API,
     },
     skipValidation: !!process.env.SKIP_ENV_VALIDATION,
     emptyStringAsUndefined: true,

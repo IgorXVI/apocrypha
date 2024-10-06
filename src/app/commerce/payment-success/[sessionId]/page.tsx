@@ -7,38 +7,89 @@ import { stripe } from "~/server/stripe-api"
 
 const cClient = clerkClient()
 
+function PaymentSuccessView({
+    order,
+}: {
+    order: {
+        id: string
+    }
+}) {
+    return (
+        <div className="py-32 flex flex-col items-center space-y-6">
+            <p className="text-2xl text-center font-bold text-green-500">O pagamento foi realizado com sucesso!</p>
+            <p>{JSON.stringify(order)}</p>
+            <Link
+                href={`/commerce/user-order/${order.id}`}
+                className="text-blue-500 text-center"
+            >
+                Ver pedido
+            </Link>
+            <Link
+                href="/commerce"
+                className="text-blue-500 text-center"
+            >
+                Continuar comprando
+            </Link>
+        </div>
+    )
+}
+
 export default async function PaymentSuccess({ params: { sessionId } }: { params: { sessionId: string } }) {
     try {
-        const session = await stripe.checkout.sessions.retrieve(sessionId)
-
-        const productsCost = (session.amount_total ?? 0) / 100
-
-        const orderShippingData = await db.orderShipping.findUnique({
-            where: {
-                sessionId,
-            },
-        })
-
-        const shippingMehtodsJSONs = orderShippingData?.shippingMethods.map((el) => el?.valueOf()) as SuperFreteShipping[]
-        const shippingProducts = orderShippingData?.products.map((el) => el?.valueOf()) as SuperFreteShippingProduct[]
-
-        const sessionShippingChoice = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "")
-
-        const shippingMethodChoice = shippingMehtodsJSONs.find((sm) => sm.id.toString() === sessionShippingChoice.metadata.serviceId)
-
         const user = auth()
 
         if (!user.userId) {
             return <div>Não autorizado</div>
         }
 
-        const userAddress = await db.address.findUnique({
+        const existingOrder = await db.order.findFirst({
             where: {
+                sessionId,
                 userId: user.userId,
             },
         })
 
-        const userData = await cClient.users.getUser(user.userId)
+        if (existingOrder) {
+            return <PaymentSuccessView order={existingOrder}></PaymentSuccessView>
+        }
+
+        const session = await stripe.checkout.sessions.retrieve(sessionId)
+
+        const [sessionShippingChoice, userAddress, userData, orderShippingData] = await Promise.all([
+            stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
+                console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)
+                return undefined
+            }),
+            db.address
+                .findUnique({
+                    where: {
+                        userId: user.userId,
+                    },
+                })
+                .catch((error) => {
+                    console.error("SESSION_SUCCESS_DB_ADDRESS_FIND_ERROR", error)
+                    return undefined
+                }),
+            cClient.users.getUser(user.userId).catch((error) => {
+                console.error("SESSION_SUCCESS_CLERK_GET_USER_ERROR", error)
+                return undefined
+            }),
+            db.orderShipping
+                .findUnique({
+                    where: {
+                        sessionId,
+                    },
+                })
+                .catch((error) => {
+                    console.error("SESSION_SUCCESS_DB_ORDER_SHIPPING_FIND_ERROR", error)
+                    return undefined
+                }),
+        ])
+
+        const shippingMehtodsJSONs = orderShippingData?.shippingMethods.map((el) => el?.valueOf()) as SuperFreteShipping[]
+        const shippingProducts = orderShippingData?.products.map((el) => el?.valueOf()) as SuperFreteShippingProduct[]
+
+        const shippingMethodChoice = shippingMehtodsJSONs.find((sm) => sm.id.toString() === sessionShippingChoice!.metadata.serviceId)
 
         const superFreteTicketReqBody = {
             from: {
@@ -50,15 +101,15 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                 city: env.COMPANY_CITY,
             },
             to: {
-                name: `${userData.firstName} ${userData.lastName}`,
+                name: `${userData!.firstName} ${userData!.lastName}`,
                 address: `${userAddress?.street}, número ${userAddress?.number}${userAddress?.complement ? `, ${userAddress?.complement}` : ""}`,
                 district: userAddress?.neighborhood,
                 city: userAddress?.city,
                 state_abbr: userAddress?.state,
                 postal_code: userAddress?.cep,
-                email: userData.primaryEmailAddress?.emailAddress,
+                email: userData!.primaryEmailAddress?.emailAddress,
             },
-            service: Number(sessionShippingChoice.metadata.serviceId),
+            service: Number(sessionShippingChoice!.metadata.serviceId),
             products: shippingProducts,
             volumes: { ...shippingMethodChoice?.packages[0].dimensions, weight: shippingMethodChoice?.packages[0].weight },
             tag: "Pedido de teste 1",
@@ -81,40 +132,35 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             body: JSON.stringify(superFreteTicketReqBody),
         }).then((response) => response.json())
 
-        console.log(superFreteTicket)
+        const order = await db.order.create({
+            data: {
+                userId: user.userId,
+                sessionId: sessionId,
+                ticketId: superFreteTicket.id,
+                totalPrice: session.amount_total! / 100,
+                shippingPrice: shippingMethodChoice!.price,
+                shippingServiceId: shippingMethodChoice!.id.toString(),
+                shippingServiceName: shippingMethodChoice!.name,
+                shippingDaysMin: shippingMethodChoice!.delivery_range.min,
+                shippingDaysMax: shippingMethodChoice!.delivery_range.max,
+                BookOnOrder: {
+                    createMany: {
+                        data: shippingProducts.map((sp) => ({
+                            bookId: sp.bookDBId,
+                            price: sp.unitary_value,
+                        })),
+                    },
+                },
+            },
+        })
 
-        return (
-            <div className="py-32 flex flex-col items-center space-y-6">
-                <p className="text-2xl text-center font-bold text-green-500">O pagamento foi realizado com sucesso!</p>
-                <p>Custo total: R$ {productsCost.toFixed(2)}</p>
-                <p>Metodo de entrega: {shippingMethodChoice?.name}</p>
-                <p>
-                    Tempo estimado: Entre {shippingMethodChoice?.delivery_range.min} e {shippingMethodChoice?.delivery_range.max} dias úteis
-                </p>
-                <section>
-                    <h3>Pacote:</h3>
-                    {shippingMethodChoice?.packages.map((pk, index) => (
-                        <article key={index}>
-                            <p>Dimenções: {`${pk.dimensions.height}cm x ${pk.dimensions.width}cm x ${pk.dimensions.length}cm`}</p>
-                            <p>Formato: {pk.format}</p>
-                            <p>Peso: {pk.weight}kg</p>
-                        </article>
-                    ))}
-                </section>
-                <Link
-                    href="/commerce"
-                    className="text-blue-500 text-center"
-                >
-                    Continuar comprando
-                </Link>
-            </div>
-        )
+        return <PaymentSuccessView order={order}></PaymentSuccessView>
     } catch (error) {
-        console.log("SESSION_ID_CAUSED_ERROR", sessionId)
+        console.error("SESSION_SUCCESS_SESSION_ID_CAUSED_ERROR", sessionId)
         console.error("SESSION_SUCCESS_ERROR", error)
         try {
             const sessionData = await stripe.checkout.sessions.retrieve(sessionId)
-            await stripe.refunds.create({
+            const refund = await stripe.refunds.create({
                 amount: sessionData.amount_total ?? 0,
                 reason: "requested_by_customer",
                 reverse_transfer: true,
@@ -125,7 +171,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                 <div className="container mx-auto grid place-content-center">
                     <p className="text-2xl">
                         Ocorreu um erro durante a conclusão do checkout, mas o seu dinheiro foi devolvido. Qualquer dúvida contate o suporte por email{" "}
-                        {env.APP_SUPPORT_EMAIL}
+                        {env.APP_SUPPORT_EMAIL}. Refund status: {refund.status}
                     </p>
                 </div>
             )
