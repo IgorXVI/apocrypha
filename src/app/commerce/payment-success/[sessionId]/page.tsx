@@ -1,7 +1,11 @@
+import { auth, clerkClient } from "@clerk/nextjs/server"
 import Link from "next/link"
-import { type SuperFreteShipping } from "~/lib/types"
+import { env } from "~/env"
+import { type SuperFreteShippingProduct, type SuperFreteShipping } from "~/lib/types"
 import { db } from "~/server/db"
 import { stripe } from "~/server/stripe-api"
+
+const cClient = clerkClient()
 
 export default async function PaymentSuccess({ params: { sessionId } }: { params: { sessionId: string } }) {
     const session = await stripe.checkout.sessions.retrieve(sessionId)
@@ -15,10 +19,68 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
     })
 
     const shippingMehtodsJSONs = orderShippingData?.shippingMethods.map((el) => el?.valueOf()) as SuperFreteShipping[]
+    const shippingProducts = orderShippingData?.products.map((el) => el?.valueOf()) as SuperFreteShippingProduct[]
 
     const sessionShippingChoice = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "")
 
     const shippingMethodChoice = shippingMehtodsJSONs.find((sm) => sm.id.toString() === sessionShippingChoice.metadata.serviceId)
+
+    const user = auth()
+
+    if (!user.userId) {
+        return <div>Não autorizado</div>
+    }
+
+    const userAddress = await db.address.findUnique({
+        where: {
+            userId: user.userId,
+        },
+    })
+
+    const userData = await cClient.users.getUser(user.userId)
+
+    const superFreteTicketReqBody = {
+        from: {
+            name: env.COMPANY_NAME_FOR_ADDRESS,
+            address: env.COMPANY_STREET,
+            district: env.COMPANY_NEIGHBORHOOD,
+            state_abbr: env.COMPANY_STATE,
+            postal_code: env.COMPANY_CEP,
+            city: env.COMPANY_CITY,
+        },
+        to: {
+            name: `${userData.firstName} ${userData.lastName}`,
+            address: `${userAddress?.street}, número ${userAddress?.number}${userAddress?.complement ? `, ${userAddress?.complement}` : ""}`,
+            district: userAddress?.neighborhood,
+            city: userAddress?.city,
+            state_abbr: userAddress?.state,
+            postal_code: userAddress?.cep,
+            email: userData.primaryEmailAddress?.emailAddress,
+        },
+        service: Number(sessionShippingChoice.metadata.serviceId),
+        products: shippingProducts,
+        volumes: { ...shippingMethodChoice?.packages[0].dimensions, weight: shippingMethodChoice?.packages[0].weight },
+        tag: "Pedido de teste 1",
+        url: env.URL,
+        platform: env.APP_NAME,
+        options: {
+            insurance_value: null,
+            non_commercial: false,
+        },
+    }
+
+    const superFreteTicket = await fetch(`${env.SUPER_FRETE_URL}/cart`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
+            accept: "application/json",
+            "User-Agent": env.APP_USER_AGENT,
+            "content-type": "application/json",
+        },
+        body: JSON.stringify(superFreteTicketReqBody),
+    }).then((response) => response.json())
+
+    console.log(superFreteTicket)
 
     return (
         <div className="py-32 flex flex-col items-center space-y-6">

@@ -7,10 +7,11 @@ import { type Metadata } from "next"
 
 import { Toaster } from "~/components/ui/sonner"
 import StoreProvider from "~/components/redux/StoreProvider"
+import { env } from "~/env"
 
 export const metadata: Metadata = {
-    title: "Apocrypha",
-    description: "Apocrypha é sua loja de livros online. Oferecemos uma ampla seleção de livros em vários gêneros. Criada por Igor Almeida.",
+    title: env.APP_NAME,
+    description: `${env.APP_NAME} é sua loja de livros online. Oferecemos uma ampla seleção de livros em vários gêneros. Criada por Igor Almeida.`,
     icons: {
         icon: [
             {

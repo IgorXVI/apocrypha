@@ -5,7 +5,8 @@ import Stripe from "stripe"
 import { env } from "../env"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "./db"
-import { type SuperFreteShipping } from "~/lib/types"
+import { type SuperFreteShippingProduct, type SuperFreteShipping } from "~/lib/types"
+import { type Prisma } from "prisma/prisma-client"
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -132,13 +133,15 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         quantity: productQantityMap.get(stripeProduct.id),
     }))
 
-    const booksDimensions = await db.book.findMany({
+    const books = await db.book.findMany({
         where: {
             stripeId: {
                 in: products.map((p) => p.stripeId),
             },
         },
         select: {
+            title: true,
+            price: true,
             stripeId: true,
             weightGrams: true,
             widthCm: true,
@@ -147,9 +150,11 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         },
     })
 
-    const bookDimensionsMap = new Map<
+    const booksMap = new Map<
         string,
         {
+            title: string
+            price: Prisma.Decimal
             stripeId: string
             weightGrams: number
             widthCm: number
@@ -158,20 +163,20 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         }
     >()
 
-    booksDimensions.forEach((book) => {
-        bookDimensionsMap.set(book.stripeId, book)
+    books.forEach((book) => {
+        booksMap.set(book.stripeId, book)
     })
 
-    const superFreteResult: SuperFreteShipping[] = await fetch("https://sandbox.superfrete.com/api/v0/calculator", {
+    const superFreteResult: SuperFreteShipping[] = await fetch(`${env.SUPER_FRETE_URL}/calculator`, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
-            "User-Agent": "Apocrypha (inazumaseleven04@gmail.com)",
+            "User-Agent": env.APP_USER_AGENT,
             accept: "application/json",
             "content-type": "application/json",
         },
         body: JSON.stringify({
-            from: { postal_code: "90480000" },
+            from: { postal_code: env.COMPANY_CEP },
             to: { postal_code: userAddress.cep },
             services: "2,1,17",
             options: {
@@ -182,10 +187,10 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             },
             products: stripeProducts.value.data.map((stripeProduct) => ({
                 quantity: productQantityMap.get(stripeProduct.id),
-                height: bookDimensionsMap.get(stripeProduct.id)?.heightCm,
-                width: bookDimensionsMap.get(stripeProduct.id)?.widthCm,
-                length: bookDimensionsMap.get(stripeProduct.id)?.thicknessCm,
-                weight: (bookDimensionsMap.get(stripeProduct.id)?.weightGrams ?? 0) / 1000,
+                height: booksMap.get(stripeProduct.id)?.heightCm,
+                width: booksMap.get(stripeProduct.id)?.widthCm,
+                length: booksMap.get(stripeProduct.id)?.thicknessCm,
+                weight: (booksMap.get(stripeProduct.id)?.weightGrams ?? 0) / 1000,
             })),
         }),
     }).then((res) => res.json())
@@ -231,10 +236,17 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         }
     }
 
+    const productsForOrderShipping: SuperFreteShippingProduct[] = products.map((product) => ({
+        name: booksMap.get(product.stripeId)?.title ?? "N/A",
+        quantity: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
+        unitary_value: product.quantity,
+    }))
+
     await db.orderShipping.create({
         data: {
             sessionId: checkoutSession.value.id,
             shippingMethods: superFreteResult,
+            products: productsForOrderShipping,
         },
     })
 

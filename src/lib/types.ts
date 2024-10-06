@@ -93,3 +93,9 @@ export type SuperFreteShipping = {
     ]
     has_error: boolean
 }
+
+export type SuperFreteShippingProduct = {
+    name: string
+    quantity: number
+    unitary_value: number
+}
