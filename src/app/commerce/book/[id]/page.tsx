@@ -29,7 +29,7 @@ function BookPriceCard(book: BookCartState) {
         <Card className="border-none">
             <CardContent className="p-6">
                 <div className="w-full mb-4 grid grid-cols-1 gap-4 place-items-center">
-                    <div className="text-green-500 text-nowrap text-5xl font-bold mb-4 md:text-6xl lg:text-8xl">R$ {book.price.toFixed(2)}</div>
+                    <div className="text-green-500 text-nowrap text-5xl md:text-6xl font-bold mb-4">R$ {book.price.toFixed(2)}</div>
                     <AddToCartButton
                         bookForCart={book}
                         showButtonText={true}
@@ -272,10 +272,12 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         <span className="text-sm text-muted-foreground">(Baseado em {reviews.length} avaliações)</span>
                     </div>
 
-                    <BookDetailsImages
-                        images={book.images}
-                        title={book.title}
-                    />
+                    <div className="grid place-content-center">
+                        <BookDetailsImages
+                            images={book.images}
+                            title={book.title}
+                        />
+                    </div>
 
                     <div className="block md:hidden">
                         <BookPriceCard

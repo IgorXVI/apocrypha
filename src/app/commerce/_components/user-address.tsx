@@ -204,14 +204,14 @@ export default function UserAddress() {
                     <Form {...form}>
                         <form
                             onSubmit={form.handleSubmit(onSubmit)}
-                            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+                            className="grid grid-cols-1 md:grid-cols-6 gap-8"
                         >
                             <FormField
                                 disabled={isDisabled}
                                 control={form.control}
                                 name="cep"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="md:col-span-2">
                                         <FormLabel>CEP</FormLabel>
                                         <FormControl>
                                             <Input
@@ -246,7 +246,7 @@ export default function UserAddress() {
                                 control={form.control}
                                 name="number"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="max-w-[150px] place-self-center md:place-self-auto">
                                         <FormLabel>Número</FormLabel>
                                         <FormControl>
                                             <Input
@@ -265,7 +265,7 @@ export default function UserAddress() {
                                 control={form.control}
                                 name="complement"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="md:col-span-3">
                                         <FormLabel>Complemento (Opcional)</FormLabel>
                                         <FormControl>
                                             <Input {...field} />
