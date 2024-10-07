@@ -25,7 +25,7 @@ export default async function HeroSection() {
                             href="/commerce/book"
                             className="text-lg"
                         >
-                            Começar a explorar
+                            Explorar
                         </Link>
                     </Button>
                 </div>
