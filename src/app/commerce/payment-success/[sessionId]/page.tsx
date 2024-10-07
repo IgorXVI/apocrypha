@@ -3,6 +3,7 @@ import Link from "next/link"
 import { env } from "~/env"
 import { type SuperFreteShippingProduct, type SuperFreteShipping } from "~/lib/types"
 import { db } from "~/server/db"
+import { createShippingTicket } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 
 const cClient = clerkClient()
@@ -94,52 +95,27 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
 
         const shippingMethodChoice = shippingMehtodsJSONs.find((sm) => sm.id.toString() === sessionShippingChoice!.metadata.serviceId)
 
-        const superFreteTicketReqBody = {
-            from: {
-                name: env.COMPANY_NAME_FOR_ADDRESS,
-                address: env.COMPANY_STREET,
-                district: env.COMPANY_NEIGHBORHOOD,
-                state_abbr: env.COMPANY_STATE,
-                postal_code: env.COMPANY_CEP,
-                city: env.COMPANY_CITY,
-            },
+        const ticketId = await createShippingTicket({
             to: {
                 name: `${userData!.firstName} ${userData!.lastName}`,
-                address: `${userAddress?.street}, número ${userAddress?.number}${userAddress?.complement ? `, ${userAddress?.complement}` : ""}`,
-                district: userAddress?.neighborhood,
-                city: userAddress?.city,
-                state_abbr: userAddress?.state,
-                postal_code: userAddress?.cep,
-                email: userData!.primaryEmailAddress?.emailAddress,
+                address: `${userAddress!.street}, número ${userAddress!.number}${userAddress!.complement ? `, ${userAddress!.complement}` : ""}`,
+                district: userAddress!.neighborhood,
+                city: userAddress!.city,
+                state_abbr: userAddress!.state,
+                postal_code: userAddress!.cep,
+                email: userData!.primaryEmailAddress!.emailAddress,
             },
             service: Number(sessionShippingChoice!.metadata.serviceId),
             products: shippingProducts,
-            volumes: { ...shippingMethodChoice?.packages[0].dimensions, weight: shippingMethodChoice?.packages[0].weight },
+            volumes: { ...shippingMethodChoice!.packages[0].dimensions, weight: shippingMethodChoice!.packages[0].weight },
             tag: JSON.stringify({ sessionId, userId: user.userId }),
-            url: env.URL,
-            platform: env.APP_NAME,
-            options: {
-                insurance_value: null,
-                non_commercial: false,
-            },
-        }
-
-        const superFreteTicket = await fetch(`${env.SUPER_FRETE_URL}/cart`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
-                accept: "application/json",
-                "User-Agent": env.APP_USER_AGENT,
-                "content-type": "application/json",
-            },
-            body: JSON.stringify(superFreteTicketReqBody),
-        }).then((response) => response.json())
+        })
 
         const order = await db.order.create({
             data: {
                 userId: user.userId,
                 sessionId: sessionId,
-                ticketId: superFreteTicket.id,
+                ticketId,
                 totalPrice: session.amount_total! / 100,
                 shippingPrice: shippingMethodChoice!.price,
                 shippingServiceId: shippingMethodChoice!.id.toString(),

@@ -5,8 +5,9 @@ import Stripe from "stripe"
 import { env } from "../env"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "./db"
-import { type SuperFreteShippingProduct, type SuperFreteShipping } from "~/lib/types"
+import { type SuperFreteShippingProduct } from "~/lib/types"
 import { type Prisma } from "prisma/prisma-client"
+import { calcShippingFee } from "./shipping-api"
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -169,33 +170,16 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         booksMap.set(book.stripeId, book)
     })
 
-    const superFreteResult: SuperFreteShipping[] = await fetch(`${env.SUPER_FRETE_URL}/calculator`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
-            "User-Agent": env.APP_USER_AGENT,
-            accept: "application/json",
-            "content-type": "application/json",
-        },
-        body: JSON.stringify({
-            from: { postal_code: env.COMPANY_CEP },
-            to: { postal_code: userAddress.cep },
-            services: "2,1,17",
-            options: {
-                own_hand: false,
-                receipt: false,
-                insurance_value: 0,
-                use_insurance_value: false,
-            },
-            products: stripeProducts.value.data.map((stripeProduct) => ({
-                quantity: productQantityMap.get(stripeProduct.id),
-                height: booksMap.get(stripeProduct.id)?.heightCm,
-                width: booksMap.get(stripeProduct.id)?.widthCm,
-                length: booksMap.get(stripeProduct.id)?.thicknessCm,
-                weight: (booksMap.get(stripeProduct.id)?.weightGrams ?? 0) / 1000,
-            })),
-        }),
-    }).then((res) => res.json())
+    const superFreteResult = await calcShippingFee({
+        toPostalCode: userAddress.cep,
+        products: stripeProducts.value.data.map((stripeProduct) => ({
+            quantity: productQantityMap.get(stripeProduct.id)!,
+            height: booksMap.get(stripeProduct.id)!.heightCm,
+            width: booksMap.get(stripeProduct.id)!.widthCm,
+            length: booksMap.get(stripeProduct.id)!.thicknessCm,
+            weight: (booksMap.get(stripeProduct.id)!.weightGrams ?? 0) / 1000,
+        })),
+    })
 
     const [checkoutSession] = await Promise.allSettled([
         stripe.checkout.sessions.create({
