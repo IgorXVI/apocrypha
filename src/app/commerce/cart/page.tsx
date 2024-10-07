@@ -13,12 +13,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { dbQueryWithToast } from "~/components/toast/toasting"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
+import { useState } from "react"
 
 export default function CartPage() {
     const dispatch = useAppDispatch()
     const cartContent = useAppSelector((state) => state.bookCart.value)
     const router = useRouter()
     const [triggerCheckout] = mainApi.useCheckoutMutation()
+    const [isDisabled, setIsDisabled] = useState(false)
 
     const updateQuantity = (id: string, newQuantity: number) => {
         if (newQuantity < 1) return
@@ -38,12 +40,21 @@ export default function CartPage() {
             quantity: item.amount,
         }))
 
+        setIsDisabled(true)
+
         const stripeUrl = await dbQueryWithToast({
             dbQuery: () =>
                 triggerCheckout({ data: { products } })
                     .then((result) => {
                         if (result.error) {
-                            throw new Error(result.error as string)
+                            if ("data" in result.error) {
+                                const errorData = result.error.data as Record<string, string> | undefined
+                                if (errorData?.errorMessage === "User has no address.") {
+                                    throw new Error("Por favor, cadastre o seu endereço.")
+                                }
+                            }
+
+                            throw new Error(JSON.stringify(result.error))
                         }
 
                         if (!result.data.success) {
@@ -69,6 +80,8 @@ export default function CartPage() {
         if (stripeUrl) {
             router.push(stripeUrl)
         }
+
+        setIsDisabled(false)
     }
 
     return (
@@ -86,7 +99,7 @@ export default function CartPage() {
                                     <TableHead>Detalhes</TableHead>
                                     <TableHead>Quantidade</TableHead>
                                     <TableHead className="text-right">Preço</TableHead>
-                                    <TableHead className="w-[100px]">Ações</TableHead>
+                                    <TableHead className="w-[100px]">Excluir</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -113,6 +126,7 @@ export default function CartPage() {
                                         <TableCell>
                                             <div className="flex items-center space-x-2">
                                                 <Button
+                                                    disabled={isDisabled}
                                                     variant="outline"
                                                     size="icon"
                                                     onClick={() => updateQuantity(item.id, item.amount - 1)}
@@ -120,6 +134,7 @@ export default function CartPage() {
                                                     <Minus className="h-4 w-4" />
                                                 </Button>
                                                 <Input
+                                                    disabled={isDisabled}
                                                     type="number"
                                                     min="1"
                                                     value={item.amount}
@@ -127,6 +142,7 @@ export default function CartPage() {
                                                     className="w-16 text-center"
                                                 />
                                                 <Button
+                                                    disabled={isDisabled}
                                                     variant="outline"
                                                     size="icon"
                                                     onClick={() => updateQuantity(item.id, item.amount + 1)}
@@ -140,6 +156,7 @@ export default function CartPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
+                                                disabled={isDisabled}
                                                 onClick={() => removeItem(item.id)}
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -164,6 +181,7 @@ export default function CartPage() {
                             <Button
                                 className="w-full mt-6"
                                 type="button"
+                                disabled={isDisabled}
                                 onClick={handleCheckout}
                             >
                                 Finalizar compra

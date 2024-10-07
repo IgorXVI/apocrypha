@@ -4,7 +4,7 @@ import sanitizeHtml from "sanitize-html"
 
 import { Card, CardContent } from "~/components/ui/card"
 import { Separator } from "~/components/ui/separator"
-import { Avatar, AvatarFallback } from "~/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar"
 import Image from "next/image"
 import BookDetailsImages from "../../_components/book-details-images"
 import { db } from "~/server/db"
@@ -29,7 +29,7 @@ function BookPriceCard(book: BookCartState) {
         <Card className="border-none">
             <CardContent className="p-6">
                 <div className="w-full mb-4 grid grid-cols-1 gap-4 place-items-center">
-                    <div className="text-3xl font-bold mb-4">R$ {book.price.toFixed(2)}</div>
+                    <div className="text-green-500 text-nowrap text-5xl md:text-6xl font-bold mb-4">R$ {book.price.toFixed(2)}</div>
                     <AddToCartButton
                         bookForCart={book}
                         showButtonText={true}
@@ -272,10 +272,12 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         <span className="text-sm text-muted-foreground">(Baseado em {reviews.length} avaliações)</span>
                     </div>
 
-                    <BookDetailsImages
-                        images={book.images}
-                        title={book.title}
-                    />
+                    <div className="grid place-content-center">
+                        <BookDetailsImages
+                            images={book.images}
+                            title={book.title}
+                        />
+                    </div>
 
                     <div className="block md:hidden">
                         <BookPriceCard
@@ -323,20 +325,22 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
 
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Sobre o Autor</h3>
-                        <div className="flex items-start space-x-4">
+                        <div className="grid grid-flow-col grid-cols-8 grid-rows-2 gap-4">
                             <Link
                                 href={`/commerce/author/${book.authorInfo.id}`}
-                                className="w-full h-full"
+                                className="row-span-1"
                             >
-                                <Image
-                                    src={book.authorInfo.image}
-                                    alt={book.authorInfo.name}
-                                    width={100}
-                                    height={100}
-                                    className="rounded-full object-cover"
-                                />
+                                <Avatar className="h-full w-full">
+                                    <AvatarFallback>{book.authorInfo.name}</AvatarFallback>
+                                    <AvatarImage
+                                        src={book.authorInfo.image}
+                                        alt={book.authorInfo.name}
+                                        width={100}
+                                        height={100}
+                                    ></AvatarImage>
+                                </Avatar>
                             </Link>
-                            <div>
+                            <div className="col-span-7 row-span-full">
                                 <h4 className="font-medium">{book.authorInfo.name}</h4>
                                 <div className="text-sm text-muted-foreground mt-2">
                                     <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.authorInfo.bio) }}></div>

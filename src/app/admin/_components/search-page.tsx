@@ -73,7 +73,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
     })
 
     if (getRowsQuery.isError) {
-        toastError(getRowsQuery.error as string)
+        toastError(JSON.stringify(getRowsQuery.error))
     }
 
     if (!getRowsQuery.isLoading && !getRowsQuery.data?.success) {
@@ -425,7 +425,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                     }
                 }}
             >
-                <DialogContent className="overflow-y-scroll max-h-full scrollbar-none md:max-w-[60vw]">
+                <DialogContent className="common-form-modal">
                     {searchParams.has(ModalParams.delete) && (
                         <>
                             <DialogHeader>

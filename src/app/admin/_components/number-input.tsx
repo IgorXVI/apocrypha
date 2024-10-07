@@ -5,7 +5,7 @@ export default function NumberInput(props: { onChange: (value: number) => void; 
         <Input
             type="number"
             className="max-w-36"
-            value={props.value || ""}
+            defaultValue={Number.isNaN(props.value) ? "" : props.value}
             disabled={props.disabled}
             onChange={(e) => props.onChange(Number(e.target.value))}
         />

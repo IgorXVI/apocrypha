@@ -65,3 +65,38 @@ export type TranslatorInput = Prisma.TranslatorCreateInput
 export type UserMetadata = {
     isAdmin?: boolean
 }
+
+export type SuperFreteShipping = {
+    id: number
+    name: string
+    price: number
+    discount: string
+    currency: string
+    delivery_time: number
+    delivery_range: {
+        min: number
+        max: number
+    }
+    packages: [
+        {
+            price: number
+            discount: string
+            format: string
+            dimensions: {
+                height: string
+                width: string
+                length: string
+            }
+            weight: string
+            insurance_value: number
+        },
+    ]
+    has_error: boolean
+}
+
+export type SuperFreteShippingProduct = {
+    bookDBId: string
+    name: string
+    quantity: number
+    unitary_value: number
+}

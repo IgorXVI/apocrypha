@@ -7,6 +7,7 @@ import AddToCartButton from "../_components/add-to-cart-button"
 
 import { db } from "~/server/db"
 import { BooksFilters } from "../_components/books-filters"
+import BookCard from "../_components/book-card"
 
 type SuperCategory = {
     id: string
@@ -55,7 +56,7 @@ type SuperCategoryWithAll = {
     }[]
 }
 
-export default async function CategoriesPage({
+export default async function BooksPage({
     searchParams,
 }: {
     searchParams: {
@@ -326,43 +327,10 @@ export default async function CategoriesPage({
             {books.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:col-span-8 col-span-full">
                     {books.map((book) => (
-                        <Card key={book.id}>
-                            <div className="aspect-[3/4] relative">
-                                <Link
-                                    href={`/commerce/book/${book.id}`}
-                                    className="w-full h-full"
-                                >
-                                    <Image
-                                        src={book.mainImg}
-                                        alt={book.title}
-                                        className="object-cover w-full h-full rounded-t-md"
-                                        width={200}
-                                        height={200}
-                                    ></Image>
-                                </Link>
-                            </div>
-                            <CardContent>
-                                <div className="flex flex-col gap-2 mt-2">
-                                    <Link href={`/commerce/book/${book.id}`}>
-                                        <p className="hover:underline">
-                                            <span className="line-clamp-1 hover:line-clamp-none text-lg">{book.title}</span>
-                                        </p>
-                                    </Link>
-                                    <Link href={`/commerce/author/${book.authorId}`}>
-                                        <p className="text-sm text-muted-foreground hover:underline">{book.author}</p>
-                                    </Link>
-                                    <div className="flex flex-row items-center justify-between">
-                                        <p className="font-bold">R$ {book.price.toFixed(2)}</p>
-                                        <AddToCartButton
-                                            bookForCart={{
-                                                ...book,
-                                                amount: 1,
-                                            }}
-                                        ></AddToCartButton>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <BookCard
+                            key={book.id}
+                            book={book}
+                        ></BookCard>
                     ))}
                 </div>
             )}

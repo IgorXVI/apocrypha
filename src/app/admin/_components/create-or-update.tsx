@@ -53,7 +53,7 @@ export default function CreateOrUpdate<I>(props: {
                 ? await triggerGetOne({ slug: props.slug, id: props.id })
                       .then((result) => {
                           if (result.error) {
-                              throw new Error(result.error as string)
+                              throw new Error(JSON.stringify(result.error))
                           }
 
                           if (!result.data?.success) {
@@ -81,7 +81,7 @@ export default function CreateOrUpdate<I>(props: {
                 })
                     .then((result) => {
                         if (result.error) {
-                            throw new Error(result.error as string)
+                            throw new Error(JSON.stringify(result.error))
                         }
 
                         if (!result.data.success) {

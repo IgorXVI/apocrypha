@@ -86,6 +86,11 @@ export const bookValidationSchema = z.object({
     ),
     edition: z.number().int().positive({ message: "A edição deve ser um número inteiro positivo." }).default(1),
 
+    heightCm: z.number().positive({ message: "A altura deve ser um número positivo." }).default(0),
+    widthCm: z.number().positive({ message: "A largura deve ser um número positivo." }).default(0),
+    thicknessCm: z.number().positive({ message: "A grossura deve ser um número positivo." }).default(0),
+    weightGrams: z.number().positive({ message: "O peso deve ser um número positivo." }).default(0),
+
     language: z.nativeEnum(Langs).optional(),
 
     imgUrls: z.array(z.string().url({ message: "URL da imagem inválida." })).default([]),
@@ -93,7 +98,7 @@ export const bookValidationSchema = z.object({
 
     publisherId: z.string().uuid({ message: "O ID da editora é inválido." }).default(""),
     seriesId: z.string().uuid({ message: "O ID da série é inválido." }).optional(),
-    placeInSeries: z.number().int().positive({ message: "A posição na série deve ser um número inteiro positivo." }).default(0),
+    placeInSeries: z.number().int().nonnegative({ message: "A posição na série deve ser um número inteiro positivo." }).default(0),
 
     authorIds: z.array(z.string().uuid({ message: "ID do autor inválido." })).default([]),
     translatorIds: z.array(z.string().uuid({ message: "ID do tradutor inválido." })).default([]),

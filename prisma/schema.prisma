@@ -37,6 +37,10 @@ model Book {
     isbn10Code       String?            @db.VarChar(10)
     isbn13Code       String?            @db.VarChar(13)
     edition          Int                @default(1)
+    heightCm         Float              @default(20)
+    widthCm          Float              @default(15)
+    thicknessCm      Float              @default(3)
+    weightGrams      Float              @default(800)
     language         Langs              @default(PORTUGUESE_BRAZILIAN)
     AuthorOnBook     AuthorOnBook[]
     TranslatorOnBook TranslatorOnBook[]
@@ -50,6 +54,7 @@ model Book {
     RelatedBook      Book?              @relation("BookToBook", fields: [relatedBookId], references: [id])
     relatedBookId    String?            @db.Uuid
     RelatedBooks     Book[]             @relation("BookToBook")
+    BookOnOrder      BookOnOrder[]
 }
 
 model Series {
@@ -129,4 +134,70 @@ model Category {
     CategoryOnBook  CategoryOnBook[]
     SuperCategory   SuperCategory?   @relation(fields: [superCategoryId], references: [id])
     superCategoryId String?          @db.Uuid
+}
+
+model Address {
+    id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId       String  @unique
+    cep          String
+    state        String
+    city         String
+    neighborhood String
+    street       String
+    number       Int
+    complement   String?
+}
+
+model OrderShipping {
+    id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionId       String @unique
+    shippingMethods Json[]
+    products        Json[]
+}
+
+enum OrderStatus {
+    AWAITING_CONFIRMATION
+    CANCELED
+    CONFIRMED
+    POSTED
+    DONE
+    REQUESTED_RETURN
+    REFUSED_RETURN
+    AWAITING_RETURN
+    RETURN_DONE
+    HAS_ERROR
+}
+
+model BookOnOrder {
+    Book    Book    @relation(fields: [bookId], references: [id])
+    bookId  String  @db.Uuid
+    Order   Order   @relation(fields: [orderId], references: [id])
+    orderId String  @db.Uuid
+    price   Decimal
+
+    @@id([bookId, orderId])
+}
+
+model Order {
+    id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionId           String
+    userId              String
+    ticketId            String
+    status              OrderStatus   @default(AWAITING_CONFIRMATION)
+    totalPrice          Decimal
+    shippingPrice       Decimal
+    shippingDaysMin     Int
+    shippingDaysMax     Int
+    shippingServiceId   String
+    shippingServiceName String
+    shippingTracking    String?
+    printUrl            String?
+    errorMessage        String?
+    errorDetails        Json?
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @default(now())
+    BookOnOrder         BookOnOrder[]
+
+    @@unique([sessionId, userId])
+    @@unique([ticketId, userId])
 }
