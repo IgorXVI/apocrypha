@@ -165,7 +165,6 @@ enum OrderStatus {
     REFUSED_RETURN
     AWAITING_RETURN
     RETURN_DONE
-    HAS_ERROR
 }
 
 model BookOnOrder {
@@ -190,10 +189,9 @@ model Order {
     shippingDaysMax     Int
     shippingServiceId   String
     shippingServiceName String
+    shippingOrderId     String?
     shippingTracking    String?
     printUrl            String?
-    errorMessage        String?
-    errorDetails        Json?
     createdAt           DateTime      @default(now())
     updatedAt           DateTime      @default(now())
     BookOnOrder         BookOnOrder[]

@@ -3,7 +3,7 @@ import Link from "next/link"
 import { env } from "~/env"
 import { type SuperFreteShippingProduct, type SuperFreteShipping } from "~/lib/types"
 import { db } from "~/server/db"
-import { createShippingTicket } from "~/server/shipping-api"
+import { createShippingTicket, emitTicket } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 
 const cClient = clerkClient()
@@ -110,6 +110,53 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             volumes: { ...shippingMethodChoice!.packages[0].dimensions, weight: shippingMethodChoice!.packages[0].weight },
             tag: JSON.stringify({ sessionId, userId: user.userId }),
         })
+
+        const shippingOrderData = await emitTicket(ticketId)
+
+        if (shippingOrderData) {
+            const order = await db.order.create({
+                data: {
+                    userId: user.userId,
+                    sessionId: sessionId,
+                    ticketId,
+                    totalPrice: session.amount_total! / 100,
+                    shippingPrice: shippingOrderData.price,
+                    shippingServiceId: shippingMethodChoice!.id.toString(),
+                    shippingServiceName: shippingMethodChoice!.name,
+                    shippingDaysMin: shippingMethodChoice!.delivery_range.min,
+                    shippingDaysMax: shippingMethodChoice!.delivery_range.max,
+                    printUrl: shippingOrderData.printUrl,
+                    shippingOrderId: shippingOrderData.orderId,
+                    shippingTracking: shippingOrderData.tracking,
+                    status: "CONFIRMED",
+                    BookOnOrder: {
+                        createMany: {
+                            data: shippingProducts.map((sp) => ({
+                                bookId: sp.bookDBId,
+                                price: sp.unitary_value,
+                            })),
+                        },
+                    },
+                },
+            })
+
+            return (
+                <div className="flex flex-col">
+                    <PaymentSuccessView order={order}></PaymentSuccessView>
+                    <div>
+                        <p>tracking: {order.shippingTracking ?? "N/A"}</p>
+                        <p>shipping order ID: {order.shippingOrderId ?? "N/A"}</p>
+                        <a
+                            className="hover:underline"
+                            href={order.printUrl ?? "#"}
+                        >
+                            print
+                        </a>
+                        <p>price: R$ {order.shippingPrice.toFixed(2) ?? "N/A"}</p>
+                    </div>
+                </div>
+            )
+        }
 
         const order = await db.order.create({
             data: {
