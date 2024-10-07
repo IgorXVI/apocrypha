@@ -43,7 +43,7 @@ export default function BookCard({
                         <p className="text-sm text-muted-foreground hover:underline">{book.author}</p>
                     </Link>
                     <div className="flex flex-row items-center justify-between">
-                        <p className="font-bold">R$ {book.price.toFixed(2)}</p>
+                        <p className="font-bold text-2xl text-green-500">R$ {book.price.toFixed(2)}</p>
                         <AddToCartButton
                             bookForCart={{
                                 ...book,

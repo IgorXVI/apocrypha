@@ -12,7 +12,7 @@ export default function AddToCartButton({ bookForCart, showButtonText = false }:
 
     const isInCart = useMemo(() => cartContent.some((item) => item.id === bookForCart.id), [cartContent, bookForCart.id])
 
-    const iconsSize = useMemo(() => (showButtonText ? 32 : 20), [])
+    const iconsSize = useMemo(() => (showButtonText ? 32 : 24), [])
 
     return (
         <Button
@@ -22,13 +22,13 @@ export default function AddToCartButton({ bookForCart, showButtonText = false }:
             onClick={() => (isInCart ? dispatch(bookCartSlice.actions.removeAmount(bookForCart)) : dispatch(bookCartSlice.actions.add(bookForCart)))}
         >
             {isInCart ? (
-                <span className="flex items-center">
-                    {showButtonText && <span className="mr-4 text-2xl">Devolver</span>} <MinusIcon size={iconsSize}></MinusIcon>{" "}
+                <span className="flex items-center gap-1">
+                    {showButtonText && <span className="mr-4 text-2xl">Devolver</span>} <MinusIcon size={iconsSize}></MinusIcon>
                     <ShoppingCartIcon size={iconsSize}></ShoppingCartIcon>
                 </span>
             ) : (
-                <span className="flex items-center">
-                    {showButtonText && <span className="mr-4 text-2xl">Comprar</span>} <PlusIcon size={iconsSize}></PlusIcon>{" "}
+                <span className="flex items-center gap-1">
+                    {showButtonText && <span className="mr-4 text-2xl">Comprar</span>} <PlusIcon size={iconsSize}></PlusIcon>
                     <ShoppingCartIcon size={iconsSize}></ShoppingCartIcon>
                 </span>
             )}
