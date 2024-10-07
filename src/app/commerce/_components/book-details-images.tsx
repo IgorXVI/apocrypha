@@ -16,7 +16,7 @@ export default function BookDetailsImages({ images, title }: { images: string[];
 
     return (
         <>
-            <div className="grid grid-cols-4 gap-2 p-12 max-w-2xl">
+            <div className="grid grid-cols-4 gap-2 p-4 md:p-12 max-w-2xl">
                 <Image
                     src={images[0] ?? ""}
                     alt={`${title} -Imagem principal`}
