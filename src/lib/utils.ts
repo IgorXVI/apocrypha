@@ -11,3 +11,5 @@ export function cn(...inputs: ClassValue[]) {
 export const UploadButton = generateUploadButton<OurFileRouter>()
 
 export const convertSvgToImgSrc = (svg: string) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+
+export const calcSkip = (page: number, take: number) => take * (page - 1)

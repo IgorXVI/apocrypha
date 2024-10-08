@@ -16,6 +16,7 @@ import CreateOrUpdate from "./create-or-update"
 import { toastError } from "~/components/toast/toasting"
 import { mainApi } from "~/lib/redux/apis/main-api/main"
 import DataTable from "./data-table"
+import { calcSkip } from "~/lib/utils"
 
 export default function SearchPage(
     props: Readonly<{
@@ -51,7 +52,7 @@ export default function SearchPage(
     const getRowsQuery = mainApi.useGetManyQuery({
         slug: props.slug,
         take: currentTake,
-        skip: currentTake * (currentPage - 1),
+        skip: calcSkip(currentPage, currentTake),
         searchTerm: currentSearchTerm,
     })
 
@@ -166,7 +167,7 @@ export default function SearchPage(
                     take: currentTake,
                 }}
                 tableRowActions={{
-                    label: "Ações",
+                    label: "Modificar",
                     actions: [
                         {
                             label: "Atualizar",

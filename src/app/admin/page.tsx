@@ -1,128 +1,110 @@
+import { db } from "~/server/db"
 import DataTable from "./_components/data-table"
+import { calcSkip } from "~/lib/utils"
+import { clerkClient, type User } from "@clerk/nextjs/server"
 
-type OrderStatus =
-    | "AWAITING_CONFIRMATION"
-    | "CANCELED"
-    | "CONFIRMED"
-    | "POSTED"
-    | "DONE"
-    | "REQUESTED_RETURN"
-    | "REFUSED_RETURN"
-    | "AWAITING_RETURN"
-    | "RETURN_DONE"
-
-type Order = {
-    id: string
-    price: string
-    userName: string
-    userEmail: string
-    status: OrderStatus
-    shippingMethod: string
-    estimatedDeliveryDate: string
-    createdAt: Date
-    updatedAt: Date
-    books: string[]
-}
+const cClient = clerkClient()
 
 export default async function Admin({
     searchParams,
 }: {
     searchParams: {
         page?: string
-        take?: string
     }
 }) {
     const currentPage = Number(searchParams.page) || 1
 
-    const currentTake = Number(searchParams.take) || 10
+    const currentTake = 10
 
-    const orders: Order[] = [
-        {
-            id: "1",
-            price: "R$ 29.99",
-            userName: "John Doe",
-            userEmail: "john@example.com",
-            status: "AWAITING_CONFIRMATION",
-            shippingMethod: "Standard",
-            estimatedDeliveryDate: "2023-07-15",
-            createdAt: new Date("2023-07-01T10:00:00"),
-            updatedAt: new Date("2023-07-01T10:00:00"),
-            books: ["The Great Gatsby"],
-        },
-        {
-            id: "2",
-            price: "R$ 29.99",
-            userName: "Jane Smith",
-            userEmail: "jane@example.com",
-            status: "CONFIRMED",
-            shippingMethod: "Express",
-            estimatedDeliveryDate: "2023-07-10",
-            createdAt: new Date("2023-07-02T14:30:00"),
-            updatedAt: new Date("2023-07-02T15:00:00"),
-            books: ["To Kill a Mockingbird", "1984"],
-        },
-        {
-            id: "3",
-            price: "R$ 29.99",
-            userName: "Bob Johnson",
-            userEmail: "bob@example.com",
-            status: "POSTED",
-            shippingMethod: "Standard",
-            estimatedDeliveryDate: "2023-07-18",
-            createdAt: new Date("2023-06-30T09:15:00"),
-            updatedAt: new Date("2023-07-01T11:30:00"),
-            books: ["1984"],
-        },
-        {
-            id: "4",
-            price: "R$ 29.99",
-            userName: "Alice Brown",
-            userEmail: "alice@example.com",
-            status: "DONE",
-            shippingMethod: "Express",
-            estimatedDeliveryDate: "2023-07-05",
-            createdAt: new Date("2023-06-28T16:45:00"),
-            updatedAt: new Date("2023-07-05T09:00:00"),
-            books: ["The Great Gatsby", "Pride and Prejudice"],
-        },
-        {
-            id: "5",
-            price: "R$ 29.99",
-            userName: "Charlie Wilson",
-            userEmail: "charlie@example.com",
-            status: "REQUESTED_RETURN",
-            shippingMethod: "Standard",
-            estimatedDeliveryDate: "2023-07-20",
-            createdAt: new Date("2023-07-03T11:20:00"),
-            updatedAt: new Date("2023-07-06T14:15:00"),
-            books: ["To Kill a Mockingbird"],
-        },
-    ]
+    const [orders, total] = await Promise.all([
+        db.order.findMany({
+            take: currentTake,
+            skip: calcSkip(currentPage, currentTake),
+            include: {
+                BookOnOrder: {
+                    include: {
+                        Book: {
+                            select: {
+                                title: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        }),
+        db.order.count(),
+    ])
+
+    const getDateOffset = (date: Date, offsetInDays: number) => new Date(date.getTime() + offsetInDays * 24 * 60 * 60 * 1000).toLocaleDateString()
+
+    const calcShippingDate = (createdAt: Date, min: number, max: number) =>
+        min === max ? getDateOffset(createdAt, min) : `Entre ${getDateOffset(createdAt, min)} e ${getDateOffset(createdAt, max)}`
+
+    const orderToUserIdMap = new Map<string, string>()
+
+    const userIds: string[] = []
+
+    orders.forEach((order) => {
+        userIds.push(order.userId)
+        orderToUserIdMap.set(order.id, order.userId)
+    })
+
+    const users = await cClient.users.getUserList({
+        userId: userIds,
+        limit: userIds.length,
+    })
+
+    const userMap = new Map<string, User>()
+
+    users.data.forEach((user) => {
+        userMap.set(user.id, user)
+    })
+
+    const odersForView = orders.map((order) => ({
+        id: order.id,
+        userFirstName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.firstName,
+        userLastName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.lastName,
+        userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
+        price: `R$ ${order.totalPrice.toFixed(2)}`,
+        status: order.status,
+        shippingMethod: order.shippingServiceName,
+        estimatedDelivery: calcShippingDate(order.createdAt, order.shippingDaysMin, order.shippingDaysMax),
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        books: order.BookOnOrder.map((boo) => `"${boo.Book.title}"`).join(", "),
+        printLink: order.printUrl ? <a href={order.printUrl}>Imprimir</a> : "N/A",
+    }))
 
     return (
         <div className="container flex flex-col gap-5 py-5">
             <DataTable
                 name="pedido"
                 namePlural="pedidos"
+                tableDescription="Crie, atualize, apague ou busque pedidos."
                 tableHeaders={{
-                    id: "ID",
-                    price: "Preço",
-                    userName: "Nome do usuário",
                     status: "Status",
+                    id: "ID",
+                    userFirstName: "Nome do usuário",
+                    userLastName: "Sobrenome do usuário",
+                    userEmail: "Email do usuário",
+                    price: "Preço",
                     shippingMethod: "Serviço de entrega",
-                    estimatedDeliveryDate: "Data de entrega (estimada)",
+                    estimatedDelivery: "Data de entrega (aproximada)",
                     createdAt: "Data de criação",
                     updatedAt: "Data da última atualização",
                     books: "Livros comprados",
+                    printLink: "Imprimir Ticket",
                 }}
-                tableDescription={`Crie, atualize, apague ou busque pedidos.`}
-                rows={orders}
+                rows={odersForView}
                 isError={false}
                 isSuccess={true}
                 isLoading={false}
                 pagination={{
                     urlPageParamName: "page",
-                    total: orders.length,
+                    total,
                     page: currentPage,
                     take: currentTake,
                 }}

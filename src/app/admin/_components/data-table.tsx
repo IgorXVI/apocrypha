@@ -13,7 +13,7 @@ import { Button } from "~/components/ui/button"
 import { type Prisma } from "prisma/prisma-client"
 import PaginationNumbers from "~/components/pagination/pagination-numbers"
 
-type PossibleTableCellTypes = string | number | Prisma.Decimal | Date | undefined | null | unknown[]
+type PossibleTableCellTypes = string | number | Prisma.Decimal | Date | undefined | null | unknown[] | React.ReactNode
 
 export default function DataTable(props: {
     name: string
@@ -91,7 +91,7 @@ export default function DataTable(props: {
                         <Table>
                             <TableHeader>
                                 <TableRow className="text-nowrap">
-                                    {headers.map((text, index) => (
+                                    {(props.tableRowActions ? [props.tableRowActions.label].concat(headers) : headers).map((text, index) => (
                                         <TableHead
                                             key={index}
                                             className="text-center"
@@ -104,10 +104,36 @@ export default function DataTable(props: {
                             <TableBody>
                                 {props.rows.map((row) => (
                                     <TableRow key={row.id as string}>
-                                        {headerKeys.map((attr) => (
+                                        {props.tableRowActions && (
+                                            <TableCell className="grid place-content-center border-r-[1px]">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            aria-haspopup="true"
+                                                            size="icon"
+                                                            variant="ghost"
+                                                        >
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>{props.tableRowActions.label}</DropdownMenuLabel>
+                                                        {props.tableRowActions.actions.map((action, index) => (
+                                                            <DropdownMenuItem
+                                                                key={index}
+                                                                onClick={() => action.onClick(row.id as string)}
+                                                            >
+                                                                {action.label}
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        )}
+                                        {headerKeys.map((attr, index) => (
                                             <TableCell
                                                 key={attr}
-                                                className="table-cell border-r-[1px]"
+                                                className={`${index < headerKeys.length - 1 ? "border-r-[1px]" : ""}`}
                                             >
                                                 <div className="flex items-center justify-center w-full">
                                                     {props.tableValuesMap?.[attr] ? (
@@ -145,38 +171,14 @@ export default function DataTable(props: {
                                                             content={row[attr]}
                                                             numberOfCols={headers.length}
                                                         ></FieldTooLong>
+                                                    ) : React.isValidElement(row[attr]) ? (
+                                                        row[attr]
                                                     ) : (
-                                                        (row[attr] ?? "").toString()
+                                                        JSON.stringify(row[attr] ?? {})
                                                     )}
                                                 </div>
                                             </TableCell>
                                         ))}
-                                        {props.tableRowActions && (
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                            aria-haspopup="true"
-                                                            size="icon"
-                                                            variant="ghost"
-                                                        >
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>{props.tableRowActions.label}</DropdownMenuLabel>
-                                                        {props.tableRowActions.actions.map((action, index) => (
-                                                            <DropdownMenuItem
-                                                                key={index}
-                                                                onClick={() => action.onClick(row.id as string)}
-                                                            >
-                                                                {action.label}
-                                                            </DropdownMenuItem>
-                                                        ))}
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        )}
                                     </TableRow>
                                 ))}
                             </TableBody>
