@@ -7,10 +7,12 @@ export default function AdminHeader() {
     return (
         <>
             <HeaderBase>
-                <div className="flex gap-1 md:gap-3 justify-center items-center mr-auto">
+                <div className="flex gap-1 md:gap-3 justify-center items-center">
                     <CompanyIconButton></CompanyIconButton>
                 </div>
-
+                <div className="grid grid-cols-10 w-full">
+                    <span className="col-start-5 text-4xl font-extrabold text-center">Admin</span>
+                </div>
                 <div className="flex justify-center gap-6 items-center p-2">
                     <HeaderUserButton></HeaderUserButton>
                 </div>
