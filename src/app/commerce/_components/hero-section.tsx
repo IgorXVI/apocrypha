@@ -1,6 +1,5 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Button } from "~/components/ui/button"
 import { env } from "~/env"
 
 export default async function HeroSection() {
@@ -20,14 +19,14 @@ export default async function HeroSection() {
                     <p className="max-w-xl mb-6 font-light lg:mb-8 md:text-lg lg:text-xl text-neutral-200">
                         Descubra seu próximo livro favorito, explore nossa vasta coleção de livros em todos os gêneros.
                     </p>
-                    <Button size="lg">
+                    <div className="grid place-content-center">
                         <Link
                             href="/commerce/book"
-                            className="text-lg"
+                            className="font-bold text-xl text-center bg-neutral-900 hover:bg-neutral-700 text-white py-4 px-5 rounded-lg"
                         >
                             Explorar
                         </Link>
-                    </Button>
+                    </div>
                 </div>
 
                 <div className="hidden lg:mt-0 lg:col-span-4 lg:flex"></div>
