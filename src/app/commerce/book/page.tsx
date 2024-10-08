@@ -1,10 +1,5 @@
 import { type Prisma } from "@prisma/client"
 
-import Image from "next/image"
-import Link from "next/link"
-import { Card, CardContent } from "~/components/ui/card"
-import AddToCartButton from "../_components/add-to-cart-button"
-
 import { db } from "~/server/db"
 import { BooksFilters } from "../_components/books-filters"
 import BookCard from "../_components/book-card"
