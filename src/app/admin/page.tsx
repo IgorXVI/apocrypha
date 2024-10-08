@@ -1,7 +1,4 @@
-import { BookOpen } from "lucide-react"
-import { Button } from "~/components/ui/button"
 import DataTable from "./_components/data-table"
-import Link from "next/link"
 
 type OrderStatus =
     | "AWAITING_CONFIRMATION"
@@ -104,15 +101,6 @@ export default async function Admin({
 
     return (
         <div className="container flex flex-col gap-5 py-5">
-            <Link
-                href={"/admin/tables"}
-                className="hover:underline"
-            >
-                <div className="flex flex-row items-center justify-center">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    Modify Database Data
-                </div>
-            </Link>
             <DataTable
                 name="pedido"
                 namePlural="pedidos"
