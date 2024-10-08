@@ -6,15 +6,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 export default function FieldTooLong(props: { content: string; numberOfCols: number }) {
     const maxShowLength = Math.ceil(500 / props.numberOfCols)
 
+    if (maxShowLength >= props.content.length) {
+        return <span className="text-nowrap">{props.content}</span>
+    }
+
     return (
         <Popover>
             <PopoverTrigger>
-                <span className="text-nowrap">
-                    {props.content.length > maxShowLength ? props.content.slice(0, maxShowLength) + "..." : props.content}
-                </span>
+                <span className="text-nowrap">{props.content.slice(0, maxShowLength) + "..."}</span>
             </PopoverTrigger>
             <PopoverContent>
-                <div className="flex flex-row gap-1 items-center">
+                <div className="flex flex-row gap-1 items-center text-wrap">
                     <CopyToClipboard
                         text={props.content}
                         onCopy={() => {
@@ -28,7 +30,7 @@ export default function FieldTooLong(props: { content: string; numberOfCols: num
                             <CopyIcon></CopyIcon>
                         </button>
                     </CopyToClipboard>
-                    <p className="text-center">{props.content.length > 1000 ? props.content.slice(0, 1000) + "..." : props.content}</p>
+                    <p>{props.content.length > 1000 ? props.content.slice(0, 1000) + "..." : props.content}</p>
                 </div>
             </PopoverContent>
         </Popover>

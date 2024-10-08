@@ -2,6 +2,7 @@ import { db } from "~/server/db"
 import DataTable from "./_components/data-table"
 import { calcSkip } from "~/lib/utils"
 import { clerkClient, type User } from "@clerk/nextjs/server"
+import { type GetProductInfoOutput, getProductsInfo } from "~/server/shipping-api"
 
 const cClient = clerkClient()
 
@@ -20,17 +21,6 @@ export default async function Admin({
         db.order.findMany({
             take: currentTake,
             skip: calcSkip(currentPage, currentTake),
-            include: {
-                BookOnOrder: {
-                    include: {
-                        Book: {
-                            select: {
-                                title: true,
-                            },
-                        },
-                    },
-                },
-            },
             orderBy: {
                 createdAt: "desc",
             },
@@ -63,19 +53,45 @@ export default async function Admin({
         userMap.set(user.id, user)
     })
 
+    const ticketIds = orders.filter((order) => order.ticketId).map((order) => order.ticketId)
+
+    const productsInfo = await getProductsInfo(ticketIds)
+
+    const ticketToInfoMap = new Map<string, GetProductInfoOutput>()
+
+    productsInfo.forEach((info) => {
+        ticketToInfoMap.set(info.ticketId, info)
+    })
+
     const odersForView = orders.map((order) => ({
         id: order.id,
         userFirstName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.firstName,
         userLastName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.lastName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
         price: `R$ ${order.totalPrice.toFixed(2)}`,
-        status: order.status,
+        stripeLink: (
+            <a
+                className="hover:underline"
+                href={`https://dashboard.stripe.com/test/payments/${order.paymentId}`}
+            >
+                Ver no Stripe
+            </a>
+        ),
+        ticketId: order.ticketId,
         shippingMethod: order.shippingServiceName,
         estimatedDelivery: calcShippingDate(order.createdAt, order.shippingDaysMin, order.shippingDaysMax),
         createdAt: order.createdAt,
-        updatedAt: order.updatedAt,
-        books: order.BookOnOrder.map((boo) => `"${boo.Book.title}"`).join(", "),
-        printLink: order.printUrl ? <a href={order.printUrl}>Imprimir</a> : "N/A",
+        printLink: order.printUrl ? (
+            <a
+                className="hover:underline"
+                href={order.printUrl}
+            >
+                Imprimir
+            </a>
+        ) : undefined,
+        status: ticketToInfoMap.get(order.ticketId)?.status,
+        tracking: ticketToInfoMap.get(order.ticketId)?.tracking,
+        ticketUpdatedAt: new Date(ticketToInfoMap.get(order.ticketId)?.updatedAt ?? "").toLocaleString(),
     }))
 
     return (
@@ -86,17 +102,18 @@ export default async function Admin({
                 tableDescription="Crie, atualize, apague ou busque pedidos."
                 tableHeaders={{
                     status: "Status",
-                    id: "ID",
+                    price: "Valor pago no Stripe",
+                    stripeLink: "Informações do pagamento no Stripe",
+                    ticketId: "ID do Ticket",
+                    printLink: "Imprimir Ticket",
+                    shippingMethod: "Serviço de entrega",
+                    tracking: "Código de rastreamento",
+                    createdAt: "Data de criação",
+                    ticketUpdatedAt: "Última atualização do Ticket",
+                    estimatedDelivery: "Data de entrega (aproximada)",
                     userFirstName: "Nome do usuário",
                     userLastName: "Sobrenome do usuário",
                     userEmail: "Email do usuário",
-                    price: "Preço",
-                    shippingMethod: "Serviço de entrega",
-                    estimatedDelivery: "Data de entrega (aproximada)",
-                    createdAt: "Data de criação",
-                    updatedAt: "Data da última atualização",
-                    books: "Livros comprados",
-                    printLink: "Imprimir Ticket",
                 }}
                 rows={odersForView}
                 isError={false}

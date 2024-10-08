@@ -32,7 +32,6 @@ export default async function UserOrder({ params: { id } }: { params: { id: stri
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <p>Status: {order.status}</p>
             <p>Custo: R$ {order.totalPrice.toFixed(2)}</p>
             <p>Livros:</p>
             <section>

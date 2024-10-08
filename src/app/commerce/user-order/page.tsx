@@ -33,7 +33,6 @@ export default async function UserOrdersPage() {
         <div className="container mx-auto px-4 py-8">
             {orders.map((order) => (
                 <div key={order.id}>
-                    <p>Status: {order.status}</p>
                     <p>Custo: R$ {order.totalPrice.toFixed(2)}</p>
                     <p>Livros:</p>
                     <section>

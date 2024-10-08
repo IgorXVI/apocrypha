@@ -118,6 +118,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                 data: {
                     userId: user.userId,
                     sessionId: sessionId,
+                    paymentId: session.payment_intent?.toString() ?? "N/A",
                     ticketId,
                     totalPrice: session.amount_total! / 100,
                     shippingPrice: shippingOrderData.price,
@@ -126,9 +127,6 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                     shippingDaysMin: shippingMethodChoice!.delivery_range.min,
                     shippingDaysMax: shippingMethodChoice!.delivery_range.max,
                     printUrl: shippingOrderData.printUrl,
-                    shippingOrderId: shippingOrderData.orderId,
-                    shippingTracking: shippingOrderData.tracking,
-                    status: "CONFIRMED",
                     BookOnOrder: {
                         createMany: {
                             data: shippingProducts.map((sp) => ({
@@ -144,8 +142,6 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                 <div className="flex flex-col">
                     <PaymentSuccessView order={order}></PaymentSuccessView>
                     <div>
-                        <p>tracking: {order.shippingTracking ?? "N/A"}</p>
-                        <p>shipping order ID: {order.shippingOrderId ?? "N/A"}</p>
                         <a
                             className="hover:underline"
                             href={order.printUrl ?? "#"}
@@ -161,6 +157,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         const order = await db.order.create({
             data: {
                 userId: user.userId,
+                paymentId: session.payment_intent?.toString() ?? "N/A",
                 sessionId: sessionId,
                 ticketId,
                 totalPrice: session.amount_total! / 100,

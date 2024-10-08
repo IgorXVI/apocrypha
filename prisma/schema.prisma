@@ -155,18 +155,6 @@ model OrderShipping {
     products        Json[]
 }
 
-enum OrderStatus {
-    AWAITING_CONFIRMATION
-    CANCELED
-    CONFIRMED
-    POSTED
-    DONE
-    REQUESTED_RETURN
-    REFUSED_RETURN
-    AWAITING_RETURN
-    RETURN_DONE
-}
-
 model BookOnOrder {
     Book    Book    @relation(fields: [bookId], references: [id])
     bookId  String  @db.Uuid
@@ -180,17 +168,15 @@ model BookOnOrder {
 model Order {
     id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     sessionId           String
+    paymentId           String
     userId              String
     ticketId            String
-    status              OrderStatus   @default(AWAITING_CONFIRMATION)
     totalPrice          Decimal
     shippingPrice       Decimal
     shippingDaysMin     Int
     shippingDaysMax     Int
     shippingServiceId   String
     shippingServiceName String
-    shippingOrderId     String?
-    shippingTracking    String?
     printUrl            String?
     createdAt           DateTime      @default(now())
     updatedAt           DateTime      @default(now())

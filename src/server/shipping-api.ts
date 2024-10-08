@@ -152,3 +152,101 @@ export const emitTicket: (ticketId: string) => Promise<EmitTicketOutput | undefi
         price: orderData.price,
     }
 }
+
+type GetProductInfoFetchOutput = {
+    id: string
+    format: string
+    delivery: number
+    delivery_min: number
+    delivery_max: number
+    discount: number
+    height: number
+    width: number
+    length: number
+    weight: number
+    from: {
+        address: string
+        city: string
+        complement: string
+        district: string
+        document: string
+        name: string
+        location_number: string
+        postal_code: string
+        state_abbr: string
+        country_id: string
+    }
+    to: {
+        address: string
+        city: string
+        complement: string
+        district: string
+        document: string
+        name: string
+        location_number: string
+        postal_code: string
+        state_abbr: string
+        country_id: string
+    }
+    invoice: string
+    own_hand: boolean
+    receipt: boolean
+    price: number
+    tracking: string
+    status: string
+    service_id: string
+    products: {
+        name: string
+        quantity: string
+        unitary_value: string
+    }[]
+    insurance_value: string
+    generated_at: string
+    posted_at: string
+    created_at: string
+    updated_at: string
+}
+
+export type GetProductInfoOutput = {
+    ticketId: string
+    tracking: string
+    status: string
+    updatedAt: string
+}
+
+export const getProductsInfo: (ticketIds: string[]) => Promise<GetProductInfoOutput[]> = async (ticketIds) => {
+    const productInfos: GetProductInfoFetchOutput[] = await Promise.all(
+        ticketIds.map((ticketId) =>
+            fetch(`${env.SUPER_FRETE_URL}/order/info/${ticketId}`, {
+                headers: {
+                    Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
+                    accept: "application/json",
+                    "User-Agent": env.APP_USER_AGENT,
+                    "content-type": "application/json",
+                },
+            }).then((response) => response.json()),
+        ),
+    )
+
+    const result = productInfos.map((info, index) => ({
+        ticketId: ticketIds[index] ?? "",
+        tracking: info.tracking,
+        status: info.status,
+        updatedAt: info.updated_at,
+    }))
+
+    return result
+}
+
+export const cancelTicket = async (ticketId: string) => {
+    await fetch(`${env.SUPER_FRETE_URL}/order/cancel`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
+            accept: "application/json",
+            "User-Agent": env.APP_USER_AGENT,
+            "content-type": "application/json",
+        },
+        body: JSON.stringify({ order: { id: ticketId } }),
+    })
+}
