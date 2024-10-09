@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server"
-import Link from "next/link"
+import { redirect } from "next/navigation"
 import { db } from "~/server/db"
 import { cancelTicket } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
@@ -8,7 +8,7 @@ export default async function PaymentCanceled({ params: { sessionId } }: { param
     const user = auth()
 
     if (!user.userId) {
-        return <div>Não autorizado</div>
+        redirect("/commerce/user/order")
     }
 
     const [existingOrder, session] = await Promise.all([
@@ -31,7 +31,7 @@ export default async function PaymentCanceled({ params: { sessionId } }: { param
     ])
 
     if (!session || session.status === "expired" || !existingOrder) {
-        return <p>Stripe session não é mais válida ou o pedido não foi encontrado.</p>
+        redirect("/commerce/user/order")
     }
 
     await Promise.all([
@@ -43,15 +43,5 @@ export default async function PaymentCanceled({ params: { sessionId } }: { param
         }),
     ])
 
-    return (
-        <div className="py-32 flex flex-col items-center space-y-6">
-            <p className="text-2xl text-center font-bold text-red-500">O pagamento foi cancelado</p>
-            <Link
-                href="/commerce"
-                className="text-blue-500 text-center"
-            >
-                Continuar comprando
-            </Link>
-        </div>
-    )
+    redirect("/commerce/user/order")
 }

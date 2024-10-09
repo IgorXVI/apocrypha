@@ -80,12 +80,14 @@ export default function PaginationNumbers(props: { total: number; urlPageParamNa
                     </PaginationItem>
 
                     <PaginationItem>
-                        <PaginationLink
-                            href="#"
-                            isActive
-                        >
-                            {props.page}
-                        </PaginationLink>
+                        {maxPage > 1 && (
+                            <PaginationLink
+                                href="#"
+                                isActive
+                            >
+                                {props.page}
+                            </PaginationLink>
+                        )}
                     </PaginationItem>
 
                     <PaginationItem className="hidden md:block">
