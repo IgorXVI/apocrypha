@@ -3,6 +3,7 @@ import DataTable from "./_components/data-table"
 import { calcSkip } from "~/lib/utils"
 import { clerkClient, type User } from "@clerk/nextjs/server"
 import { type GetProductInfoOutput, getProductsInfo } from "~/server/shipping-api"
+import { stripe } from "~/server/stripe-api"
 
 const cClient = clerkClient()
 
@@ -63,19 +64,41 @@ export default async function Admin({
         ticketToInfoMap.set(info.ticketId, info)
     })
 
+    const sessionIds = orders.map((order) => order.sessionId)
+
+    const sessions = await Promise.all(sessionIds.map((sessionId) => stripe.checkout.sessions.retrieve(sessionId)))
+
+    const sessionPaymentMap = new Map<
+        string,
+        {
+            paymentId: string | undefined
+            status: "expired" | "complete" | "open" | undefined
+        }
+    >()
+
+    sessions.forEach((session) => {
+        sessionPaymentMap.set(session.id, {
+            paymentId: session.payment_intent?.toString(),
+            status: session.status ?? undefined,
+        })
+    })
+
     const odersForView = orders.map((order) => ({
         id: order.id,
         userFirstName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.firstName,
         userLastName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.lastName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
         price: `R$ ${order.totalPrice.toFixed(2)}`,
-        stripeLink: (
+        stripeStatus: sessionPaymentMap.get(order.sessionId)?.status,
+        stripeLink: sessionPaymentMap.get(order.sessionId)?.paymentId ? (
             <a
                 className="hover:underline"
-                href={`https://dashboard.stripe.com/test/payments/${order.paymentId}`}
+                href={`https://dashboard.stripe.com/test/payments/${sessionPaymentMap.get(order.sessionId)?.paymentId}`}
             >
                 Ver no Stripe
             </a>
+        ) : (
+            "Não existe pagamento no Stripe"
         ),
         ticketId: order.ticketId,
         shippingMethod: order.shippingServiceName,
@@ -102,8 +125,9 @@ export default async function Admin({
                 tableDescription="Crie, atualize, apague ou busque pedidos."
                 tableHeaders={{
                     status: "Status",
-                    price: "Valor pago no Stripe",
+                    stripeStatus: "Status no Stripe",
                     stripeLink: "Informações do pagamento no Stripe",
+                    price: "Valor pago no Stripe",
                     ticketId: "ID do Ticket",
                     printLink: "Imprimir Ticket",
                     shippingMethod: "Serviço de entrega",

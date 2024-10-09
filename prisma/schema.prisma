@@ -161,7 +161,6 @@ model BookOnOrder {
 model Order {
     id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     sessionId           String
-    paymentId           String
     userId              String
     ticketId            String
     totalPrice          Decimal

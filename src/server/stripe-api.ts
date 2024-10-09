@@ -269,7 +269,6 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         data: {
             userId: user.userId,
             sessionId: session.id,
-            paymentId: session.payment_intent?.toString() ?? "N/A",
             ticketId,
             totalPrice: session.amount_total! / 100,
             shippingPrice: shipping.price,
