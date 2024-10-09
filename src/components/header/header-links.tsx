@@ -49,15 +49,15 @@ export default function HeaderLinks() {
                 Favoritos
             </Link>
             <Link
-                key="/contact"
-                href="/contact"
+                key="/commerce/contact"
+                href="/commerce/contact"
                 className="hover:underline"
             >
                 Contato
             </Link>
             <Link
-                key="/about"
-                href="/about"
+                key="/commerce/about"
+                href="/commerce/about"
                 className="hover:underline"
             >
                 Sobre
