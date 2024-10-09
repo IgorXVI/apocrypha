@@ -1,11 +1,10 @@
 import { db } from "~/server/db"
 import DataTable from "./_components/data-table"
 import { calcSkip } from "~/lib/utils"
-import { clerkClient, type User } from "@clerk/nextjs/server"
+import { type User } from "@clerk/nextjs/server"
 import { type GetProductInfoOutput, getProductsInfo } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
-
-const cClient = clerkClient()
+import { authClient } from "~/server/auth-api"
 
 export default async function Admin({
     searchParams,
@@ -43,7 +42,7 @@ export default async function Admin({
         orderToUserIdMap.set(order.id, order.userId)
     })
 
-    const users = await cClient.users.getUserList({
+    const users = await authClient.users.getUserList({
         userId: userIds,
         limit: userIds.length,
     })

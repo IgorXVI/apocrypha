@@ -20,12 +20,12 @@ export default async function PaymentCanceled({ params: { sessionId } }: { param
                 },
             })
             .catch((error) => {
-                console.error("FIND_DB_ORDER_ON_CALCEL_ERROR", error)
+                console.error("PAYMENT_CANCELED_FIND_DB_ORDER", error)
                 return undefined
             }),
 
         stripe.checkout.sessions.retrieve(sessionId).catch((error) => {
-            console.error("RETRIEV_SESSION_ON_CALCEL_ERROR", error)
+            console.error("PAYMENT_CANCELED_RETRIEV_SESSION", error)
             return undefined
         }),
     ])
@@ -36,10 +36,10 @@ export default async function PaymentCanceled({ params: { sessionId } }: { param
 
     await Promise.all([
         stripe.checkout.sessions.expire(sessionId).catch((error) => {
-            console.error("EXPIRE_STRIPE_SESSION_ON_CALCEL_ERROR", error)
+            console.error("PAYMENT_CANCELED_EXPIRE_STRIPE_SESSION", error)
         }),
         cancelTicket(existingOrder.ticketId).catch((error) => {
-            console.error("CANCEL_TICKET_ON_CALCEL_ERROR", error)
+            console.error("PAYMENT_CANCELED_CANCEL_TICKET", error)
         }),
     ])
 

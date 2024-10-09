@@ -3,13 +3,12 @@ import "server-only"
 import Stripe from "stripe"
 
 import { env } from "../env"
-import { auth, clerkClient } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
 import { db } from "./db"
 import { type Prisma } from "prisma/prisma-client"
 import { calcShippingFee } from "./shipping-api"
 import { createShippingTicket } from "~/server/shipping-api"
-
-const cClient = clerkClient()
+import { authClient } from "./auth-api"
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -249,7 +248,7 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
         unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
     }))
 
-    const userData = await cClient.users.getUser(user.userId)
+    const userData = await authClient.users.getUser(user.userId)
 
     const ticketId = await createShippingTicket({
         to: {

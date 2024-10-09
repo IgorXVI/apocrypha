@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/only-throw-error */
 import { createUploadthing, type FileRouter } from "uploadthing/next"
 import { UploadThingError } from "uploadthing/server"
-import { auth, clerkClient } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
 import { type UserMetadata } from "~/lib/types"
+import { authClient } from "~/server/auth-api"
 
 const f = createUploadthing()
-const cClient = clerkClient()
 
 export const ourFileRouter = {
     imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 4 } })
@@ -14,7 +14,7 @@ export const ourFileRouter = {
 
             if (!user.userId) throw new UploadThingError("Unauthorized")
 
-            const fullUserData = await cClient.users.getUser(user.userId)
+            const fullUserData = await authClient.users.getUser(user.userId)
             const userMetadata = fullUserData?.privateMetadata as UserMetadata | undefined
 
             if (!userMetadata?.isAdmin) {

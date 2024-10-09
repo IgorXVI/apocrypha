@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import Link from "next/link"
 import { db } from "~/server/db"
+import { emitTicket } from "~/server/shipping-api"
 
 export default async function PaymentSuccess({ params: { sessionId } }: { params: { sessionId: string } }) {
     const user = auth()
@@ -17,12 +18,34 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             },
         })
         .catch((error) => {
-            console.error("FIND_DB_ORDER_ERROR", error)
+            console.error("PAYMENT_SUCCESS_FIND_DB_ORDER_ERROR", error)
             return null
         })
 
     if (!existingOrder) {
         return <p>Pedido não encontrado. Tente procurar no seu histórico de pedidos mais tarde.</p>
+    }
+
+    if (!existingOrder.printUrl) {
+        const emitedTicketInfo = await emitTicket(existingOrder.ticketId).catch((error) => {
+            console.error("PAYMENT_SUCCESS_EMIT_TICKET_ERROR", error)
+            return undefined
+        })
+
+        if (emitedTicketInfo?.printUrl) {
+            await db.order
+                .update({
+                    where: {
+                        id: existingOrder.id,
+                    },
+                    data: {
+                        printUrl: emitedTicketInfo.printUrl,
+                    },
+                })
+                .catch((error) => {
+                    console.error("PAYMENT_SUCCESS_UPDATE_ORDER_ERROR", error)
+                })
+        }
     }
 
     return (
