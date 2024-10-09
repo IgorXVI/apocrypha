@@ -115,6 +115,7 @@ export default async function Admin({
         status: ticketToInfoMap.get(order.ticketId)?.status,
         tracking: ticketToInfoMap.get(order.ticketId)?.tracking,
         ticketUpdatedAt: new Date(ticketToInfoMap.get(order.ticketId)?.updatedAt ?? "").toLocaleString(),
+        ticketEmitPrice: `R$ ${ticketToInfoMap.get(order.ticketId)?.price.toFixed(2)}`,
     }))
 
     return (
@@ -128,6 +129,7 @@ export default async function Admin({
                     stripeStatus: "Status no Stripe",
                     stripeLink: "Informações do pagamento no Stripe",
                     price: "Valor pago no Stripe",
+                    ticketEmitPrice: "Valor para emitr o Ticket do Super Frete",
                     ticketId: "ID do Ticket",
                     printLink: "Imprimir Ticket",
                     shippingMethod: "Serviço de entrega",

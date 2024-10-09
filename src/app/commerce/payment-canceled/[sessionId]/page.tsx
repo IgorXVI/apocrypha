@@ -30,15 +30,18 @@ export default async function PaymentCanceled({ params: { sessionId } }: { param
         }),
     ])
 
-    if (!session || session.status === "expired") {
-        return <p>Stripe session não é mais válida.</p>
+    if (!session || session.status === "expired" || !existingOrder) {
+        return <p>Stripe session não é mais válida ou o pedido não foi encontrado.</p>
     }
 
-    await stripe.checkout.sessions.expire(sessionId)
-
-    if (existingOrder) {
-        await cancelTicket(existingOrder.ticketId)
-    }
+    await Promise.all([
+        stripe.checkout.sessions.expire(sessionId).catch((error) => {
+            console.error("EXPIRE_STRIPE_SESSION_ON_CALCEL_ERROR", error)
+        }),
+        cancelTicket(existingOrder.ticketId).catch((error) => {
+            console.error("CANCEL_TICKET_ON_CALCEL_ERROR", error)
+        }),
+    ])
 
     return (
         <div className="py-32 flex flex-col items-center space-y-6">

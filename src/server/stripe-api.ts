@@ -89,7 +89,7 @@ export const restoreProduct = async (stripeId: string) => {
     }
 }
 
-export const createCheckoutSession = async (products: { stripeId: string; quantity: number }[]) => {
+export const createCheckoutSession = async (inputProducts: { stripeId: string; quantity: number }[]) => {
     const user = auth()
 
     if (!user.userId) {
@@ -112,34 +112,10 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         }
     }
 
-    const productQantityMap = new Map<string, number>()
-    products.forEach((product) => {
-        productQantityMap.set(product.stripeId, product.quantity)
-    })
-
-    const [stripeProducts] = await Promise.allSettled([
-        stripe.products.list({
-            ids: [...productQantityMap.keys()],
-            limit: products.length,
-        }),
-    ])
-
-    if (stripeProducts.status === "rejected") {
-        return {
-            success: false,
-            message: `Failed to fetch products: ${stripeProducts.reason}`,
-        }
-    }
-
-    const lineItems = stripeProducts.value.data.map((stripeProduct) => ({
-        price: stripeProduct.default_price?.toString() ?? "",
-        quantity: productQantityMap.get(stripeProduct.id),
-    }))
-
     const books = await db.book.findMany({
         where: {
             stripeId: {
-                in: products.map((p) => p.stripeId),
+                in: inputProducts.map((p) => p.stripeId),
             },
         },
         select: {
@@ -172,14 +148,40 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         booksMap.set(book.stripeId, book)
     })
 
+    const products = inputProducts.filter((p) => booksMap.get(p.stripeId))
+
+    const productQuantityMap = new Map<string, number>()
+    products.forEach((product) => {
+        productQuantityMap.set(product.stripeId, product.quantity)
+    })
+
+    const [stripeProducts] = await Promise.allSettled([
+        stripe.products.list({
+            ids: [...productQuantityMap.keys()],
+            limit: products.length,
+        }),
+    ])
+
+    if (stripeProducts.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to fetch products: ${stripeProducts.reason}`,
+        }
+    }
+
+    const lineItems = stripeProducts.value.data.map((sp) => ({
+        price: sp.default_price?.toString() ?? "",
+        quantity: productQuantityMap.get(sp.id),
+    }))
+
     const shipping = await calcShippingFee({
         toPostalCode: userAddress.cep,
-        products: stripeProducts.value.data.map((stripeProduct) => ({
-            quantity: productQantityMap.get(stripeProduct.id)!,
-            height: booksMap.get(stripeProduct.id)!.heightCm,
-            width: booksMap.get(stripeProduct.id)!.widthCm,
-            length: booksMap.get(stripeProduct.id)!.thicknessCm,
-            weight: (booksMap.get(stripeProduct.id)!.weightGrams ?? 0) / 1000,
+        products: stripeProducts.value.data.map((sp) => ({
+            quantity: productQuantityMap.get(sp.id)!,
+            height: booksMap.get(sp.id)!.heightCm,
+            width: booksMap.get(sp.id)!.widthCm,
+            length: booksMap.get(sp.id)!.thicknessCm,
+            weight: (booksMap.get(sp.id)!.weightGrams ?? 0) / 1000,
         })),
     }).then((arr) => {
         if (arr.length === 0) {

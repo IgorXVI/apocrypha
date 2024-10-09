@@ -212,6 +212,7 @@ export type GetProductInfoOutput = {
     tracking: string
     status: string
     updatedAt: string
+    price: number
 }
 
 export const getProductsInfo: (ticketIds: string[]) => Promise<GetProductInfoOutput[]> = async (ticketIds) => {
@@ -233,6 +234,7 @@ export const getProductsInfo: (ticketIds: string[]) => Promise<GetProductInfoOut
         tracking: info.tracking,
         status: info.status,
         updatedAt: info.updated_at,
+        price: info.price,
     }))
 
     return result
