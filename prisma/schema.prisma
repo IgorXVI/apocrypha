@@ -168,6 +168,8 @@ enum OrderStatus {
 enum OrderCancelReason {
     USER
     ADMIN
+    STRIPE
+    SHIPPING_SERVICE
     EXCEPTION
 }
 
