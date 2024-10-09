@@ -115,7 +115,7 @@ export default function SearchPage(
                     <Input
                         type="search"
                         placeholder="Procure..."
-                        className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                        className="w-full rounded-lg bg-background pl-8 lg:w-[320px]"
                         defaultValue={searchParams.get("search")?.toString()}
                         onChange={useDebouncedCallback((e) => {
                             const params = new URLSearchParams(searchParams)

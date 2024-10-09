@@ -20,7 +20,9 @@ export default function CommerceHeader() {
                     <UserAddress></UserAddress>
                 </div>
 
-                <DesktopHeaderNav></DesktopHeaderNav>
+                <div className="hidden md:block mx-10">
+                    <DesktopHeaderNav></DesktopHeaderNav>
+                </div>
 
                 <ProductSearch></ProductSearch>
 

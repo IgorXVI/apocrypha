@@ -21,18 +21,32 @@ export default function HeaderLinks() {
                 </Link>
             )}
             <Link
-                key="/books"
+                key="/commerce/book"
                 href="/commerce/book"
                 className="hover:underline"
             >
                 Livros
             </Link>
             <Link
-                key="/about"
-                href="/about"
+                key="/commerce/author"
+                href="/commerce/author"
                 className="hover:underline"
             >
-                Sobre
+                Autores
+            </Link>
+            <Link
+                key="/commerce/user/order"
+                href="/commerce/user/order"
+                className="hover:underline"
+            >
+                Compras
+            </Link>
+            <Link
+                key="/commerce/user/wish-list"
+                href="/commerce/user/wish-list"
+                className="hover:underline"
+            >
+                Favoritos
             </Link>
             <Link
                 key="/contact"
@@ -40,6 +54,13 @@ export default function HeaderLinks() {
                 className="hover:underline"
             >
                 Contato
+            </Link>
+            <Link
+                key="/about"
+                href="/about"
+                className="hover:underline"
+            >
+                Sobre
             </Link>
         </>
     )

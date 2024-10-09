@@ -108,7 +108,7 @@ export default async function Admin({
                 className="hover:underline"
                 href={order.printUrl}
             >
-                Imprimir
+                Ver PDF
             </a>
         ) : undefined,
         status: ticketToInfoMap.get(order.ticketId)?.status,
@@ -127,10 +127,10 @@ export default async function Admin({
                     status: "Status no Super Frete",
                     stripeStatus: "Status no Stripe",
                     stripeLink: "Informações do pagamento no Stripe",
+                    printLink: "Ver Ticket do Super Frete",
                     price: "Valor pago no Stripe",
                     ticketEmitPrice: "Valor para emitr o Ticket do Super Frete",
                     ticketId: "ID do Ticket",
-                    printLink: "Imprimir Ticket",
                     shippingMethod: "Serviço de entrega",
                     tracking: "Código de rastreamento",
                     createdAt: "Data de criação",
