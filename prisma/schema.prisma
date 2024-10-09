@@ -158,8 +158,21 @@ model BookOnOrder {
     @@id([bookId, orderId])
 }
 
+enum OrderStatus {
+    PREPARING
+    IN_TRANSIT
+    DELIVERED
+    CANCELED
+}
+
+enum OrderCancelReason {
+    USER
+    ADMIN
+    EXCEPTION
+}
+
 model Order {
-    id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     sessionId           String
     userId              String
     ticketId            String
@@ -169,8 +182,8 @@ model Order {
     shippingDaysMax     Int
     shippingServiceId   String
     shippingServiceName String
-    createdAt           DateTime      @default(now())
-    updatedAt           DateTime      @default(now())
+    createdAt           DateTime           @default(now())
+    updatedAt           DateTime           @default(now())
     //Precisa atualizar depois do pagamento
     stripeStatus        String?
     stripePaymentId     String?
@@ -181,6 +194,9 @@ model Order {
     ticketUpdatedAt     DateTime?
     tracking            String?
     //
+    status              OrderStatus        @default(PREPARING)
+    cancelReason        OrderCancelReason?
+    exceptionDetails    String?
     BookOnOrder         BookOnOrder[]
 
     @@unique([sessionId, userId])
