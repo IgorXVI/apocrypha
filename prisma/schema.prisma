@@ -169,9 +169,18 @@ model Order {
     shippingDaysMax     Int
     shippingServiceId   String
     shippingServiceName String
-    printUrl            String?
     createdAt           DateTime      @default(now())
     updatedAt           DateTime      @default(now())
+    //Precisa atualizar depois do pagamento
+    stripeStatus        String?
+    stripePaymentId     String?
+    //
+    //Precisa atualizar depois de emitir o ticket
+    printUrl            String?
+    ticketStatus        String?
+    ticketUpdatedAt     DateTime?
+    tracking            String?
+    //
     BookOnOrder         BookOnOrder[]
 
     @@unique([sessionId, userId])

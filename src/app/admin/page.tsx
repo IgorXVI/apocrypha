@@ -84,8 +84,7 @@ export default async function Admin({
 
     const odersForView = orders.map((order) => ({
         id: order.id,
-        userFirstName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.firstName,
-        userLastName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.lastName,
+        userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
         price: `R$ ${order.totalPrice.toFixed(2)}`,
         stripeStatus: sessionPaymentMap.get(order.sessionId)?.status,
@@ -128,16 +127,15 @@ export default async function Admin({
                     stripeStatus: "Status no Stripe",
                     stripeLink: "Informações do pagamento no Stripe",
                     printLink: "Ver Ticket do Super Frete",
+                    tracking: "Código de rastreamento",
+                    ticketUpdatedAt: "Última atualização do Ticket",
                     price: "Valor pago no Stripe",
                     ticketEmitPrice: "Valor para emitr o Ticket do Super Frete",
                     ticketId: "ID do Ticket",
                     shippingMethod: "Serviço de entrega",
-                    tracking: "Código de rastreamento",
                     createdAt: "Data de criação",
-                    ticketUpdatedAt: "Última atualização do Ticket",
                     estimatedDelivery: "Data de entrega (aproximada)",
-                    userFirstName: "Nome do usuário",
-                    userLastName: "Sobrenome do usuário",
+                    userName: "Nome do usuário",
                     userEmail: "Email do usuário",
                 }}
                 rows={odersForView}
