@@ -3,11 +3,13 @@ import "server-only"
 import Stripe from "stripe"
 
 import { env } from "../env"
-import { auth } from "@clerk/nextjs/server"
+import { auth, clerkClient } from "@clerk/nextjs/server"
 import { db } from "./db"
-import { type SuperFreteShippingProduct } from "~/lib/types"
 import { type Prisma } from "prisma/prisma-client"
 import { calcShippingFee } from "./shipping-api"
+import { createShippingTicket } from "~/server/shipping-api"
+
+const cClient = clerkClient()
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -170,7 +172,7 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         booksMap.set(book.stripeId, book)
     })
 
-    const superFreteResult = await calcShippingFee({
+    const shipping = await calcShippingFee({
         toPostalCode: userAddress.cep,
         products: stripeProducts.value.data.map((stripeProduct) => ({
             quantity: productQantityMap.get(stripeProduct.id)!,
@@ -179,7 +181,19 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             length: booksMap.get(stripeProduct.id)!.thicknessCm,
             weight: (booksMap.get(stripeProduct.id)!.weightGrams ?? 0) / 1000,
         })),
+    }).then((arr) => {
+        if (arr.length === 0) {
+            return undefined
+        }
+
+        const arrSorted = arr.sort((a, b) => a.delivery_range.max - b.delivery_range.max)
+
+        return arrSorted[0]
     })
+
+    if (!shipping) {
+        throw new Error("Not able to fetch shipping prices.")
+    }
 
     const [checkoutSession] = await Promise.allSettled([
         stripe.checkout.sessions.create({
@@ -189,29 +203,31 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
             cancel_url: `${env.URL}/commerce/payment-canceled/{CHECKOUT_SESSION_ID}`,
             locale: "pt-BR",
-            shipping_options: superFreteResult.map((el) => ({
-                shipping_rate_data: {
-                    type: "fixed_amount",
-                    metadata: {
-                        serviceId: el.id,
-                    },
-                    display_name: el.name,
-                    delivery_estimate: {
-                        minimum: {
-                            unit: "business_day",
-                            value: el.delivery_range.min,
+            shipping_options: [
+                {
+                    shipping_rate_data: {
+                        type: "fixed_amount",
+                        metadata: {
+                            serviceId: shipping.id,
                         },
-                        maximum: {
-                            unit: "business_day",
-                            value: el.delivery_range.max,
+                        display_name: shipping.name,
+                        delivery_estimate: {
+                            minimum: {
+                                unit: "business_day",
+                                value: shipping.delivery_range.min,
+                            },
+                            maximum: {
+                                unit: "business_day",
+                                value: shipping.delivery_range.max,
+                            },
                         },
-                    },
-                    fixed_amount: {
-                        amount: Math.ceil(el.price * 100),
-                        currency: "brl",
+                        fixed_amount: {
+                            amount: Math.ceil(shipping.price * 100),
+                            currency: "brl",
+                        },
                     },
                 },
-            })),
+            ],
         }),
     ])
 
@@ -222,18 +238,53 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         }
     }
 
-    const productsForOrderShipping: SuperFreteShippingProduct[] = products.map((product) => ({
+    const session = checkoutSession.value
+
+    const productsForOrderShipping = products.map((product) => ({
         bookDBId: booksMap.get(product.stripeId)?.id ?? "N/A",
         name: booksMap.get(product.stripeId)?.title ?? "N/A",
         quantity: product.quantity,
         unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
     }))
 
-    await db.orderShipping.create({
+    const userData = await cClient.users.getUser(user.userId)
+
+    const ticketId = await createShippingTicket({
+        to: {
+            name: `${userData.firstName} ${userData.lastName}`,
+            address: `${userAddress.street}, número ${userAddress.number}${userAddress.complement ? `, ${userAddress.complement}` : ""}`,
+            district: userAddress.neighborhood,
+            city: userAddress.city,
+            state_abbr: userAddress.state,
+            postal_code: userAddress.cep,
+            email: userData.primaryEmailAddress?.emailAddress ?? "N/A",
+        },
+        service: shipping.id,
+        products: productsForOrderShipping,
+        volumes: { ...shipping.packages[0].dimensions, weight: shipping.packages[0].weight },
+        tag: JSON.stringify({ sessionId: session.id, userId: user.userId }),
+    })
+
+    await db.order.create({
         data: {
-            sessionId: checkoutSession.value.id,
-            shippingMethods: superFreteResult,
-            products: productsForOrderShipping,
+            userId: user.userId,
+            sessionId: session.id,
+            paymentId: session.payment_intent?.toString() ?? "N/A",
+            ticketId,
+            totalPrice: session.amount_total! / 100,
+            shippingPrice: shipping.price,
+            shippingServiceId: shipping.id.toString(),
+            shippingServiceName: shipping.name,
+            shippingDaysMin: shipping.delivery_range.min,
+            shippingDaysMax: shipping.delivery_range.max,
+            BookOnOrder: {
+                createMany: {
+                    data: productsForOrderShipping.map((sp) => ({
+                        bookId: sp.bookDBId,
+                        price: sp.unitary_value,
+                    })),
+                },
+            },
         },
     })
 

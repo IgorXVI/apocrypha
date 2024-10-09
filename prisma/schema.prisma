@@ -148,13 +148,6 @@ model Address {
     complement   String?
 }
 
-model OrderShipping {
-    id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    sessionId       String @unique
-    shippingMethods Json[]
-    products        Json[]
-}
-
 model BookOnOrder {
     Book    Book    @relation(fields: [bookId], references: [id])
     bookId  String  @db.Uuid
