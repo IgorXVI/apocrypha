@@ -125,7 +125,7 @@ export default async function Admin({
                 namePlural="pedidos"
                 tableDescription="Crie, atualize, apague ou busque pedidos."
                 tableHeaders={{
-                    status: "Status",
+                    status: "Status no Super Frete",
                     stripeStatus: "Status no Stripe",
                     stripeLink: "Informações do pagamento no Stripe",
                     price: "Valor pago no Stripe",
