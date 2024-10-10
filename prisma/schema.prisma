@@ -160,6 +160,7 @@ model BookOnOrder {
 
 enum OrderStatus {
     PREPARING
+    TICKET_EMITED
     IN_TRANSIT
     DELIVERED
     CANCELED
@@ -195,10 +196,11 @@ model Order {
     ticketStatus        String?
     ticketUpdatedAt     DateTime?
     tracking            String?
+    ticketPrice         Decimal?
     //
     status              OrderStatus        @default(PREPARING)
     cancelReason        OrderCancelReason?
-    exceptionDetails    String?
+    cancelMessage       String?
     BookOnOrder         BookOnOrder[]
 
     @@unique([sessionId, userId])

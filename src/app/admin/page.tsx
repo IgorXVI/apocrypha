@@ -2,8 +2,6 @@ import { db } from "~/server/db"
 import DataTable from "./_components/data-table"
 import { calcSkip } from "~/lib/utils"
 import { type User } from "@clerk/nextjs/server"
-import { type GetProductInfoOutput, getProductsInfo } from "~/server/shipping-api"
-import { stripe } from "~/server/stripe-api"
 import { authClient } from "~/server/auth-api"
 
 export default async function Admin({
@@ -53,67 +51,37 @@ export default async function Admin({
         userMap.set(user.id, user)
     })
 
-    const ticketIds = orders.filter((order) => order.ticketId).map((order) => order.ticketId)
-
-    const productsInfo = await getProductsInfo(ticketIds)
-
-    const ticketToInfoMap = new Map<string, GetProductInfoOutput>()
-
-    productsInfo.forEach((info) => {
-        ticketToInfoMap.set(info.ticketId, info)
-    })
-
-    const sessionIds = orders.map((order) => order.sessionId)
-
-    const sessions = await Promise.all(sessionIds.map((sessionId) => stripe.checkout.sessions.retrieve(sessionId)))
-
-    const sessionPaymentMap = new Map<
-        string,
-        {
-            paymentId: string | undefined
-            status: "expired" | "complete" | "open" | undefined
-        }
-    >()
-
-    sessions.forEach((session) => {
-        sessionPaymentMap.set(session.id, {
-            paymentId: session.payment_intent?.toString(),
-            status: session.status ?? undefined,
-        })
-    })
-
     const odersForView = orders.map((order) => ({
         id: order.id,
+        status: order.status === "CANCELED" ? `${order.status} : ${order.cancelReason ?? "N/A"} - ${order.cancelMessage ?? "N/A"}` : order.status,
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
         price: `R$ ${order.totalPrice.toFixed(2)}`,
-        stripeStatus: sessionPaymentMap.get(order.sessionId)?.status,
-        stripeLink: sessionPaymentMap.get(order.sessionId)?.paymentId ? (
+        stripeStatus: order.stripeStatus,
+        stripeLink: order.stripePaymentId && (
             <a
                 className="hover:underline"
-                href={`https://dashboard.stripe.com/test/payments/${sessionPaymentMap.get(order.sessionId)?.paymentId}`}
+                href={`https://dashboard.stripe.com/test/payments/${order.stripePaymentId}`}
             >
                 Ver no Stripe
             </a>
-        ) : (
-            "Não existe pagamento no Stripe"
         ),
         ticketId: order.ticketId,
         shippingMethod: order.shippingServiceName,
         estimatedDelivery: calcShippingDate(order.createdAt, order.shippingDaysMin, order.shippingDaysMax),
         createdAt: order.createdAt,
-        printLink: order.printUrl ? (
+        printLink: order.printUrl && (
             <a
                 className="hover:underline"
                 href={order.printUrl}
             >
                 Ver PDF
             </a>
-        ) : undefined,
-        status: ticketToInfoMap.get(order.ticketId)?.status,
-        tracking: ticketToInfoMap.get(order.ticketId)?.tracking,
-        ticketUpdatedAt: new Date(ticketToInfoMap.get(order.ticketId)?.updatedAt ?? "").toLocaleString(),
-        ticketEmitPrice: `R$ ${ticketToInfoMap.get(order.ticketId)?.price.toFixed(2)}`,
+        ),
+        ticketStatus: order.ticketStatus,
+        tracking: order.tracking,
+        ticketUpdatedAt: order.ticketUpdatedAt && new Date(order.ticketUpdatedAt).toLocaleString(),
+        ticketEmitPrice: order.ticketPrice && `R$ ${order.ticketPrice?.toFixed(2)}`,
     }))
 
     return (
@@ -123,7 +91,9 @@ export default async function Admin({
                 namePlural="pedidos"
                 tableDescription="Crie, atualize, apague ou busque pedidos."
                 tableHeaders={{
-                    status: "Status no Super Frete",
+                    id: "ID",
+                    status: "Status",
+                    ticketStatus: "Status no Super Frete",
                     stripeStatus: "Status no Stripe",
                     stripeLink: "Informações do pagamento no Stripe",
                     printLink: "Ver Ticket do Super Frete",

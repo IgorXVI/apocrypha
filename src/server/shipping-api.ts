@@ -117,8 +117,8 @@ type EmitTicketFetchOutput = {
     }
 }
 
-type EmitTicketOutput = {
-    orderId: string
+export type EmitTicketOutput = {
+    ticketId: string
     tracking: string
     printUrl: string
     price: number
@@ -146,7 +146,7 @@ export const emitTicket: (ticketId: string) => Promise<EmitTicketOutput | undefi
     const orderData = shippingTicket.purchase.orders[0]
 
     return {
-        orderId: orderData.id,
+        ticketId: orderData.id,
         tracking: orderData.tracking,
         printUrl: orderData.print.url,
         price: orderData.price,
