@@ -53,6 +53,7 @@ export default async function Admin({
 
     const odersForView = orders.map((order) => ({
         id: order.id,
+        needsRefund: order.needsRefund,
         status: order.status === "CANCELED" ? `${order.status} : ${order.cancelReason ?? "N/A"} - ${order.cancelMessage ?? "N/A"}` : order.status,
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
@@ -92,6 +93,7 @@ export default async function Admin({
                 tableDescription="Crie, atualize, apague ou busque pedidos."
                 tableHeaders={{
                     id: "ID",
+                    needsRefund: "Precisa de reembolso?",
                     status: "Status",
                     ticketStatus: "Status no Super Frete",
                     stripeStatus: "Status no Stripe",

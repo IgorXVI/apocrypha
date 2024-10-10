@@ -6,6 +6,12 @@ import { type Prisma, type $Enums } from "prisma/prisma-client"
 
 export const dynamic = "force-dynamic"
 
+type SessionInfo = {
+    paymentId: string | undefined
+    paymentStatus: "paid" | "unpaid" | "no_payment_required"
+    status: "expired" | "complete" | "open" | undefined
+}
+
 export async function GET(req: Request) {
     const passedAuth = cronAuthCheck(req)
 
@@ -13,13 +19,7 @@ export async function GET(req: Request) {
         return unauthorizedRes
     }
 
-    const orders = await db.order.findMany({
-        where: {
-            status: {
-                not: "CANCELED",
-            },
-        },
-    })
+    const orders = await db.order.findMany()
 
     if (orders.length === 0) {
         return Response.json({ updateOrderIds: [] })
@@ -39,17 +39,12 @@ export async function GET(req: Request) {
 
     const sessions = await Promise.all(sessionIds.map((sessionId) => stripe.checkout.sessions.retrieve(sessionId)))
 
-    const sessionPaymentMap = new Map<
-        string,
-        {
-            paymentId: string | undefined
-            status: "expired" | "complete" | "open" | undefined
-        }
-    >()
+    const sessionPaymentMap = new Map<string, SessionInfo>()
 
     sessions.forEach((session) => {
         sessionPaymentMap.set(session.id, {
             paymentId: session.payment_intent?.toString(),
+            paymentStatus: session.payment_status,
             status: session.status ?? undefined,
         })
     })
@@ -67,6 +62,7 @@ export async function GET(req: Request) {
             tracking?: string
             ticketPrice?: number
             printUrl?: string
+            needsRefund?: boolean
         }
     >()
 
@@ -92,6 +88,8 @@ export async function GET(req: Request) {
 
     const orderTicketNeedsEmit = new Map<string, Prisma.OrderGetPayload<Prisma.OrderDefaultArgs>>()
 
+    const checkNeedsRefund = (session?: SessionInfo) => session?.paymentId !== undefined && session?.paymentStatus === "paid"
+
     orders.forEach((order) => {
         const session = sessionPaymentMap.get(order.sessionId)
         const ticketInfo = ticketToInfoMap.get(order.ticketId)
@@ -101,6 +99,9 @@ export async function GET(req: Request) {
                 status: "CANCELED",
                 cancelReason: "SHIPPING_SERVICE",
                 cancelMessage: `Ticket ${order.ticketId} not found.`,
+                stripePaymentId: session?.paymentId,
+                stripeStatus: session?.status,
+                needsRefund: checkNeedsRefund(session),
             })
             return
         }
@@ -114,6 +115,9 @@ export async function GET(req: Request) {
                 ticketStatus: ticketInfo.status,
                 ticketUpdatedAt: new Date(ticketInfo.updatedAt),
                 tracking: ticketInfo.tracking,
+                stripePaymentId: session?.paymentId,
+                stripeStatus: session?.status,
+                needsRefund: checkNeedsRefund(session),
             })
             return
         }
@@ -144,6 +148,7 @@ export async function GET(req: Request) {
                 tracking: ticketInfo.tracking,
                 stripePaymentId: session.paymentId,
                 stripeStatus: session.status,
+                needsRefund: checkNeedsRefund(session),
             })
             return
         }
@@ -163,6 +168,7 @@ export async function GET(req: Request) {
                 ticketStatus: ticketInfo.status,
                 ticketUpdatedAt: new Date(ticketInfo.updatedAt),
                 tracking: ticketInfo.tracking,
+                needsRefund: checkNeedsRefund(session),
             })
             return
         }
@@ -194,11 +200,30 @@ export async function GET(req: Request) {
                 ticketUpdatedAt: new Date(ticketInfo.updatedAt),
                 tracking: result.tracking,
                 printUrl: result.printUrl,
+                needsRefund: checkNeedsRefund(session),
             })
         })
     }
 
     const keyVals = [...orderNewStatusMap]
+
+    const paymentsNeedRefund = keyVals.filter(([_, val]) => val.needsRefund && val.stripePaymentId).map(([_, val]) => val.stripePaymentId!)
+
+    const refunds = await Promise.all(
+        paymentsNeedRefund.map((id) =>
+            stripe.refunds
+                .list({
+                    payment_intent: id,
+                })
+                .then((res) => res.data[0]),
+        ),
+    )
+
+    const paymentNeedsRefundMap = new Map<string, boolean>()
+
+    refunds.forEach((refund, index) => {
+        paymentNeedsRefundMap.set(paymentsNeedRefund[index]!, !refund)
+    })
 
     if (keyVals.length > 0) {
         await Promise.all(
@@ -218,6 +243,7 @@ export async function GET(req: Request) {
                         ticketUpdatedAt: values.ticketUpdatedAt,
                         tracking: values.tracking,
                         printUrl: values.printUrl,
+                        needsRefund: paymentNeedsRefundMap.get(values.stripePaymentId ?? "") ?? false,
                     },
                 }),
             ),

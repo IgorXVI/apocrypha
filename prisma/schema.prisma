@@ -190,6 +190,7 @@ model Order {
     //Precisa atualizar depois do pagamento
     stripeStatus        String?
     stripePaymentId     String?
+    needsRefund         Boolean            @default(false)
     //
     //Precisa atualizar depois de emitir o ticket
     printUrl            String?
