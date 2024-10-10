@@ -240,6 +240,25 @@ export const getProductsInfo: (ticketIds: string[]) => Promise<GetProductInfoOut
     return result
 }
 
+export const getProductInfo: (ticketId: string) => Promise<GetProductInfoOutput> = async (ticketId) => {
+    const info = await fetch(`${env.SUPER_FRETE_URL}/order/info/${ticketId}`, {
+        headers: {
+            Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
+            accept: "application/json",
+            "User-Agent": env.APP_USER_AGENT,
+            "content-type": "application/json",
+        },
+    }).then((response) => response.json())
+
+    return {
+        ticketId,
+        tracking: info.tracking,
+        status: info.status,
+        updatedAt: info.updated_at,
+        price: info.price,
+    }
+}
+
 export const cancelTicket = async (ticketId: string) => {
     await fetch(`${env.SUPER_FRETE_URL}/order/cancel`, {
         method: "POST",

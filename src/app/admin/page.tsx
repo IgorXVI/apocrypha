@@ -19,9 +19,14 @@ export default async function Admin({
         db.order.findMany({
             take: currentTake,
             skip: calcSkip(currentPage, currentTake),
-            orderBy: {
-                createdAt: "desc",
-            },
+            orderBy: [
+                {
+                    needsRefund: "desc",
+                },
+                {
+                    createdAt: "desc",
+                },
+            ],
         }),
         db.order.count(),
     ])
@@ -53,7 +58,8 @@ export default async function Admin({
 
     const odersForView = orders.map((order) => ({
         id: order.id,
-        needsRefund: order.needsRefund,
+        refundOk: !order.needsRefund,
+        refundStatus: order.refundStatus,
         status: order.status === "CANCELED" ? `${order.status} : ${order.cancelReason ?? "N/A"} - ${order.cancelMessage ?? "N/A"}` : order.status,
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
@@ -70,7 +76,7 @@ export default async function Admin({
         ticketId: order.ticketId,
         shippingMethod: order.shippingServiceName,
         estimatedDelivery: calcShippingDate(order.createdAt, order.shippingDaysMin, order.shippingDaysMax),
-        createdAt: order.createdAt,
+        createdAt: order.createdAt.toLocaleString(),
         printLink: order.printUrl && (
             <a
                 className="hover:underline"
@@ -93,7 +99,9 @@ export default async function Admin({
                 tableDescription="Crie, atualize, apague ou busque pedidos."
                 tableHeaders={{
                     id: "ID",
-                    needsRefund: "Precisa de reembolso?",
+                    refundOk: "Reembolso está OK?",
+                    refundStatus: "Status do reembolso no stripe",
+                    createdAt: "Data de criação",
                     status: "Status",
                     ticketStatus: "Status no Super Frete",
                     stripeStatus: "Status no Stripe",
@@ -105,7 +113,6 @@ export default async function Admin({
                     ticketEmitPrice: "Valor para emitr o Ticket do Super Frete",
                     ticketId: "ID do Ticket",
                     shippingMethod: "Serviço de entrega",
-                    createdAt: "Data de criação",
                     estimatedDelivery: "Data de entrega (aproximada)",
                     userName: "Nome do usuário",
                     userEmail: "Email do usuário",

@@ -191,6 +191,7 @@ model Order {
     stripeStatus        String?
     stripePaymentId     String?
     needsRefund         Boolean            @default(false)
+    refundStatus        String?
     //
     //Precisa atualizar depois de emitir o ticket
     printUrl            String?
@@ -206,4 +207,5 @@ model Order {
 
     @@unique([sessionId, userId])
     @@unique([ticketId, userId])
+    @@unique([sessionId, ticketId])
 }

@@ -1,6 +1,6 @@
 import { db } from "~/server/db"
 import { cronAuthCheck, unauthorizedRes } from "../core"
-import { cancelTicket, emitTicket, type EmitTicketOutput, type GetProductInfoOutput, getProductsInfo } from "~/server/shipping-api"
+import { cancelTicket, emitTicket, getProductInfo } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 import { type Prisma, type $Enums } from "prisma/prisma-client"
 
@@ -12,6 +12,191 @@ type SessionInfo = {
     status: "expired" | "complete" | "open" | undefined
 }
 
+type RefundInfo = {
+    needsRefund: boolean
+    refundStatus: string
+}
+
+type OrderNewStatusInfo = {
+    status: $Enums.OrderStatus
+    cancelReason?: $Enums.OrderCancelReason
+    cancelMessage?: string
+    stripeStatus?: string
+    stripePaymentId?: string
+    ticketStatus?: string
+    ticketUpdatedAt?: Date
+    tracking?: string
+    ticketPrice?: number
+    printUrl?: string
+    needsRefund?: boolean
+}
+
+const reqCancelTicket = (ticketId: string) =>
+    cancelTicket(ticketId)
+        .then(() => undefined)
+        .catch((error) => {
+            console.error("CANCEL_TICKET_ERROR", error)
+            return undefined
+        })
+
+const reqEmitTicket = (ticketId: string) =>
+    emitTicket(ticketId).catch((error) => {
+        console.error("CANCEL_TICKET_ERROR", error)
+        return undefined
+    })
+
+const checkNeedsRefund = (session?: SessionInfo) => session?.paymentId !== undefined && session?.paymentStatus === "paid"
+
+const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.OrderDefaultArgs>) => {
+    const [ticketInfo, sessionFromStripe] = await Promise.all([getProductInfo(order.ticketId), stripe.checkout.sessions.retrieve(order.sessionId)])
+
+    const session: SessionInfo = {
+        paymentId: sessionFromStripe.payment_intent?.toString(),
+        paymentStatus: sessionFromStripe.payment_status,
+        status: sessionFromStripe.status ?? undefined,
+    }
+
+    let orderNewStatus: OrderNewStatusInfo | undefined
+
+    if (!ticketInfo) {
+        orderNewStatus = {
+            status: "CANCELED",
+            cancelReason: "SHIPPING_SERVICE",
+            cancelMessage: `Ticket ${order.ticketId} not found.`,
+            stripePaymentId: session?.paymentId,
+            stripeStatus: session?.status,
+            needsRefund: checkNeedsRefund(session),
+        }
+    } else if (ticketInfo.status === "canceled") {
+        orderNewStatus = {
+            status: "CANCELED",
+            cancelReason: "SHIPPING_SERVICE",
+            cancelMessage: `Ticket ${order.ticketId} is canceled.`,
+            ticketPrice: ticketInfo.price,
+            ticketStatus: ticketInfo.status,
+            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
+            tracking: ticketInfo.tracking,
+            stripePaymentId: session?.paymentId,
+            stripeStatus: session?.status,
+            needsRefund: checkNeedsRefund(session),
+        }
+    } else if (!session) {
+        if (ticketInfo.status !== "canceled") {
+            await reqCancelTicket(order.ticketId)
+        }
+
+        orderNewStatus = {
+            status: "CANCELED",
+            cancelReason: "STRIPE",
+            cancelMessage: `Stripe session ${order.sessionId} not found.`,
+            ticketPrice: ticketInfo.price,
+            ticketStatus: "canceled",
+            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
+            tracking: ticketInfo.tracking,
+        }
+    } else if (session.status === "expired") {
+        if (ticketInfo.status !== "canceled") {
+            await reqCancelTicket(order.ticketId)
+        }
+
+        orderNewStatus = {
+            status: "CANCELED",
+            cancelReason: "STRIPE",
+            cancelMessage: `Stripe session ${order.ticketId} expired.`,
+            ticketPrice: ticketInfo.price,
+            ticketStatus: "canceled",
+            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
+            tracking: ticketInfo.tracking,
+            stripePaymentId: session.paymentId,
+            stripeStatus: session.status,
+            needsRefund: checkNeedsRefund(session),
+        }
+    } else if (ticketInfo.status === "pending") {
+        const ticketEmitResult = await reqEmitTicket(order.ticketId)
+        if (ticketEmitResult) {
+            orderNewStatus = {
+                status: "TICKET_EMITED",
+                stripeStatus: session.status,
+                stripePaymentId: session.paymentId,
+                ticketPrice: ticketEmitResult.price,
+                ticketStatus: ticketInfo.status,
+                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
+                tracking: ticketEmitResult.tracking,
+                printUrl: ticketEmitResult.printUrl,
+                needsRefund: false,
+            }
+        }
+    } else if (ticketInfo.status === "released") {
+        orderNewStatus = {
+            status: "TICKET_EMITED",
+            stripeStatus: session.status,
+            stripePaymentId: session.paymentId,
+            ticketPrice: ticketInfo.price,
+            ticketStatus: ticketInfo.status,
+            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
+            tracking: ticketInfo.tracking,
+            needsRefund: false,
+        }
+    }
+
+    if (!orderNewStatus) {
+        orderNewStatus = {
+            status: order.status,
+            stripeStatus: session.status,
+            stripePaymentId: session.paymentId,
+            ticketPrice: ticketInfo.price,
+            ticketStatus: ticketInfo.status,
+            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
+            tracking: ticketInfo.tracking,
+            needsRefund: order.status === "CANCELED" ? checkNeedsRefund(session) : false,
+        }
+    }
+
+    let refundInfo: RefundInfo | undefined
+
+    if (orderNewStatus.needsRefund) {
+        const refund = await stripe.refunds
+            .list({
+                payment_intent: session.paymentId,
+            })
+            .then((res) => res.data[0])
+
+        const refundOk = new Map<string, boolean>([
+            ["pending", true],
+            ["succeeded", true],
+            ["requires_action", false],
+            ["failed", false],
+            ["canceled", false],
+        ])
+
+        const hasRefund = refund && refundOk.get(refund?.status ?? "")
+        refundInfo = {
+            needsRefund: !hasRefund,
+            refundStatus: refund?.status ?? "stripe_has_none",
+        }
+    }
+
+    await db.order.update({
+        where: {
+            id: order.id,
+        },
+        data: {
+            status: orderNewStatus.status ?? "PREPARING",
+            cancelReason: orderNewStatus.cancelReason,
+            cancelMessage: orderNewStatus.cancelMessage,
+            stripeStatus: orderNewStatus.stripeStatus,
+            stripePaymentId: orderNewStatus.stripePaymentId,
+            ticketPrice: orderNewStatus.ticketPrice,
+            ticketStatus: orderNewStatus.ticketStatus,
+            ticketUpdatedAt: orderNewStatus.ticketUpdatedAt,
+            tracking: orderNewStatus.tracking,
+            printUrl: orderNewStatus.printUrl,
+            needsRefund: refundInfo?.needsRefund ?? false,
+            refundStatus: refundInfo?.refundStatus,
+        },
+    })
+}
+
 export async function GET(req: Request) {
     const passedAuth = cronAuthCheck(req)
 
@@ -19,236 +204,29 @@ export async function GET(req: Request) {
         return unauthorizedRes
     }
 
-    const orders = await db.order.findMany()
+    const orders = await db.order.findMany({
+        where: {
+            AND: [
+                {
+                    status: {
+                        not: "DELIVERED",
+                    },
+                },
+                {
+                    NOT: {
+                        status: "CANCELED",
+                        refundStatus: "succeeded",
+                    },
+                },
+            ],
+        },
+    })
 
     if (orders.length === 0) {
-        return Response.json({ updateOrderIds: [] })
+        return Response.json({ updateOrders: orders.length })
     }
 
-    const ticketIds = orders.filter((order) => order.ticketId).map((order) => order.ticketId)
+    await Promise.all(orders.map((order) => updateOrderStatus(order)))
 
-    const productsInfo = await getProductsInfo(ticketIds)
-
-    const ticketToInfoMap = new Map<string, GetProductInfoOutput>()
-
-    productsInfo.forEach((info) => {
-        ticketToInfoMap.set(info.ticketId, info)
-    })
-
-    const sessionIds = orders.map((order) => order.sessionId)
-
-    const sessions = await Promise.all(sessionIds.map((sessionId) => stripe.checkout.sessions.retrieve(sessionId)))
-
-    const sessionPaymentMap = new Map<string, SessionInfo>()
-
-    sessions.forEach((session) => {
-        sessionPaymentMap.set(session.id, {
-            paymentId: session.payment_intent?.toString(),
-            paymentStatus: session.payment_status,
-            status: session.status ?? undefined,
-        })
-    })
-
-    const orderNewStatusMap = new Map<
-        string,
-        {
-            status: $Enums.OrderStatus
-            cancelReason?: $Enums.OrderCancelReason
-            cancelMessage?: string
-            stripeStatus?: string
-            stripePaymentId?: string
-            ticketStatus?: string
-            ticketUpdatedAt?: Date
-            tracking?: string
-            ticketPrice?: number
-            printUrl?: string
-            needsRefund?: boolean
-        }
-    >()
-
-    const ticketPromises: Promise<EmitTicketOutput | undefined>[] = []
-    const reqCancelTicket = (ticketId: string) => {
-        ticketPromises.push(
-            cancelTicket(ticketId)
-                .then(() => undefined)
-                .catch((error) => {
-                    console.error("CANCEL_TICKET_ERROR", error)
-                    return undefined
-                }),
-        )
-    }
-    const reqEmitTicket = (ticketId: string) => {
-        ticketPromises.push(
-            emitTicket(ticketId).catch((error) => {
-                console.error("CANCEL_TICKET_ERROR", error)
-                return undefined
-            }),
-        )
-    }
-
-    const orderTicketNeedsEmit = new Map<string, Prisma.OrderGetPayload<Prisma.OrderDefaultArgs>>()
-
-    const checkNeedsRefund = (session?: SessionInfo) => session?.paymentId !== undefined && session?.paymentStatus === "paid"
-
-    orders.forEach((order) => {
-        const session = sessionPaymentMap.get(order.sessionId)
-        const ticketInfo = ticketToInfoMap.get(order.ticketId)
-
-        if (!ticketInfo) {
-            orderNewStatusMap.set(order.id, {
-                status: "CANCELED",
-                cancelReason: "SHIPPING_SERVICE",
-                cancelMessage: `Ticket ${order.ticketId} not found.`,
-                stripePaymentId: session?.paymentId,
-                stripeStatus: session?.status,
-                needsRefund: checkNeedsRefund(session),
-            })
-            return
-        }
-
-        if (ticketInfo.status === "canceled") {
-            orderNewStatusMap.set(order.id, {
-                status: "CANCELED",
-                cancelReason: "SHIPPING_SERVICE",
-                cancelMessage: `Ticket ${order.ticketId} is canceled.`,
-                ticketPrice: ticketInfo.price,
-                ticketStatus: ticketInfo.status,
-                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-                tracking: ticketInfo.tracking,
-                stripePaymentId: session?.paymentId,
-                stripeStatus: session?.status,
-                needsRefund: checkNeedsRefund(session),
-            })
-            return
-        }
-
-        if (!session) {
-            reqCancelTicket(order.ticketId)
-            orderNewStatusMap.set(order.id, {
-                status: "CANCELED",
-                cancelReason: "STRIPE",
-                cancelMessage: `Stripe session ${order.sessionId} not found.`,
-                ticketPrice: ticketInfo.price,
-                ticketStatus: ticketInfo.status,
-                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-                tracking: ticketInfo.tracking,
-            })
-            return
-        }
-
-        if (session.status === "expired") {
-            reqCancelTicket(order.ticketId)
-            orderNewStatusMap.set(order.id, {
-                status: "CANCELED",
-                cancelReason: "STRIPE",
-                cancelMessage: `Stripe session ${order.ticketId} expired.`,
-                ticketPrice: ticketInfo.price,
-                ticketStatus: ticketInfo.status,
-                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-                tracking: ticketInfo.tracking,
-                stripePaymentId: session.paymentId,
-                stripeStatus: session.status,
-                needsRefund: checkNeedsRefund(session),
-            })
-            return
-        }
-
-        if (ticketInfo.status === "pending") {
-            reqEmitTicket(order.ticketId)
-            orderTicketNeedsEmit.set(order.ticketId, order)
-            return
-        }
-
-        if (order.status === "TICKET_EMITED" && (!order.ticketStatus || !order.tracking)) {
-            orderNewStatusMap.set(order.id, {
-                status: "TICKET_EMITED",
-                stripeStatus: session.status,
-                stripePaymentId: session.paymentId,
-                ticketPrice: ticketInfo.price,
-                ticketStatus: ticketInfo.status,
-                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-                tracking: ticketInfo.tracking,
-                needsRefund: checkNeedsRefund(session),
-            })
-            return
-        }
-    })
-
-    if (ticketPromises.length > 0) {
-        const ticketResults = await Promise.all(ticketPromises)
-
-        ticketResults.forEach((result) => {
-            if (!result) {
-                return
-            }
-
-            const order = orderTicketNeedsEmit.get(result.ticketId)
-
-            if (!order) {
-                return
-            }
-
-            const session = sessionPaymentMap.get(order.sessionId)!
-            const ticketInfo = ticketToInfoMap.get(order.ticketId)!
-
-            orderNewStatusMap.set(order.id, {
-                status: "TICKET_EMITED",
-                stripeStatus: session.status,
-                stripePaymentId: session.paymentId,
-                ticketPrice: result.price,
-                ticketStatus: ticketInfo.status,
-                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-                tracking: result.tracking,
-                printUrl: result.printUrl,
-                needsRefund: checkNeedsRefund(session),
-            })
-        })
-    }
-
-    const keyVals = [...orderNewStatusMap]
-
-    const paymentsNeedRefund = keyVals.filter(([_, val]) => val.needsRefund && val.stripePaymentId).map(([_, val]) => val.stripePaymentId!)
-
-    const refunds = await Promise.all(
-        paymentsNeedRefund.map((id) =>
-            stripe.refunds
-                .list({
-                    payment_intent: id,
-                })
-                .then((res) => res.data[0]),
-        ),
-    )
-
-    const paymentNeedsRefundMap = new Map<string, boolean>()
-
-    refunds.forEach((refund, index) => {
-        paymentNeedsRefundMap.set(paymentsNeedRefund[index]!, !refund)
-    })
-
-    if (keyVals.length > 0) {
-        await Promise.all(
-            keyVals.map(([key, values]) =>
-                db.order.update({
-                    where: {
-                        id: key,
-                    },
-                    data: {
-                        status: values.status ?? "PREPARING",
-                        cancelReason: values.cancelReason,
-                        cancelMessage: values.cancelMessage,
-                        stripeStatus: values.stripeStatus,
-                        stripePaymentId: values.stripePaymentId,
-                        ticketPrice: values.ticketPrice,
-                        ticketStatus: values.ticketStatus,
-                        ticketUpdatedAt: values.ticketUpdatedAt,
-                        tracking: values.tracking,
-                        printUrl: values.printUrl,
-                        needsRefund: paymentNeedsRefundMap.get(values.stripePaymentId ?? "") ?? false,
-                    },
-                }),
-            ),
-        )
-    }
-
-    return Response.json({ updateOrderIds: [...orderNewStatusMap.keys()] })
+    return Response.json({ updateOrders: orders.length })
 }
