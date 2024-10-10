@@ -1,6 +1,6 @@
 import "server-only"
 
-import { cancelTicket, getProductInfo } from "~/server/shipping-api"
+import { getProductInfo, type GetProductInfoOutput } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 import { type Prisma, type $Enums } from "prisma/prisma-client"
 import { db } from "./db"
@@ -23,17 +23,29 @@ type OrderNewStatusInfo = {
     stripeStatus?: string
     stripePaymentId?: string
     ticketStatus?: string
-    ticketUpdatedAt?: Date
+    ticketUpdatedAt?: string
     tracking?: string
     ticketPrice?: number
     printUrl?: string
     needsRefund?: boolean
 }
 
-const checkNeedsRefund = (session?: SessionInfo) => session?.paymentId !== undefined && session?.paymentStatus === "paid"
+const checkNeedsRefund = (session: SessionInfo) => session.paymentId !== undefined && session.paymentStatus === "paid"
 
 export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.OrderDefaultArgs>) => {
-    const [ticketInfo, sessionFromStripe] = await Promise.all([getProductInfo(order.ticketId), stripe.checkout.sessions.retrieve(order.sessionId)])
+    const sessionFromStripe = await stripe.checkout.sessions.retrieve(order.sessionId)
+
+    if (!sessionFromStripe || sessionFromStripe.status !== "complete") {
+        await db.bookOnOrder.deleteMany({
+            where: {
+                orderId: order.id,
+            },
+        })
+
+        await db.order.delete({ where: { id: order.id } })
+
+        return
+    }
 
     const session: SessionInfo = {
         paymentId: sessionFromStripe.payment_intent?.toString(),
@@ -41,75 +53,43 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
         status: sessionFromStripe.status ?? undefined,
     }
 
-    let orderNewStatus: OrderNewStatusInfo | undefined
+    let ticketInfo: GetProductInfoOutput | undefined
 
-    if (ticketInfo.status === "canceled") {
+    if (order.ticketId) {
+        ticketInfo = await getProductInfo(order.ticketId)
+    }
+
+    let orderNewStatus: OrderNewStatusInfo = {
+        status: "PREPARING",
+        stripePaymentId: session.paymentId,
+        stripeStatus: session.status,
+        ticketPrice: ticketInfo?.price,
+        ticketStatus: ticketInfo?.status,
+        ticketUpdatedAt: ticketInfo?.updatedAt,
+        tracking: ticketInfo?.tracking,
+    }
+
+    if (ticketInfo?.status === "canceled") {
         //código para simular entrega no ambiente de sandbox do Super Frete
         if (order.status === "IN_TRANSIT") {
             orderNewStatus = {
+                ...orderNewStatus,
                 status: "DELIVERED",
-                ticketPrice: ticketInfo.price,
-                ticketStatus: ticketInfo.status,
-                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-                tracking: ticketInfo.tracking,
-                stripePaymentId: session?.paymentId,
-                stripeStatus: session?.status,
-                needsRefund: false,
             }
         } else {
             orderNewStatus = {
+                ...orderNewStatus,
                 status: "CANCELED",
                 cancelReason: "SHIPPING_SERVICE",
                 cancelMessage: `Ticket ${order.ticketId} is canceled.`,
-                ticketPrice: ticketInfo.price,
-                ticketStatus: ticketInfo.status,
-                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-                tracking: ticketInfo.tracking,
-                stripePaymentId: session?.paymentId,
-                stripeStatus: session?.status,
                 needsRefund: checkNeedsRefund(session),
             }
         }
-    } else if (session.status === "expired") {
-        if (ticketInfo.status !== "canceled") {
-            cancelTicket(order.ticketId).catch((error) => console.error("CANCEL_TICKET_ERROR", error))
-        }
-
+    } else if (ticketInfo?.status === "released") {
         orderNewStatus = {
-            status: "CANCELED",
-            cancelReason: "STRIPE",
-            cancelMessage: `Stripe session ${order.ticketId} expired.`,
-            ticketPrice: ticketInfo.price,
-            ticketStatus: "canceled",
-            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-            tracking: ticketInfo.tracking,
-            stripePaymentId: session.paymentId,
-            stripeStatus: session.status,
-            needsRefund: checkNeedsRefund(session),
-        }
-    } else if (ticketInfo.status === "released") {
-        orderNewStatus = {
+            ...orderNewStatus,
             status: "IN_TRANSIT",
-            stripeStatus: session.status,
-            stripePaymentId: session.paymentId,
-            ticketPrice: ticketInfo.price,
-            ticketStatus: ticketInfo.status,
-            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-            tracking: ticketInfo.tracking,
             needsRefund: false,
-        }
-    }
-
-    if (!orderNewStatus) {
-        orderNewStatus = {
-            status: order.status,
-            stripeStatus: session.status,
-            stripePaymentId: session.paymentId,
-            ticketPrice: ticketInfo.price,
-            ticketStatus: ticketInfo.status,
-            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-            tracking: ticketInfo.tracking,
-            needsRefund: order.status === "CANCELED" ? checkNeedsRefund(session) : false,
         }
     }
 
@@ -162,19 +142,9 @@ export const updateAllOrders = async () => {
     const orders = await db.order
         .findMany({
             where: {
-                AND: [
-                    {
-                        status: {
-                            not: "DELIVERED",
-                        },
-                    },
-                    {
-                        NOT: {
-                            status: "CANCELED",
-                            refundStatus: "succeeded",
-                        },
-                    },
-                ],
+                status: {
+                    not: "DELIVERED",
+                },
             },
         })
         .catch((error) => {

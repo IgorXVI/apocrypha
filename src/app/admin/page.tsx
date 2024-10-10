@@ -64,7 +64,6 @@ export default async function Admin({
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
         price: `R$ ${order.totalPrice.toFixed(2)}`,
-        stripeStatus: order.stripeStatus,
         stripeLink: order.stripePaymentId && (
             <a
                 className="hover:underline"
@@ -104,7 +103,6 @@ export default async function Admin({
                     createdAt: "Data de criação",
                     status: "Status",
                     ticketStatus: "Status no Super Frete",
-                    stripeStatus: "Status no Stripe",
                     stripeLink: "Informações do pagamento no Stripe",
                     printLink: "Ver Ticket do Super Frete",
                     tracking: "Código de rastreamento",
