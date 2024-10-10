@@ -25,7 +25,7 @@ export default async function PaymentCanceled({ params: { sessionId } }: { param
             }),
 
         stripe.checkout.sessions.retrieve(sessionId).catch((error) => {
-            console.error("PAYMENT_CANCELED_RETRIEV_SESSION", error)
+            console.error("PAYMENT_CANCELED_RETRIEVE_SESSION", error)
             return undefined
         }),
     ])
