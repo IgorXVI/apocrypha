@@ -178,7 +178,7 @@ model Order {
     id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     sessionId           String
     userId              String
-    ticketId            String
+    ticketId            String?
     totalPrice          Decimal
     shippingPrice       Decimal
     shippingDaysMin     Int

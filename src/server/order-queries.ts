@@ -1,6 +1,6 @@
 import "server-only"
 
-import { cancelTicket, emitTicket, getProductInfo } from "~/server/shipping-api"
+import { cancelTicket, getProductInfo } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 import { type Prisma, type $Enums } from "prisma/prisma-client"
 import { db } from "./db"
@@ -30,20 +30,6 @@ type OrderNewStatusInfo = {
     needsRefund?: boolean
 }
 
-const reqCancelTicket = (ticketId: string) =>
-    cancelTicket(ticketId)
-        .then(() => undefined)
-        .catch((error) => {
-            console.error("CANCEL_TICKET_ERROR", error)
-            return undefined
-        })
-
-const reqEmitTicket = (ticketId: string) =>
-    emitTicket(ticketId).catch((error) => {
-        console.error("CANCEL_TICKET_ERROR", error)
-        return undefined
-    })
-
 const checkNeedsRefund = (session?: SessionInfo) => session?.paymentId !== undefined && session?.paymentStatus === "paid"
 
 export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.OrderDefaultArgs>) => {
@@ -57,45 +43,36 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
 
     let orderNewStatus: OrderNewStatusInfo | undefined
 
-    if (!ticketInfo) {
-        orderNewStatus = {
-            status: "CANCELED",
-            cancelReason: "SHIPPING_SERVICE",
-            cancelMessage: `Ticket ${order.ticketId} not found.`,
-            stripePaymentId: session?.paymentId,
-            stripeStatus: session?.status,
-            needsRefund: checkNeedsRefund(session),
-        }
-    } else if (ticketInfo.status === "canceled") {
-        orderNewStatus = {
-            status: "CANCELED",
-            cancelReason: "SHIPPING_SERVICE",
-            cancelMessage: `Ticket ${order.ticketId} is canceled.`,
-            ticketPrice: ticketInfo.price,
-            ticketStatus: ticketInfo.status,
-            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-            tracking: ticketInfo.tracking,
-            stripePaymentId: session?.paymentId,
-            stripeStatus: session?.status,
-            needsRefund: checkNeedsRefund(session),
-        }
-    } else if (!session) {
-        if (ticketInfo.status !== "canceled") {
-            await reqCancelTicket(order.ticketId)
-        }
-
-        orderNewStatus = {
-            status: "CANCELED",
-            cancelReason: "STRIPE",
-            cancelMessage: `Stripe session ${order.sessionId} not found.`,
-            ticketPrice: ticketInfo.price,
-            ticketStatus: "canceled",
-            ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-            tracking: ticketInfo.tracking,
+    if (ticketInfo.status === "canceled") {
+        //código para simular entrega no ambiente de sandbox do Super Frete
+        if (order.status === "IN_TRANSIT") {
+            orderNewStatus = {
+                status: "DELIVERED",
+                ticketPrice: ticketInfo.price,
+                ticketStatus: ticketInfo.status,
+                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
+                tracking: ticketInfo.tracking,
+                stripePaymentId: session?.paymentId,
+                stripeStatus: session?.status,
+                needsRefund: false,
+            }
+        } else {
+            orderNewStatus = {
+                status: "CANCELED",
+                cancelReason: "SHIPPING_SERVICE",
+                cancelMessage: `Ticket ${order.ticketId} is canceled.`,
+                ticketPrice: ticketInfo.price,
+                ticketStatus: ticketInfo.status,
+                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
+                tracking: ticketInfo.tracking,
+                stripePaymentId: session?.paymentId,
+                stripeStatus: session?.status,
+                needsRefund: checkNeedsRefund(session),
+            }
         }
     } else if (session.status === "expired") {
         if (ticketInfo.status !== "canceled") {
-            await reqCancelTicket(order.ticketId)
+            cancelTicket(order.ticketId).catch((error) => console.error("CANCEL_TICKET_ERROR", error))
         }
 
         orderNewStatus = {
@@ -110,24 +87,9 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
             stripeStatus: session.status,
             needsRefund: checkNeedsRefund(session),
         }
-    } else if (ticketInfo.status === "pending") {
-        const ticketEmitResult = await reqEmitTicket(order.ticketId)
-        if (ticketEmitResult) {
-            orderNewStatus = {
-                status: "TICKET_EMITED",
-                stripeStatus: session.status,
-                stripePaymentId: session.paymentId,
-                ticketPrice: ticketEmitResult.price,
-                ticketStatus: ticketInfo.status,
-                ticketUpdatedAt: new Date(ticketInfo.updatedAt),
-                tracking: ticketEmitResult.tracking,
-                printUrl: ticketEmitResult.printUrl,
-                needsRefund: false,
-            }
-        }
     } else if (ticketInfo.status === "released") {
         orderNewStatus = {
-            status: "TICKET_EMITED",
+            status: "IN_TRANSIT",
             stripeStatus: session.status,
             stripePaymentId: session.paymentId,
             ticketPrice: ticketInfo.price,
@@ -197,40 +159,28 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
 }
 
 export const updateAllOrders = async () => {
-    const orders = await db.order.findMany({
-        where: {
-            AND: [
-                {
-                    status: {
-                        not: "DELIVERED",
+    const orders = await db.order
+        .findMany({
+            where: {
+                AND: [
+                    {
+                        status: {
+                            not: "DELIVERED",
+                        },
                     },
-                },
-                {
-                    NOT: {
-                        status: "CANCELED",
-                        refundStatus: "succeeded",
+                    {
+                        NOT: {
+                            status: "CANCELED",
+                            refundStatus: "succeeded",
+                        },
                     },
-                },
-                {
-                    OR: [
-                        {
-                            status: "TICKET_EMITED",
-                            refundStatus: "",
-                        },
-                        {
-                            status: "TICKET_EMITED",
-                            refundStatus: null,
-                        },
-                        {
-                            status: {
-                                not: "TICKET_EMITED",
-                            },
-                        },
-                    ],
-                },
-            ],
-        },
-    })
+                ],
+            },
+        })
+        .catch((error) => {
+            console.error("ORDER_STATUS_FIND_MANY_ERROR", error)
+            return []
+        })
 
     const result = { updateOrders: orders.length }
 
@@ -238,7 +188,7 @@ export const updateAllOrders = async () => {
         return result
     }
 
-    await Promise.all(orders.map((order) => updateOrderStatus(order)))
+    await Promise.all(orders.map((order) => updateOrderStatus(order).catch((error) => console.error("ORDER_STATUS_UPDATE_ERROR", error))))
 
     return result
 }

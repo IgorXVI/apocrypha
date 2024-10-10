@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { dbQueryWithToast } from "~/components/toast/toasting"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
-import { useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 export default function CartPage() {
     const dispatch = useAppDispatch()
@@ -21,6 +21,24 @@ export default function CartPage() {
     const router = useRouter()
     const [triggerCheckout] = mainApi.useCheckoutMutation()
     const [isDisabled, setIsDisabled] = useState(false)
+    const hasRemoved = useRef(false)
+
+    if (typeof window !== "undefined" && (cartContent.length > 0 || hasRemoved.current)) {
+        localStorage.setItem("cartState", JSON.stringify(cartContent))
+    }
+
+    const cartUrlState = useMemo(() => (typeof window !== "undefined" ? localStorage.getItem("cartState") : null), [])
+
+    useEffect(() => {
+        if (cartUrlState) {
+            try {
+                const cartStateJSON = JSON.parse(cartUrlState)
+                dispatch(bookCartSlice.actions.replace(cartStateJSON))
+            } catch (error) {
+                console.error("PARSING_URL_CART_STATE", error)
+            }
+        }
+    }, [cartUrlState, dispatch])
 
     const updateQuantity = (id: string, newQuantity: number) => {
         if (newQuantity < 1) return
@@ -30,6 +48,7 @@ export default function CartPage() {
 
     const removeItem = (id: string) => {
         dispatch(bookCartSlice.actions.remove(id))
+        hasRemoved.current = true
     }
 
     const total = cartContent.reduce((sum, item) => sum + item.price * item.amount, 0)
@@ -80,8 +99,6 @@ export default function CartPage() {
         if (stripeUrl) {
             router.push(stripeUrl)
         }
-
-        setIsDisabled(false)
     }
 
     return (

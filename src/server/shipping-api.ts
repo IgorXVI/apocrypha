@@ -61,8 +61,13 @@ type CreateShippingTicketInput = {
     tag: string
 }
 
-export const createShippingTicket: (input: CreateShippingTicketInput) => Promise<string> = async (input) => {
-    const shippingTicket = await fetch(`${env.SUPER_FRETE_URL}/cart`, {
+type CreateShippingTicketOutput = {
+    id: string
+    status: string
+}
+
+export const createShippingTicket: (input: CreateShippingTicketInput) => Promise<CreateShippingTicketOutput> = async (input) => {
+    const result: CreateShippingTicketOutput = await fetch(`${env.SUPER_FRETE_URL}/cart`, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
@@ -92,8 +97,6 @@ export const createShippingTicket: (input: CreateShippingTicketInput) => Promise
             },
         }),
     }).then((response) => response.json())
-
-    const result = shippingTicket.id as string
 
     return result
 }
@@ -215,33 +218,8 @@ export type GetProductInfoOutput = {
     price: number
 }
 
-export const getProductsInfo: (ticketIds: string[]) => Promise<GetProductInfoOutput[]> = async (ticketIds) => {
-    const productInfos: GetProductInfoFetchOutput[] = await Promise.all(
-        ticketIds.map((ticketId) =>
-            fetch(`${env.SUPER_FRETE_URL}/order/info/${ticketId}`, {
-                headers: {
-                    Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
-                    accept: "application/json",
-                    "User-Agent": env.APP_USER_AGENT,
-                    "content-type": "application/json",
-                },
-            }).then((response) => response.json()),
-        ),
-    )
-
-    const result = productInfos.map((info, index) => ({
-        ticketId: ticketIds[index] ?? "",
-        tracking: info.tracking,
-        status: info.status,
-        updatedAt: info.updated_at,
-        price: info.price,
-    }))
-
-    return result
-}
-
 export const getProductInfo: (ticketId: string) => Promise<GetProductInfoOutput> = async (ticketId) => {
-    const info = await fetch(`${env.SUPER_FRETE_URL}/order/info/${ticketId}`, {
+    const info: GetProductInfoFetchOutput = await fetch(`${env.SUPER_FRETE_URL}/order/info/${ticketId}`, {
         headers: {
             Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
             accept: "application/json",
