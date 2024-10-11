@@ -4,6 +4,7 @@ import { emitTicket, getProductInfo, type GetProductInfoOutput } from "~/server/
 import { stripe } from "~/server/stripe-api"
 import { type Prisma, type $Enums } from "prisma/prisma-client"
 import { db } from "./db"
+import { env } from "~/env"
 
 type SessionInfo = {
     paymentId: string | undefined
@@ -65,12 +66,19 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
     }
 
     if (ticketInfo.status === "canceled") {
-        orderNewStatus = {
-            ...orderNewStatus,
-            status: "CANCELED",
-            cancelReason: "SHIPPING_SERVICE",
-            cancelMessage: `Ticket ${order.ticketId} is canceled.`,
-            needsRefund: checkNeedsRefund(session),
+        if (order.status === "IN_TRANSIT" && env.SUPER_FRETE_URL.startsWith("https://sandbox")) {
+            orderNewStatus = {
+                ...orderNewStatus,
+                status: "DELIVERED",
+            }
+        } else {
+            orderNewStatus = {
+                ...orderNewStatus,
+                status: "CANCELED",
+                cancelReason: "SHIPPING_SERVICE",
+                cancelMessage: `Ticket ${order.ticketId} is canceled.`,
+                needsRefund: checkNeedsRefund(session),
+            }
         }
     } else if (ticketInfo.status === "released") {
         orderNewStatus = {
@@ -137,9 +145,19 @@ export const updateAllOrders = async () => {
     const orders = await db.order
         .findMany({
             where: {
-                status: {
-                    not: "DELIVERED",
-                },
+                AND: [
+                    {
+                        status: {
+                            not: "DELIVERED",
+                        },
+                    },
+                    {
+                        NOT: {
+                            status: "CANCELED",
+                            refundStatus: "succeeded",
+                        },
+                    },
+                ],
             },
         })
         .catch((error) => {
