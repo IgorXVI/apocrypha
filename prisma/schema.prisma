@@ -160,6 +160,7 @@ model BookOnOrder {
 
 enum OrderStatus {
     PREPARING
+    AWAITING_EMISSION
     TICKET_EMITED
     IN_TRANSIT
     DELIVERED

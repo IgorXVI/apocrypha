@@ -66,10 +66,10 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
     }
 
     if (ticketInfo.status === "canceled") {
-        if (order.status === "IN_TRANSIT" && env.SUPER_FRETE_URL.startsWith("https://sandbox")) {
+        if (order.status === "TICKET_EMITED" && env.SUPER_FRETE_URL.startsWith("https://sandbox")) {
             orderNewStatus = {
                 ...orderNewStatus,
-                status: "DELIVERED",
+                status: "IN_TRANSIT",
             }
         } else {
             orderNewStatus = {
@@ -83,7 +83,7 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
     } else if (ticketInfo.status === "released") {
         orderNewStatus = {
             ...orderNewStatus,
-            status: ticketInfo.tracking ? "IN_TRANSIT" : "TICKET_EMITED",
+            status: "TICKET_EMITED",
         }
     } else if (ticketInfo.status === "pending") {
         const result = await emitTicket(order.ticketId)
@@ -91,7 +91,7 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
         if (result) {
             orderNewStatus = {
                 ...orderNewStatus,
-                status: "TICKET_EMITED",
+                status: "AWAITING_EMISSION",
                 printUrl: result.printUrl,
             }
         }
@@ -149,7 +149,7 @@ export const updateAllOrders = async () => {
                 AND: [
                     {
                         status: {
-                            not: "DELIVERED",
+                            notIn: ["IN_TRANSIT", "DELIVERED"],
                         },
                     },
                     {
