@@ -1,6 +1,6 @@
 import "server-only"
 
-import { getProductInfo, type GetProductInfoOutput } from "~/server/shipping-api"
+import { emitTicket, getProductInfo, type GetProductInfoOutput } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 import { type Prisma, type $Enums } from "prisma/prisma-client"
 import { db } from "./db"
@@ -20,7 +20,6 @@ type OrderNewStatusInfo = {
     status: $Enums.OrderStatus
     cancelReason?: $Enums.OrderCancelReason
     cancelMessage?: string
-    stripeStatus?: string
     stripePaymentId?: string
     ticketStatus?: string
     ticketUpdatedAt?: string
@@ -35,7 +34,7 @@ const checkNeedsRefund = (session: SessionInfo) => session.paymentId !== undefin
 export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.OrderDefaultArgs>) => {
     const sessionFromStripe = await stripe.checkout.sessions.retrieve(order.sessionId)
 
-    if (!sessionFromStripe || sessionFromStripe.status !== "complete") {
+    if (!order.ticketId || !sessionFromStripe || sessionFromStripe.status !== "complete") {
         await db.bookOnOrder.deleteMany({
             where: {
                 orderId: order.id,
@@ -53,43 +52,40 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
         status: sessionFromStripe.status ?? undefined,
     }
 
-    let ticketInfo: GetProductInfoOutput | undefined
-
-    if (order.ticketId) {
-        ticketInfo = await getProductInfo(order.ticketId)
-    }
+    const ticketInfo: GetProductInfoOutput = await getProductInfo(order.ticketId)
 
     let orderNewStatus: OrderNewStatusInfo = {
         status: "PREPARING",
         stripePaymentId: session.paymentId,
-        stripeStatus: session.status,
-        ticketPrice: ticketInfo?.price,
-        ticketStatus: ticketInfo?.status,
-        ticketUpdatedAt: ticketInfo?.updatedAt,
-        tracking: ticketInfo?.tracking,
+        ticketPrice: ticketInfo.price,
+        ticketStatus: ticketInfo.status,
+        ticketUpdatedAt: ticketInfo.updatedAt,
+        tracking: ticketInfo.tracking,
+        needsRefund: false,
     }
 
-    if (ticketInfo?.status === "canceled") {
-        //código para simular entrega no ambiente de sandbox do Super Frete
-        if (order.status === "IN_TRANSIT") {
-            orderNewStatus = {
-                ...orderNewStatus,
-                status: "DELIVERED",
-            }
-        } else {
-            orderNewStatus = {
-                ...orderNewStatus,
-                status: "CANCELED",
-                cancelReason: "SHIPPING_SERVICE",
-                cancelMessage: `Ticket ${order.ticketId} is canceled.`,
-                needsRefund: checkNeedsRefund(session),
-            }
-        }
-    } else if (ticketInfo?.status === "released") {
+    if (ticketInfo.status === "canceled") {
         orderNewStatus = {
             ...orderNewStatus,
-            status: "IN_TRANSIT",
-            needsRefund: false,
+            status: "CANCELED",
+            cancelReason: "SHIPPING_SERVICE",
+            cancelMessage: `Ticket ${order.ticketId} is canceled.`,
+            needsRefund: checkNeedsRefund(session),
+        }
+    } else if (ticketInfo.status === "released") {
+        orderNewStatus = {
+            ...orderNewStatus,
+            status: ticketInfo.tracking ? "IN_TRANSIT" : "TICKET_EMITED",
+        }
+    } else if (ticketInfo.status === "pending") {
+        const result = await emitTicket(order.ticketId)
+
+        if (result) {
+            orderNewStatus = {
+                ...orderNewStatus,
+                status: "TICKET_EMITED",
+                printUrl: result.printUrl,
+            }
         }
     }
 
@@ -110,7 +106,7 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
             ["canceled", false],
         ])
 
-        const hasRefund = refund && refundOk.get(refund?.status ?? "")
+        const hasRefund = refund && refundOk.get(refund.status ?? "")
         refundInfo = {
             needsRefund: !hasRefund,
             refundStatus: refund?.status ?? "stripe_has_none",
@@ -125,7 +121,6 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
             status: orderNewStatus.status ?? "PREPARING",
             cancelReason: orderNewStatus.cancelReason,
             cancelMessage: orderNewStatus.cancelMessage,
-            stripeStatus: orderNewStatus.stripeStatus,
             stripePaymentId: orderNewStatus.stripePaymentId,
             ticketPrice: orderNewStatus.ticketPrice,
             ticketStatus: orderNewStatus.ticketStatus,

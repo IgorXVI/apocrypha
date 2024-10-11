@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { db } from "~/server/db"
+import { cancelTicket } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 
 export default async function PaymentCanceled({ params: { sessionId } }: { params: { sessionId: string } }) {
@@ -51,6 +52,9 @@ export default async function PaymentCanceled({ params: { sessionId } }: { param
         }),
         db.order.delete({ where: { id: existingOrder.id } }).catch((error) => {
             console.error("PAYMENT_CANCELED_DELETE_ORDER", error)
+        }),
+        cancelTicket(existingOrder.ticketId ?? "").catch((error) => {
+            console.error("PAYMENT_CANCELED_DELETE_TICKET", error)
         }),
     ])
 

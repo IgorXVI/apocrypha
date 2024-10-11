@@ -6,7 +6,8 @@ import { env } from "../env"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "./db"
 import { type Prisma } from "prisma/prisma-client"
-import { calcShippingFee } from "./shipping-api"
+import { calcShippingFee, createShippingTicket } from "./shipping-api"
+import { authClient } from "./auth-api"
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -246,10 +247,30 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
         unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
     }))
 
+    const userData = await authClient.users.getUser(user.userId)
+
+    const ticketRes = await createShippingTicket({
+        to: {
+            name: `${userData.firstName} ${userData.lastName}`,
+            address: `${userAddress.street}, número ${userAddress.number}${userAddress.complement ? `, ${userAddress.complement}` : ""}`,
+            district: userAddress.neighborhood,
+            city: userAddress.city,
+            state_abbr: userAddress.state,
+            postal_code: userAddress.cep,
+            email: userData.primaryEmailAddress?.emailAddress ?? "N/A",
+        },
+        service: shipping.id,
+        products: productsForOrderShipping,
+        volumes: { ...shipping.packages[0].dimensions, weight: shipping.packages[0].weight },
+        tag: JSON.stringify({ sessionId: session.id, userId: user.userId }),
+    })
+
     await db.order.create({
         data: {
             userId: user.userId,
             sessionId: session.id,
+            ticketId: ticketRes.id,
+            ticketStatus: ticketRes.status,
             totalPrice: session.amount_total! / 100,
             shippingPrice: shipping.price,
             shippingServiceId: shipping.id.toString(),

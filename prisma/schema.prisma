@@ -188,7 +188,6 @@ model Order {
     createdAt           DateTime           @default(now())
     updatedAt           DateTime           @default(now())
     //Precisa atualizar depois do pagamento
-    stripeStatus        String?
     stripePaymentId     String?
     needsRefund         Boolean            @default(false)
     refundStatus        String?
