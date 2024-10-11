@@ -137,6 +137,7 @@ export const updateOrderStatus = async (order: Prisma.OrderGetPayload<Prisma.Ord
             printUrl: orderNewStatus.printUrl,
             needsRefund: refundInfo?.needsRefund ?? false,
             refundStatus: refundInfo?.refundStatus,
+            updatedAt: new Date(),
         },
     })
 }
