@@ -36,7 +36,8 @@ export default function DataTable(props: {
         label: string
         actions: {
             label: string
-            onClick: (rowId: string) => void
+            onClick?: (rowId: string) => void
+            serverAction?: (rowId: unknown) => Promise<void>
         }[]
     }
 }) {
@@ -121,7 +122,13 @@ export default function DataTable(props: {
                                                         {props.tableRowActions.actions.map((action, index) => (
                                                             <DropdownMenuItem
                                                                 key={index}
-                                                                onClick={() => action.onClick(row.id as string)}
+                                                                onClick={() =>
+                                                                    action.onClick
+                                                                        ? action.onClick(row.id as string)
+                                                                        : action.serverAction
+                                                                          ? action.serverAction(row.id as string)
+                                                                          : null
+                                                                }
                                                             >
                                                                 {action.label}
                                                             </DropdownMenuItem>

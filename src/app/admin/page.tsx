@@ -110,6 +110,18 @@ export default async function Admin({
                     page: currentPage,
                     take: currentTake,
                 }}
+                tableRowActions={{
+                    label: "Atualizar pedido",
+                    actions: [
+                        {
+                            label: "Mudar stauts",
+                            serverAction: async (id: unknown) => {
+                                "use server"
+                                console.log("ROW ID", id)
+                            },
+                        },
+                    ],
+                }}
             ></DataTable>
         </div>
     )
