@@ -116,7 +116,7 @@ export default function PaginationNumbers(props: { total: number; urlPageParamNa
                     )}
 
                     <PaginationItem>
-                        {props.page !== maxPage && <PaginationNext href={maxPage > props.page ? getNextPageLink(1) : "#"} />}
+                        {props.page < maxPage && <PaginationNext href={maxPage > props.page ? getNextPageLink(1) : "#"} />}
                     </PaginationItem>
                 </PaginationContent>
             </Pagination>

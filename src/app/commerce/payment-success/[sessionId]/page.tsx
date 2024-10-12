@@ -5,11 +5,33 @@ import { db } from "~/server/db"
 import { type CreateShippingTicketProduct, type CalcShippingFeePackage, createShippingTicket } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 
+function PaymentFailedMessage({ sessionId, paymentId, message }: { sessionId: string; paymentId?: string; message: string }) {
+    return (
+        <div className="container mx-auto flex flex-col items-center justify-center text-xl gap-10 p-10">
+            <p>{message}</p>
+            <p>ID da Stripe Checkout Session: {sessionId}</p>
+            {paymentId && (
+                <a
+                    className="hover:underline text-blue-500"
+                    href={`https://dashboard.stripe.com/test/payments/${paymentId}`}
+                >
+                    Ver no Stripe
+                </a>
+            )}
+        </div>
+    )
+}
+
 export default async function PaymentSuccess({ params: { sessionId } }: { params: { sessionId: string } }) {
     const user = auth()
 
     if (!user.userId) {
-        redirect("/commerce")
+        return (
+            <PaymentFailedMessage
+                sessionId={sessionId}
+                message="Não autorizado."
+            ></PaymentFailedMessage>
+        )
     }
 
     const exitingOrder = await db.order.findUnique({
@@ -22,14 +44,26 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
     })
 
     if (exitingOrder) {
-        redirect("/commerce")
+        return (
+            <PaymentFailedMessage
+                sessionId={sessionId}
+                message="Pedido ja está cadastrado."
+            ></PaymentFailedMessage>
+        )
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId)
 
     if (!session || session.status !== "complete" || !session.payment_intent) {
-        redirect("/commerce")
+        return (
+            <PaymentFailedMessage
+                sessionId={sessionId}
+                message="Stripe session não está completa."
+            ></PaymentFailedMessage>
+        )
     }
+
+    const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id
 
     const stripeShipping = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
         console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)
@@ -37,7 +71,13 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
     })
 
     if (!stripeShipping) {
-        redirect("/commerce")
+        return (
+            <PaymentFailedMessage
+                sessionId={sessionId}
+                paymentId={paymentId}
+                message="Não foram encontrados os dados de entrega no stripe."
+            ></PaymentFailedMessage>
+        )
     }
 
     const userAddress = await db.address.findUnique({
@@ -47,16 +87,28 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
     })
 
     if (!userAddress) {
-        redirect("/commerce")
+        return (
+            <PaymentFailedMessage
+                sessionId={sessionId}
+                paymentId={paymentId}
+                message="Usuário não possui os dados de endereço."
+            ></PaymentFailedMessage>
+        )
     }
 
     const productsForTicket: CreateShippingTicketProduct[] = JSON.parse(session.metadata?.productsForTicketJSON ?? "[]")
-    const shippingPackages: CalcShippingFeePackage[] = JSON.parse(stripeShipping.metadata.serviceId ?? "[]")
+    const shippingPackages: CalcShippingFeePackage[] = JSON.parse(stripeShipping.metadata.packagesJSON ?? "[]")
 
     const fristPackage = shippingPackages[0]
 
     if (!fristPackage) {
-        redirect("/commerce")
+        return (
+            <PaymentFailedMessage
+                sessionId={sessionId}
+                paymentId={paymentId}
+                message="Dados de tamanho do pacote não foram encotrados no stripe."
+            ></PaymentFailedMessage>
+        )
     }
 
     const userData = await authClient.users.getUser(user.userId)
@@ -86,7 +138,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         data: {
             userId: user.userId,
             sessionId: session.id,
-            paymentId: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id,
+            paymentId,
             ticketId: ticketRes.id,
             totalPrice: session.amount_total! / 100,
             shippingPrice: session.shipping_cost!.amount_total / 100,
