@@ -19,7 +19,7 @@ const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
             className="flex flex-row items-center justify-center gap-2"
         >
             <CheckCircleIcon></CheckCircleIcon>
-            <span>Entregue</span>
+            <span className="text-nowrap">Entregue</span>
         </div>,
     ],
     [
@@ -29,7 +29,7 @@ const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
             className="flex flex-row items-center justify-center gap-2"
         >
             <XCircleIcon></XCircleIcon>
-            <span>Cancelado</span>
+            <span className="text-nowrap">Cancelado</span>
         </div>,
     ],
     [
@@ -39,7 +39,7 @@ const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
             className="flex flex-row items-center justify-center gap-2"
         >
             <TruckIcon></TruckIcon>
-            <span>A caminho</span>
+            <span className="text-nowrap">A caminho</span>
         </div>,
     ],
     [
@@ -49,7 +49,7 @@ const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
             className="flex flex-row items-center justify-center gap-2"
         >
             <PackageIcon></PackageIcon>
-            <span>Preparando</span>
+            <span className="text-nowrap">Preparando</span>
         </div>,
     ],
     ["REFUND_REQUESTED", "Reembolso sendo avaliado"],
@@ -59,7 +59,7 @@ const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
 
 export default function OrderStatus({ status }: { status: $Enums.OrderStatus }) {
     return (
-        <div className={`max-w-[150px] p-2 text-white rounded-lg shadow-sm shadow-black font-bold ${orderStatusStyle.get(status) ?? "bg-black"}`}>
+        <div className={`p-2 text-white rounded-lg shadow-sm shadow-black font-bold ${orderStatusStyle.get(status) ?? "bg-black"}`}>
             {orderStatusLabel.get(status) ?? status}
         </div>
     )

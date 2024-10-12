@@ -121,7 +121,9 @@ export default async function UserOrders({
                                                 </Link>
                                             </TableCell>
                                             <TableCell>
-                                                <OrderStatus status={order.status}></OrderStatus>
+                                                <div className="max-w-[150px]">
+                                                    <OrderStatus status={order.status}></OrderStatus>
+                                                </div>
                                             </TableCell>
                                             <TableCell className="text-nowrap">{order.createdAt.toLocaleString()}</TableCell>
                                             <TableCell className="text-right text-nowrap">R$ {order.totalPrice.toFixed(2)}</TableCell>
