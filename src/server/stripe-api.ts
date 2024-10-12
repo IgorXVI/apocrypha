@@ -6,8 +6,7 @@ import { env } from "../env"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "./db"
 import { type Prisma } from "prisma/prisma-client"
-import { calcShippingFee, createShippingTicket } from "./shipping-api"
-import { authClient } from "./auth-api"
+import { calcShippingFee, type CreateShippingTicketProduct } from "./shipping-api"
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -172,7 +171,7 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
         quantity: productQuantityMap.get(sp.id),
     }))
 
-    const shipping = await calcShippingFee({
+    const shippingOptions = await calcShippingFee({
         toPostalCode: userAddress.cep,
         products: stripeProducts.value.data.map((sp) => ({
             quantity: productQuantityMap.get(sp.id)!,
@@ -181,53 +180,57 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             length: booksMap.get(sp.id)!.thicknessCm,
             weight: (booksMap.get(sp.id)!.weightGrams ?? 0) / 1000,
         })),
-    }).then((arr) => {
-        if (arr.length === 0) {
-            return undefined
-        }
-
-        const arrSorted = arr.sort((a, b) => a.delivery_range.max - b.delivery_range.max)
-
-        return arrSorted[0]
+    }).catch((error) => {
+        console.error("SHIPPING_OPTIONS_ERROR", error)
+        return undefined
     })
 
-    if (!shipping) {
+    if (!shippingOptions) {
         throw new Error("Not able to fetch shipping prices.")
     }
 
+    const productsForTicket: CreateShippingTicketProduct[] = products.map((product) => ({
+        bookDBId: booksMap.get(product.stripeId)?.id ?? "N/A",
+        name: booksMap.get(product.stripeId)?.title ?? "N/A",
+        quantity: product.quantity,
+        unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
+    }))
+
     const [checkoutSession] = await Promise.allSettled([
         stripe.checkout.sessions.create({
+            metadata: {
+                productsForTicketJSON: JSON.stringify(productsForTicket),
+            },
             mode: "payment",
             currency: "brl",
             line_items: lineItems,
-            success_url: `${env.URL}/commerce/user/order`,
+            success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
             cancel_url: `${env.URL}/commerce/payment-canceled/{CHECKOUT_SESSION_ID}`,
             locale: "pt-BR",
-            shipping_options: [
-                {
-                    shipping_rate_data: {
-                        type: "fixed_amount",
-                        metadata: {
-                            serviceId: shipping.id,
+            shipping_options: shippingOptions.map((shipping) => ({
+                shipping_rate_data: {
+                    type: "fixed_amount",
+                    metadata: {
+                        serviceId: shipping.id,
+                        packagesJSON: JSON.stringify(shipping.packages),
+                    },
+                    display_name: shipping.name,
+                    delivery_estimate: {
+                        minimum: {
+                            unit: "business_day",
+                            value: shipping.delivery_range.min,
                         },
-                        display_name: shipping.name,
-                        delivery_estimate: {
-                            minimum: {
-                                unit: "business_day",
-                                value: shipping.delivery_range.min,
-                            },
-                            maximum: {
-                                unit: "business_day",
-                                value: shipping.delivery_range.max,
-                            },
-                        },
-                        fixed_amount: {
-                            amount: Math.ceil(shipping.price * 100),
-                            currency: "brl",
+                        maximum: {
+                            unit: "business_day",
+                            value: shipping.delivery_range.max,
                         },
                     },
+                    fixed_amount: {
+                        amount: Math.ceil(shipping.price * 100),
+                        currency: "brl",
+                    },
                 },
-            ],
+            })),
         }),
     ])
 
@@ -237,56 +240,6 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             message: `Failed to create checkout session: ${checkoutSession.reason}`,
         }
     }
-
-    const session = checkoutSession.value
-
-    const productsForOrderShipping = products.map((product) => ({
-        bookDBId: booksMap.get(product.stripeId)?.id ?? "N/A",
-        name: booksMap.get(product.stripeId)?.title ?? "N/A",
-        quantity: product.quantity,
-        unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
-    }))
-
-    const userData = await authClient.users.getUser(user.userId)
-
-    const ticketRes = await createShippingTicket({
-        to: {
-            name: `${userData.firstName} ${userData.lastName}`,
-            address: `${userAddress.street}, número ${userAddress.number}${userAddress.complement ? `, ${userAddress.complement}` : ""}`,
-            district: userAddress.neighborhood,
-            city: userAddress.city,
-            state_abbr: userAddress.state,
-            postal_code: userAddress.cep,
-            email: userData.primaryEmailAddress?.emailAddress ?? "N/A",
-        },
-        service: shipping.id,
-        products: productsForOrderShipping,
-        volumes: { ...shipping.packages[0].dimensions, weight: shipping.packages[0].weight },
-        tag: JSON.stringify({ sessionId: session.id, userId: user.userId }),
-    })
-
-    await db.order.create({
-        data: {
-            userId: user.userId,
-            sessionId: session.id,
-            ticketId: ticketRes.id,
-            ticketStatus: ticketRes.status,
-            totalPrice: session.amount_total! / 100,
-            shippingPrice: shipping.price,
-            shippingServiceId: shipping.id.toString(),
-            shippingServiceName: shipping.name,
-            shippingDaysMin: shipping.delivery_range.min,
-            shippingDaysMax: shipping.delivery_range.max,
-            BookOnOrder: {
-                createMany: {
-                    data: productsForOrderShipping.map((sp) => ({
-                        bookId: sp.bookDBId,
-                        price: sp.unitary_value,
-                    })),
-                },
-            },
-        },
-    })
 
     return {
         success: true,

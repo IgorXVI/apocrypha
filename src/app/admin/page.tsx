@@ -19,14 +19,9 @@ export default async function Admin({
         db.order.findMany({
             take: currentTake,
             skip: calcSkip(currentPage, currentTake),
-            orderBy: [
-                {
-                    needsRefund: "desc",
-                },
-                {
-                    createdAt: "desc",
-                },
-            ],
+            orderBy: {
+                createdAt: "desc",
+            },
         }),
         db.order.count(),
     ])
@@ -58,16 +53,14 @@ export default async function Admin({
 
     const odersForView = orders.map((order) => ({
         id: order.id,
-        refundOk: !order.needsRefund,
-        refundStatus: order.refundStatus,
         status: order.status === "CANCELED" ? `${order.status} : ${order.cancelReason ?? "N/A"} - ${order.cancelMessage ?? "N/A"}` : order.status,
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
         price: `R$ ${order.totalPrice.toFixed(2)}`,
-        stripeLink: order.stripePaymentId && (
+        stripeLink: order.paymentId && (
             <a
                 className="hover:underline"
-                href={`https://dashboard.stripe.com/test/payments/${order.stripePaymentId}`}
+                href={`https://dashboard.stripe.com/test/payments/${order.paymentId}`}
             >
                 Ver no Stripe
             </a>
@@ -84,10 +77,7 @@ export default async function Admin({
                 Ver PDF
             </a>
         ),
-        ticketStatus: order.ticketStatus,
         tracking: order.tracking,
-        ticketUpdatedAt: order.ticketUpdatedAt && new Date(order.ticketUpdatedAt).toLocaleString(),
-        ticketEmitPrice: order.ticketPrice && `R$ ${order.ticketPrice?.toFixed(2)}`,
     }))
 
     return (
@@ -102,13 +92,10 @@ export default async function Admin({
                     refundStatus: "Status do reembolso no stripe",
                     createdAt: "Data de criação",
                     status: "Status",
-                    ticketStatus: "Status no Super Frete",
                     stripeLink: "Informações do pagamento no Stripe",
                     printLink: "Ver Ticket do Super Frete",
                     tracking: "Código de rastreamento",
-                    ticketUpdatedAt: "Última atualização do Ticket",
                     price: "Valor pago no Stripe",
-                    ticketEmitPrice: "Valor para emitr o Ticket do Super Frete",
                     ticketId: "ID do Ticket",
                     shippingMethod: "Serviço de entrega",
                     estimatedDelivery: "Data de entrega (aproximada)",

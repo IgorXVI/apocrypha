@@ -21,7 +21,6 @@ export const env = createEnv({
         COMPANY_STREET: z.string(),
         APP_NAME: z.string(),
         APP_SUPPORT_EMAIL: z.string().email(),
-        CRON_SECRET: z.string(),
     },
     client: {
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
@@ -56,7 +55,6 @@ export const env = createEnv({
         COMPANY_STREET: process.env.COMPANY_STREET,
         APP_SUPPORT_EMAIL: process.env.APP_SUPPORT_EMAIL,
         NEXT_PUBLIC_BRASIL_API: process.env.NEXT_PUBLIC_BRASIL_API,
-        CRON_SECRET: process.env.CRON_SECRET,
     },
     skipValidation: !!process.env.SKIP_ENV_VALIDATION,
     emptyStringAsUndefined: true,

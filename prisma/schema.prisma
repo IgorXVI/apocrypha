@@ -160,52 +160,44 @@ model BookOnOrder {
 
 enum OrderStatus {
     PREPARING
-    AWAITING_EMISSION
-    TICKET_EMITED
     IN_TRANSIT
     DELIVERED
+    REFUND_REQUESTED
+    REFUND_ACCEPTED
+    REFUND_DENIED
     CANCELED
 }
 
 enum OrderCancelReason {
     USER
     ADMIN
-    STRIPE
-    SHIPPING_SERVICE
     EXCEPTION
 }
 
 model Order {
-    id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    sessionId           String
+    id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionId           String      @unique
+    paymentId           String      @unique
     userId              String
-    ticketId            String?
+    ticketId            String
     totalPrice          Decimal
     shippingPrice       Decimal
     shippingDaysMin     Int
     shippingDaysMax     Int
     shippingServiceId   String
     shippingServiceName String
-    createdAt           DateTime           @default(now())
-    updatedAt           DateTime           @default(now())
-    //Precisa atualizar depois do pagamento
-    stripePaymentId     String?
-    needsRefund         Boolean            @default(false)
-    refundStatus        String?
-    //
-    //Precisa atualizar depois de emitir o ticket
-    printUrl            String?
-    ticketStatus        String?
-    ticketUpdatedAt     DateTime?
-    tracking            String?
-    ticketPrice         Decimal?
-    //
-    status              OrderStatus        @default(PREPARING)
-    cancelReason        OrderCancelReason?
-    cancelMessage       String?
-    BookOnOrder         BookOnOrder[]
+    status              OrderStatus @default(PREPARING)
 
-    @@unique([sessionId, userId])
-    @@unique([ticketId, userId])
-    @@unique([sessionId, ticketId])
+    cancelReason  OrderCancelReason?
+    cancelMessage String?
+
+    //Precisa atualizar depois de emitir o ticket
+    printUrl String?
+    tracking String?
+    //
+
+    BookOnOrder BookOnOrder[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
 }

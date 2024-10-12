@@ -1,7 +1,34 @@
 import "server-only"
 
 import { env } from "~/env"
-import { type SuperFreteShippingProduct, type SuperFreteShipping } from "~/lib/types"
+
+export type CalcShippingFeePackage = {
+    price: number
+    discount: string
+    format: string
+    dimensions: {
+        height: string
+        width: string
+        length: string
+    }
+    weight: string
+    insurance_value: number
+}
+
+export type CalcShippingFeeOutput = {
+    id: number
+    name: string
+    price: number
+    discount: string
+    currency: string
+    delivery_time: number
+    delivery_range: {
+        min: number
+        max: number
+    }
+    packages: CalcShippingFeePackage[]
+    has_error: boolean
+}
 
 type CalcShippingFeeInput = {
     toPostalCode: string
@@ -14,8 +41,8 @@ type CalcShippingFeeInput = {
     }[]
 }
 
-export const calcShippingFee: (input: CalcShippingFeeInput) => Promise<SuperFreteShipping[]> = async (input) => {
-    const result: SuperFreteShipping[] = await fetch(`${env.SUPER_FRETE_URL}/calculator`, {
+export const calcShippingFee: (input: CalcShippingFeeInput) => Promise<CalcShippingFeeOutput[]> = async (input) => {
+    const result: CalcShippingFeeOutput[] = await fetch(`${env.SUPER_FRETE_URL}/calculator`, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${env.SUPER_FRETE_TOKEN}`,
@@ -40,6 +67,13 @@ export const calcShippingFee: (input: CalcShippingFeeInput) => Promise<SuperFret
     return result
 }
 
+export type CreateShippingTicketProduct = {
+    bookDBId: string
+    name: string
+    quantity: number
+    unitary_value: number
+}
+
 type CreateShippingTicketInput = {
     to: {
         name: string
@@ -51,7 +85,7 @@ type CreateShippingTicketInput = {
         email: string
     }
     service: number
-    products: SuperFreteShippingProduct[]
+    products: CreateShippingTicketProduct[]
     volumes: {
         weight: string
         height: string
