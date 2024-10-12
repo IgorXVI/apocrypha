@@ -18,136 +18,145 @@ function PaymentFailedMessage({ sessionId, message }: { sessionId: string; messa
 }
 
 export default async function PaymentSuccess({ params: { sessionId } }: { params: { sessionId: string } }) {
-    const user = auth()
+    try {
+        const user = auth()
 
-    if (!user.userId) {
-        return (
-            <PaymentFailedMessage
-                sessionId={sessionId}
-                message="Não autorizado."
-            ></PaymentFailedMessage>
-        )
-    }
+        if (!user.userId) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Não autorizado."
+                ></PaymentFailedMessage>
+            )
+        }
 
-    const exitingOrder = await db.order.findFirst({
-        where: {
-            sessionId,
-        },
-        select: {
-            id: true,
-        },
-    })
+        const exitingOrder = await db.order.findFirst({
+            where: {
+                sessionId,
+            },
+            select: {
+                id: true,
+            },
+        })
 
-    if (exitingOrder) {
-        return (
-            <PaymentFailedMessage
-                sessionId={sessionId}
-                message="Pedido ja está cadastrado."
-            ></PaymentFailedMessage>
-        )
-    }
+        if (exitingOrder) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Pedido ja está cadastrado."
+                ></PaymentFailedMessage>
+            )
+        }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
+        const session = await stripe.checkout.sessions.retrieve(sessionId)
 
-    if (!session || session.status !== "complete" || !session.payment_intent) {
-        return (
-            <PaymentFailedMessage
-                sessionId={sessionId}
-                message="Stripe session não está completa."
-            ></PaymentFailedMessage>
-        )
-    }
+        if (!session || session.status !== "complete" || !session.payment_intent) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Stripe session não está completa."
+                ></PaymentFailedMessage>
+            )
+        }
 
-    const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id
+        const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id
 
-    const stripeShipping = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
-        console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)
-        return undefined
-    })
+        const stripeShipping = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
+            console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)
+            return undefined
+        })
 
-    if (!stripeShipping) {
-        return (
-            <PaymentFailedMessage
-                sessionId={sessionId}
-                message="Não foram encontrados os dados de entrega no stripe."
-            ></PaymentFailedMessage>
-        )
-    }
+        if (!stripeShipping) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Não foram encontrados os dados de entrega no stripe."
+                ></PaymentFailedMessage>
+            )
+        }
 
-    const userAddress = await db.address.findUnique({
-        where: {
-            userId: user.userId,
-        },
-    })
+        const userAddress = await db.address.findUnique({
+            where: {
+                userId: user.userId,
+            },
+        })
 
-    if (!userAddress) {
-        return (
-            <PaymentFailedMessage
-                sessionId={sessionId}
-                message="Usuário não possui os dados de endereço."
-            ></PaymentFailedMessage>
-        )
-    }
+        if (!userAddress) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Usuário não possui os dados de endereço."
+                ></PaymentFailedMessage>
+            )
+        }
 
-    const productsForTicket: CreateShippingTicketProduct[] = JSON.parse(session.metadata?.productsForTicketJSON ?? "[]")
-    const shippingPackages: CalcShippingFeePackage[] = JSON.parse(stripeShipping.metadata.packagesJSON ?? "[]")
+        const productsForTicket: CreateShippingTicketProduct[] = JSON.parse(session.metadata?.productsForTicketJSON ?? "[]")
+        const shippingPackages: CalcShippingFeePackage[] = JSON.parse(stripeShipping.metadata.packagesJSON ?? "[]")
 
-    const fristPackage = shippingPackages[0]
+        const fristPackage = shippingPackages[0]
 
-    if (!fristPackage) {
-        return (
-            <PaymentFailedMessage
-                sessionId={sessionId}
-                message="Dados de tamanho do pacote não foram encotrados no stripe."
-            ></PaymentFailedMessage>
-        )
-    }
+        if (!fristPackage) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Dados de tamanho do pacote não foram encotrados no stripe."
+                ></PaymentFailedMessage>
+            )
+        }
 
-    const userData = await authClient.users.getUser(user.userId)
+        const userData = await authClient.users.getUser(user.userId)
 
-    const ticketRes = await createShippingTicket({
-        to: {
-            name: `${userData.firstName} ${userData.lastName}`,
-            address: `${userAddress.street}, número ${userAddress.number}${userAddress.complement ? `, ${userAddress.complement}` : ""}`,
-            district: userAddress.neighborhood,
-            city: userAddress.city,
-            state_abbr: userAddress.state,
-            postal_code: userAddress.cep,
-            email: userData.primaryEmailAddress?.emailAddress ?? "N/A",
-        },
-        service: Number(stripeShipping.metadata.serviceId) ?? 0,
-        products: productsForTicket,
-        volumes: {
-            weight: fristPackage.weight,
-            height: fristPackage.dimensions.height,
-            length: fristPackage.dimensions.length,
-            width: fristPackage.dimensions.width,
-        },
-        tag: JSON.stringify({ sessionId: session.id, userId: user.userId }),
-    })
+        const ticketRes = await createShippingTicket({
+            to: {
+                name: `${userData.firstName} ${userData.lastName}`,
+                address: `${userAddress.street}, número ${userAddress.number}${userAddress.complement ? `, ${userAddress.complement}` : ""}`,
+                district: userAddress.neighborhood,
+                city: userAddress.city,
+                state_abbr: userAddress.state,
+                postal_code: userAddress.cep,
+                email: userData.primaryEmailAddress?.emailAddress ?? "N/A",
+            },
+            service: Number(stripeShipping.metadata.serviceId) ?? 0,
+            products: productsForTicket,
+            volumes: {
+                weight: fristPackage.weight,
+                height: fristPackage.dimensions.height,
+                length: fristPackage.dimensions.length,
+                width: fristPackage.dimensions.width,
+            },
+            tag: JSON.stringify({ sessionId: session.id, userId: user.userId }),
+        })
 
-    await db.order.create({
-        data: {
-            userId: user.userId,
-            sessionId: session.id,
-            paymentId,
-            ticketId: ticketRes.id,
-            totalPrice: session.amount_total! / 100,
-            shippingPrice: session.shipping_cost!.amount_total / 100,
-            shippingServiceId: stripeShipping.metadata.serviceId!,
-            shippingServiceName: stripeShipping.display_name!,
-            shippingDaysMin: stripeShipping.delivery_estimate!.minimum!.value,
-            shippingDaysMax: stripeShipping.delivery_estimate!.maximum!.value,
-            BookOnOrder: {
-                createMany: {
-                    data: productsForTicket.map((p) => ({
-                        bookId: p.bookDBId,
-                        price: p.unitary_value,
-                    })),
+        await db.order.create({
+            data: {
+                userId: user.userId,
+                sessionId: session.id,
+                paymentId,
+                ticketId: ticketRes.id,
+                totalPrice: session.amount_total! / 100,
+                shippingPrice: session.shipping_cost!.amount_total / 100,
+                shippingServiceId: stripeShipping.metadata.serviceId!,
+                shippingServiceName: stripeShipping.display_name!,
+                shippingDaysMin: stripeShipping.delivery_estimate!.minimum!.value,
+                shippingDaysMax: stripeShipping.delivery_estimate!.maximum!.value,
+                BookOnOrder: {
+                    createMany: {
+                        data: productsForTicket.map((p) => ({
+                            bookId: p.bookDBId,
+                            price: p.unitary_value,
+                        })),
+                    },
                 },
             },
-        },
-    })
+        })
+    } catch (error) {
+        return (
+            <PaymentFailedMessage
+                sessionId={sessionId}
+                message={`${error instanceof Error ? error.message : JSON.stringify(error)}`}
+            ></PaymentFailedMessage>
+        )
+    }
 
     redirect("/commerce/user/order")
 }
