@@ -14,28 +14,40 @@ const orderStatusStyle = new Map<$Enums.OrderStatus, string>([
 const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
     [
         "DELIVERED",
-        <div className="flex flex-row items-center justify-center gap-2">
+        <div
+            key={"DELIVERED"}
+            className="flex flex-row items-center justify-center gap-2"
+        >
             <CheckCircleIcon></CheckCircleIcon>
             <span>Entregue</span>
         </div>,
     ],
     [
         "CANCELED",
-        <div className="flex flex-row items-center justify-center gap-2">
+        <div
+            key={"CANCELED"}
+            className="flex flex-row items-center justify-center gap-2"
+        >
             <XCircleIcon></XCircleIcon>
             <span>Cancelado</span>
         </div>,
     ],
     [
         "IN_TRANSIT",
-        <div className="flex flex-row items-center justify-center gap-2">
+        <div
+            key={"IN_TRANSIT"}
+            className="flex flex-row items-center justify-center gap-2"
+        >
             <TruckIcon></TruckIcon>
             <span>A caminho</span>
         </div>,
     ],
     [
         "PREPARING",
-        <div className="flex flex-row items-center justify-center gap-2">
+        <div
+            key={"PREPARING"}
+            className="flex flex-row items-center justify-center gap-2"
+        >
             <PackageIcon></PackageIcon>
             <span>Preparando</span>
         </div>,

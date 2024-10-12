@@ -1,6 +1,6 @@
 import { db } from "~/server/db"
 import DataTable from "./_components/data-table"
-import { calcDeliveryLocalDate, calcSkip } from "~/lib/utils"
+import { calcSkip } from "~/lib/utils"
 import { type User } from "@clerk/nextjs/server"
 import { authClient } from "~/server/auth-api"
 import { emitTicket, getProductInfo } from "~/server/shipping-api"
@@ -65,7 +65,7 @@ export default async function Admin({
         ),
         ticketId: order.ticketId,
         shippingMethod: order.shippingServiceName,
-        estimatedDelivery: calcDeliveryLocalDate(order),
+        updatedAt: order.updatedAt.toLocaleString(),
         createdAt: order.createdAt.toLocaleString(),
         printLink: order.printUrl && (
             <a
@@ -85,10 +85,10 @@ export default async function Admin({
                 namePlural="pedidos"
                 tableDescription="Atualize os pedidos."
                 tableHeaders={{
-                    id: "ID",
-                    createdAt: "Data de criação",
                     status: "Status",
-                    estimatedDelivery: "Data de entrega (aproximada)",
+                    createdAt: "Data de criação",
+                    updatedAt: "Data da útlima atualização",
+                    id: "ID",
                     stripeLink: "Informações do pagamento no Stripe",
                     printLink: "Ver Ticket do Super Frete",
                     tracking: "Código de rastreamento",

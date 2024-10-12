@@ -1,6 +1,6 @@
 import * as R from "remeda"
 
-import { CalendarIcon, CreditCard, Package, Truck } from "lucide-react"
+import { BookOpenIcon, BoxesIcon, CalendarIcon, CreditCard, Package, TagIcon, TagsIcon, Truck } from "lucide-react"
 import OrderStatus from "~/components/order/order-status"
 
 import { Button } from "~/components/ui/button"
@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { db } from "~/server/db"
 import { getProductInfo } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
+import Link from "next/link"
+import Image from "next/image"
 
 const formatStripeName = (name: string) =>
     name
@@ -29,7 +31,19 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
         include: {
             BookOnOrder: {
                 include: {
-                    Book: true,
+                    Book: {
+                        include: {
+                            DisplayImage: {
+                                select: {
+                                    url: true,
+                                },
+                                orderBy: {
+                                    order: "asc",
+                                },
+                                take: 1,
+                            },
+                        },
+                    },
                 },
             },
         },
@@ -79,22 +93,52 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                         <CardDescription>ID: {order.id}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table className="text-lg">
+                        <Table className="md:text-lg">
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Item</TableHead>
-                                    <TableHead className="text-right">Quantidade</TableHead>
-                                    <TableHead className="text-right">Preço</TableHead>
-                                    <TableHead className="text-right">Total</TableHead>
+                                    <TableHead>
+                                        <div className="flex flex-row gap-1 items-center justify-start">
+                                            <BookOpenIcon></BookOpenIcon>
+                                            <span className="hidden md:block">Item</span>
+                                        </div>
+                                    </TableHead>
+                                    <TableHead>
+                                        <div className="flex flex-row gap-1 items-center justify-end">
+                                            <BoxesIcon></BoxesIcon>
+                                            <span className="hidden md:block">Quantidade</span>
+                                        </div>
+                                    </TableHead>
+                                    <TableHead>
+                                        <div className="flex flex-row gap-1 items-center justify-end">
+                                            <TagIcon></TagIcon>
+                                            <span className="hidden md:block">Preço</span>
+                                        </div>
+                                    </TableHead>
+                                    <TableHead>
+                                        <div className="flex flex-row gap-1 items-center justify-end">
+                                            <TagsIcon></TagsIcon>
+                                            <span className="hidden md:block">Total</span>
+                                        </div>
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {order.BookOnOrder.map((bo) => (
                                     <TableRow key={bo.Book.id}>
-                                        <TableCell>{bo.Book.title}</TableCell>
+                                        <TableCell>
+                                            <Link href={`/commerce/book/${bo.Book.id}`}>
+                                                <Image
+                                                    src={bo.Book.DisplayImage[0]?.url ?? ""}
+                                                    alt={bo.Book.title}
+                                                    className="rounded-md object-cover"
+                                                    width={100}
+                                                    height={100}
+                                                ></Image>
+                                            </Link>
+                                        </TableCell>
                                         <TableCell className="text-right">{bo.amount}</TableCell>
-                                        <TableCell className="text-right">R$ {bo.price.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">R$ {(bo.amount * bo.price.toNumber()).toFixed(2)}</TableCell>
+                                        <TableCell className="text-right text-nowrap">R$ {bo.price.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right text-nowrap">R$ {(bo.amount * bo.price.toNumber()).toFixed(2)}</TableCell>
                                     </TableRow>
                                 ))}
                                 <TableRow>
@@ -104,7 +148,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                     >
                                         Subtotal
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right text-nowrap ">
                                         R$ {(order.totalPrice.toNumber() - order.shippingPrice.toNumber()).toFixed(2)}
                                     </TableCell>
                                 </TableRow>
@@ -115,7 +159,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                     >
                                         Entrega
                                     </TableCell>
-                                    <TableCell className="text-right">R$ {order.shippingPrice.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-nowrap">R$ {order.shippingPrice.toFixed(2)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell
@@ -124,7 +168,9 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                     >
                                         Total
                                     </TableCell>
-                                    <TableCell className="text-right font-bold text-2xl text-green-500">R$ {order.totalPrice.toFixed(2)}</TableCell>
+                                    <TableCell className="text-nowrap text-right font-bold text-lg md:text-2xl text-green-500">
+                                        R$ {order.totalPrice.toFixed(2)}
+                                    </TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -181,9 +227,9 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex gap-3 items- justify-center items-center">
+                            <div className="flex flex-wrap gap-3 text-2xl justify-center items-center">
                                 <OrderStatus status={order.status}></OrderStatus>
-                                <span className="text-nowrap text-muted-foreground text-lg font-light">
+                                <span className="text-muted-foreground text-lg font-light text-nowrap">
                                     Atualizado em: {order.updatedAt.toLocaleString()}
                                 </span>
                             </div>

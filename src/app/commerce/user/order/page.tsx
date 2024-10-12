@@ -58,7 +58,9 @@ export default async function UserOrders({
         <div className="container mx-auto px-4 py-8">
             {orders.length > 0 ? (
                 <>
-                    <h1 className="text-3xl font-bold mb-8">Seus pedidos, {userData.fullName}</h1>
+                    <h1 className="text-3xl font-bold mb-8">
+                        Seus pedidos, <span className="text-nowrap">{userData.fullName}</span>
+                    </h1>
 
                     <div className="grid gap-6 md:grid-cols-3 mb-8">
                         <Card>
@@ -99,20 +101,15 @@ export default async function UserOrders({
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Data</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Total</TableHead>
                                         <TableHead></TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Data</TableHead>
+                                        <TableHead className="text-right">Total</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {orders.map((order) => (
                                         <TableRow key={order.id}>
-                                            <TableCell>{order.createdAt.toLocaleString()}</TableCell>
-                                            <TableCell>
-                                                <OrderStatus status={order.status}></OrderStatus>
-                                            </TableCell>
-                                            <TableCell className="text-right">R$ {order.totalPrice.toFixed(2)}</TableCell>
                                             <TableCell>
                                                 <Link href={`/commerce/user/order/${order.id}`}>
                                                     <Button
@@ -123,6 +120,11 @@ export default async function UserOrders({
                                                     </Button>
                                                 </Link>
                                             </TableCell>
+                                            <TableCell>
+                                                <OrderStatus status={order.status}></OrderStatus>
+                                            </TableCell>
+                                            <TableCell className="text-nowrap">{order.createdAt.toLocaleString()}</TableCell>
+                                            <TableCell className="text-right text-nowrap">R$ {order.totalPrice.toFixed(2)}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
