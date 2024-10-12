@@ -82,7 +82,7 @@ export default async function Admin({
             <DataTable
                 name="pedido"
                 namePlural="pedidos"
-                tableDescription="Crie, atualize, apague ou busque pedidos."
+                tableDescription="Atualize os pedidos."
                 tableHeaders={{
                     id: "ID",
                     createdAt: "Data de criação",
