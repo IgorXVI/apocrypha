@@ -5,19 +5,11 @@ import { db } from "~/server/db"
 import { type CreateShippingTicketProduct, type CalcShippingFeePackage, createShippingTicket } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 
-function PaymentFailedMessage({ sessionId, paymentId, message }: { sessionId: string; paymentId?: string; message: string }) {
+function PaymentFailedMessage({ sessionId, message }: { sessionId: string; message: string }) {
     return (
         <div className="container mx-auto flex flex-col items-center justify-center text-xl gap-10 p-10">
             <p>{message}</p>
             <p>ID da Stripe Checkout Session: {sessionId}</p>
-            {paymentId && (
-                <a
-                    className="hover:underline text-blue-500"
-                    href={`https://dashboard.stripe.com/test/payments/${paymentId}`}
-                >
-                    Ver no Stripe
-                </a>
-            )}
         </div>
     )
 }
@@ -74,7 +66,6 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         return (
             <PaymentFailedMessage
                 sessionId={sessionId}
-                paymentId={paymentId}
                 message="Não foram encontrados os dados de entrega no stripe."
             ></PaymentFailedMessage>
         )
@@ -90,7 +81,6 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         return (
             <PaymentFailedMessage
                 sessionId={sessionId}
-                paymentId={paymentId}
                 message="Usuário não possui os dados de endereço."
             ></PaymentFailedMessage>
         )
@@ -105,7 +95,6 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         return (
             <PaymentFailedMessage
                 sessionId={sessionId}
-                paymentId={paymentId}
                 message="Dados de tamanho do pacote não foram encotrados no stripe."
             ></PaymentFailedMessage>
         )
