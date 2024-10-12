@@ -3,7 +3,7 @@ import DataTable from "./_components/data-table"
 import { calcSkip } from "~/lib/utils"
 import { type User } from "@clerk/nextjs/server"
 import { authClient } from "~/server/auth-api"
-import { emitTicket, getProductInfo } from "~/server/shipping-api"
+import { cancelTicket, emitTicket, getProductInfo } from "~/server/shipping-api"
 import { revalidatePath } from "next/cache"
 import OrderStatus from "~/components/order/order-status"
 
@@ -135,6 +135,13 @@ export default async function Admin({
                                     }
                                 }
 
+                                if (order.status === "CANCELED") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Pedido está cancelado.",
+                                    }
+                                }
+
                                 const ticketEmitedResult = await emitTicket(order.ticketId).catch((error) => {
                                     console.error("EMIT_TICKET_ON_ADMIN_ERROR", error)
                                     return undefined
@@ -207,6 +214,13 @@ export default async function Admin({
                                     }
                                 }
 
+                                if (order.status === "CANCELED") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Pedido está cancelado.",
+                                    }
+                                }
+
                                 const ticketInfo = await getProductInfo(order.ticketId).catch((error) => {
                                     console.error("GET_TICKET_INFO_ON_ADMIN_ERROR", error)
                                     return undefined
@@ -273,6 +287,13 @@ export default async function Admin({
                                     }
                                 }
 
+                                if (order.status === "CANCELED") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Pedido está cancelado.",
+                                    }
+                                }
+
                                 const updateResult = await db.order
                                     .update({
                                         where: {
@@ -280,6 +301,79 @@ export default async function Admin({
                                         },
                                         data: {
                                             status: order.status === "IN_TRANSIT" ? "DELIVERED" : order.status,
+                                            updatedAt: new Date(),
+                                        },
+                                    })
+                                    .catch((error) => {
+                                        console.error("UPDATE_ORDER_ON_ADMIN_ERROR", error)
+                                        return undefined
+                                    })
+
+                                if (!updateResult) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Aconteceu um erro ao atualizar o pedido.",
+                                    }
+                                }
+
+                                revalidatePath("/admin")
+
+                                return {
+                                    success: true,
+                                }
+                            },
+                        },
+                        {
+                            label: "Cancelar",
+                            serverAction: async (id: unknown) => {
+                                "use server"
+                                if (typeof id !== "string") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "ID deve ser uma string.",
+                                    }
+                                }
+
+                                const order = await db.order.findUnique({
+                                    where: {
+                                        id,
+                                    },
+                                })
+
+                                if (!order) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Pedido não foi encontrado.",
+                                    }
+                                }
+
+                                if (order.status === "CANCELED") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Pedido está cancelado.",
+                                    }
+                                }
+
+                                const ticketInfo = await cancelTicket(order.ticketId).catch((error) => {
+                                    console.error("GET_TICKET_INFO_ON_ADMIN_ERROR", error)
+                                    return "ERRO"
+                                })
+
+                                if (typeof ticketInfo === "string") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Não foi possível cancelar o ticket no Super Frete.",
+                                    }
+                                }
+
+                                const updateResult = await db.order
+                                    .update({
+                                        where: {
+                                            id,
+                                        },
+                                        data: {
+                                            status: "CANCELED",
+                                            cancelReason: "ADMIN",
                                             updatedAt: new Date(),
                                         },
                                     })
