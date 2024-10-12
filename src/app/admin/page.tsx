@@ -1,6 +1,6 @@
 import { db } from "~/server/db"
 import DataTable from "./_components/data-table"
-import { calcSkip } from "~/lib/utils"
+import { calcDeliveryLocalDate, calcSkip } from "~/lib/utils"
 import { type User } from "@clerk/nextjs/server"
 import { authClient } from "~/server/auth-api"
 import { emitTicket, getProductInfo } from "~/server/shipping-api"
@@ -27,11 +27,6 @@ export default async function Admin({
         }),
         db.order.count(),
     ])
-
-    const getDateOffset = (date: Date, offsetInDays: number) => new Date(date.getTime() + offsetInDays * 24 * 60 * 60 * 1000).toLocaleDateString()
-
-    const calcShippingDate = (createdAt: Date, min: number, max: number) =>
-        min === max ? getDateOffset(createdAt, min) : `Entre ${getDateOffset(createdAt, min)} e ${getDateOffset(createdAt, max)}`
 
     const orderToUserIdMap = new Map<string, string>()
 
@@ -69,7 +64,7 @@ export default async function Admin({
         ),
         ticketId: order.ticketId,
         shippingMethod: order.shippingServiceName,
-        estimatedDelivery: calcShippingDate(order.createdAt, order.shippingDaysMin, order.shippingDaysMax),
+        estimatedDelivery: calcDeliveryLocalDate(order),
         createdAt: order.createdAt.toLocaleString(),
         printLink: order.printUrl && (
             <a
@@ -92,13 +87,13 @@ export default async function Admin({
                     id: "ID",
                     createdAt: "Data de criação",
                     status: "Status",
+                    estimatedDelivery: "Data de entrega (aproximada)",
                     stripeLink: "Informações do pagamento no Stripe",
                     printLink: "Ver Ticket do Super Frete",
                     tracking: "Código de rastreamento",
                     price: "Valor pago no Stripe",
                     ticketId: "ID do Ticket",
                     shippingMethod: "Serviço de entrega",
-                    estimatedDelivery: "Data de entrega (aproximada)",
                     userName: "Nome do usuário",
                     userEmail: "Email do usuário",
                 }}
@@ -230,6 +225,58 @@ export default async function Admin({
                                         data: {
                                             tracking: ticketInfo.tracking,
                                             status: ticketInfo.status && ticketInfo.tracking ? "IN_TRANSIT" : "PREPARING",
+                                        },
+                                    })
+                                    .catch((error) => {
+                                        console.error("UPDATE_ORDER_ON_ADMIN_ERROR", error)
+                                        return undefined
+                                    })
+
+                                if (!updateResult) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Aconteceu um erro ao atualizar o pedido.",
+                                    }
+                                }
+
+                                revalidatePath("/admin")
+
+                                return {
+                                    success: true,
+                                }
+                            },
+                        },
+                        {
+                            label: "Simular Entrega",
+                            serverAction: async (id: unknown) => {
+                                "use server"
+                                if (typeof id !== "string") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "ID deve ser uma string.",
+                                    }
+                                }
+
+                                const order = await db.order.findUnique({
+                                    where: {
+                                        id,
+                                    },
+                                })
+
+                                if (!order) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Pedido não foi encontrado.",
+                                    }
+                                }
+
+                                const updateResult = await db.order
+                                    .update({
+                                        where: {
+                                            id,
+                                        },
+                                        data: {
+                                            status: order.status === "IN_TRANSIT" ? "DELIVERED" : order.status,
                                         },
                                     })
                                     .catch((error) => {
