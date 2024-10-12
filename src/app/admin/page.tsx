@@ -88,8 +88,6 @@ export default async function Admin({
                 tableDescription="Crie, atualize, apague ou busque pedidos."
                 tableHeaders={{
                     id: "ID",
-                    refundOk: "Reembolso está OK?",
-                    refundStatus: "Status do reembolso no stripe",
                     createdAt: "Data de criação",
                     status: "Status",
                     stripeLink: "Informações do pagamento no Stripe",

@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import { env } from "~/env"
 import { authClient } from "~/server/auth-api"
 import { db } from "~/server/db"
 import { type CreateShippingTicketProduct, type CalcShippingFeePackage, createShippingTicket } from "~/server/shipping-api"
@@ -8,8 +9,10 @@ import { stripe } from "~/server/stripe-api"
 function PaymentFailedMessage({ sessionId, message }: { sessionId: string; message: string }) {
     return (
         <div className="container mx-auto flex flex-col items-center justify-center text-xl gap-10 p-10">
-            <p>{message}</p>
+            <p className="text-red-500 text-6xl font-extrabold">ERRO!</p>
+            <p className="text-red-500 font-extrabold text-4xl">{message}</p>
             <p>ID da Stripe Checkout Session: {sessionId}</p>
+            <p>Salve o ID e entre em contato com o suporte por email: {env.APP_USER_AGENT}</p>
         </div>
     )
 }
@@ -26,7 +29,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         )
     }
 
-    const exitingOrder = await db.order.findUnique({
+    const exitingOrder = await db.order.findFirst({
         where: {
             sessionId,
         },
