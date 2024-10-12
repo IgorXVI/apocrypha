@@ -59,7 +59,7 @@ const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
 
 export default function OrderStatus({ status }: { status: $Enums.OrderStatus }) {
     return (
-        <div className={`p-2 text-white rounded-lg shadow-sm shadow-black font-bold ${orderStatusStyle.get(status) ?? "bg-black"}`}>
+        <div className={`p-2 text-white rounded-lg font-bold ${orderStatusStyle.get(status) ?? "bg-black"}`}>
             {orderStatusLabel.get(status) ?? status}
         </div>
     )

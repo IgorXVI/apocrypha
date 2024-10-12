@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { CalendarIcon, CreditCardIcon, PackageIcon } from "lucide-react"
 import Link from "next/link"
+import OrderItemsCompact from "~/components/order/order-items-compact"
 import OrderStatus from "~/components/order/order-status"
 import PaginationNumbers from "~/components/pagination/pagination-numbers"
 
@@ -48,6 +49,22 @@ export default async function UserOrders({
             },
             orderBy: {
                 createdAt: "desc",
+            },
+            include: {
+                BookOnOrder: {
+                    include: {
+                        Book: {
+                            include: {
+                                DisplayImage: {
+                                    orderBy: {
+                                        order: "asc",
+                                    },
+                                    take: 1,
+                                },
+                            },
+                        },
+                    },
+                },
             },
             take: currentTake,
             skip: calcSkip(currentPage, currentTake),
@@ -103,8 +120,10 @@ export default async function UserOrders({
                                     <TableRow>
                                         <TableHead></TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead>Data</TableHead>
-                                        <TableHead className="text-right">Total</TableHead>
+                                        <TableHead>Items</TableHead>
+                                        <TableHead className="text-right text-nowrap">Data da última atualização</TableHead>
+                                        <TableHead className="text-right text-nowrap">Data da compra</TableHead>
+                                        <TableHead className="text-right text-nowrap">Total</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -125,8 +144,21 @@ export default async function UserOrders({
                                                     <OrderStatus status={order.status}></OrderStatus>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-nowrap">{order.createdAt.toLocaleString()}</TableCell>
-                                            <TableCell className="text-right text-nowrap">R$ {order.totalPrice.toFixed(2)}</TableCell>
+                                            <TableCell>
+                                                <OrderItemsCompact
+                                                    maxDisplay={5}
+                                                    products={order.BookOnOrder.map((bo) => ({
+                                                        id: bo.Book.id,
+                                                        image: bo.Book.DisplayImage[0]?.url ?? "",
+                                                        name: bo.Book.title,
+                                                    }))}
+                                                ></OrderItemsCompact>
+                                            </TableCell>
+                                            <TableCell className="text-right text-nowrap">{order.updatedAt.toLocaleString()}</TableCell>
+                                            <TableCell className="text-right text-nowrap">{order.createdAt.toLocaleString()}</TableCell>
+                                            <TableCell className="text-right text-nowrap font-bold text-green-500">
+                                                R$ {order.totalPrice.toFixed(2)}
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

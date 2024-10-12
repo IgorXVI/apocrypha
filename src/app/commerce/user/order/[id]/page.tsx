@@ -130,7 +130,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                                 <Image
                                                     src={bo.Book.DisplayImage[0]?.url ?? ""}
                                                     alt={bo.Book.title}
-                                                    className="rounded-md object-cover"
+                                                    className="min-h-[50px] min-w-[40px] rounded-md object-cover"
                                                     width={100}
                                                     height={100}
                                                 ></Image>
