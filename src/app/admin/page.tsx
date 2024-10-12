@@ -117,7 +117,16 @@ export default async function Admin({
                             label: "Mudar stauts",
                             serverAction: async (id: unknown) => {
                                 "use server"
-                                console.log("ROW ID", id)
+                                if (typeof id !== "string") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "ID should be string.",
+                                    }
+                                }
+
+                                return {
+                                    success: true,
+                                }
                             },
                         },
                     ],

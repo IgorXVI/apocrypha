@@ -12,6 +12,7 @@ import { convertSvgToImgSrc } from "~/lib/utils"
 import { Button } from "~/components/ui/button"
 import { type Prisma } from "prisma/prisma-client"
 import PaginationNumbers from "~/components/pagination/pagination-numbers"
+import { toastError } from "~/components/toast/toasting"
 
 type PossibleTableCellTypes = string | number | Prisma.Decimal | Date | undefined | null | unknown[] | React.ReactNode
 
@@ -37,7 +38,7 @@ export default function DataTable(props: {
         actions: {
             label: string
             onClick?: (rowId: string) => void
-            serverAction?: (rowId: unknown) => Promise<void>
+            serverAction?: (rowId: unknown) => Promise<{ success: boolean; errorMessage?: string }>
         }[]
     }
 }) {
@@ -126,7 +127,16 @@ export default function DataTable(props: {
                                                                     action.onClick
                                                                         ? action.onClick(row.id as string)
                                                                         : action.serverAction
-                                                                          ? action.serverAction(row.id as string)
+                                                                          ? action
+                                                                                .serverAction(row.id as string)
+                                                                                .then((result) => {
+                                                                                    if (!result.success) {
+                                                                                        toastError(result.errorMessage ?? "Erro desconhecido")
+                                                                                    }
+                                                                                })
+                                                                                .catch((error) => {
+                                                                                    toastError(JSON.stringify(error))
+                                                                                })
                                                                           : null
                                                                 }
                                                             >
