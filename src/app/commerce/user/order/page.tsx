@@ -1,19 +1,15 @@
 import { auth } from "@clerk/nextjs/server"
 import { CalendarIcon, CreditCardIcon, PackageIcon } from "lucide-react"
 import Link from "next/link"
-import { type $Enums } from "prisma/prisma-client"
+import OrderStatus from "~/components/order/order-status"
 import PaginationNumbers from "~/components/pagination/pagination-numbers"
 
-import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
 import { calcSkip } from "~/lib/utils"
 import { authClient } from "~/server/auth-api"
 import { db } from "~/server/db"
-
-const decideButtonVarient = (status: $Enums.OrderStatus) =>
-    status === "PREPARING" ? "default" : status === "IN_TRANSIT" ? "secondary" : status === "DELIVERED" ? "outline" : "destructive"
 
 export default async function UserOrders({
     searchParams,
@@ -112,7 +108,7 @@ export default async function UserOrders({
                                 <TableRow key={order.id}>
                                     <TableCell>{order.createdAt.toLocaleString()}</TableCell>
                                     <TableCell>
-                                        <Badge variant={decideButtonVarient(order.status)}>{order.status}</Badge>
+                                        <OrderStatus status={order.status}></OrderStatus>
                                     </TableCell>
                                     <TableCell className="text-right">R$ {order.totalPrice.toFixed(2)}</TableCell>
                                     <TableCell>

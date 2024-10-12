@@ -5,6 +5,7 @@ import { type User } from "@clerk/nextjs/server"
 import { authClient } from "~/server/auth-api"
 import { emitTicket, getProductInfo } from "~/server/shipping-api"
 import { revalidatePath } from "next/cache"
+import OrderStatus from "~/components/order/order-status"
 
 export default async function Admin({
     searchParams,
@@ -50,7 +51,7 @@ export default async function Admin({
 
     const odersForView = orders.map((order) => ({
         id: order.id,
-        status: order.status === "CANCELED" ? `${order.status} : ${order.cancelReason ?? "N/A"} - ${order.cancelMessage ?? "N/A"}` : order.status,
+        status: <OrderStatus status={order.status}></OrderStatus>,
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
         price: `R$ ${order.totalPrice.toFixed(2)}`,
