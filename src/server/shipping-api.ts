@@ -190,6 +190,19 @@ export const emitTicket: (ticketId: string) => Promise<EmitTicketOutput | undefi
     }
 }
 
+type ProductTo = {
+    address: string
+    city: string
+    complement: string
+    district: string
+    document: string
+    name: string
+    location_number: string
+    postal_code: string
+    state_abbr: string
+    country_id: string
+}
+
 type GetProductInfoFetchOutput = {
     id: string
     format: string
@@ -213,18 +226,7 @@ type GetProductInfoFetchOutput = {
         state_abbr: string
         country_id: string
     }
-    to: {
-        address: string
-        city: string
-        complement: string
-        district: string
-        document: string
-        name: string
-        location_number: string
-        postal_code: string
-        state_abbr: string
-        country_id: string
-    }
+    to: ProductTo
     invoice: string
     own_hand: boolean
     receipt: boolean
@@ -250,6 +252,7 @@ export type GetProductInfoOutput = {
     status: string
     updatedAt: string
     price: number
+    to: ProductTo
 }
 
 export const getProductInfo: (ticketId: string) => Promise<GetProductInfoOutput> = async (ticketId) => {
@@ -268,6 +271,7 @@ export const getProductInfo: (ticketId: string) => Promise<GetProductInfoOutput>
         status: info.status,
         updatedAt: info.updated_at,
         price: info.price,
+        to: info.to,
     }
 }
 

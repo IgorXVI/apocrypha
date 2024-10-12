@@ -1,74 +1,100 @@
-import { CalendarIcon, CreditCard, Package, Truck } from "lucide-react"
+import * as R from "remeda"
 
-import { Badge } from "~/components/ui/badge"
+import { CalendarIcon, CreditCard, Package, Truck } from "lucide-react"
+import OrderStatus from "~/components/order/order-status"
+
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
+import { db } from "~/server/db"
+import { getProductInfo } from "~/server/shipping-api"
+import { stripe } from "~/server/stripe-api"
 
-// Mock data for the order
-const order = {
-    id: "ORD12345",
-    date: "2023-06-15",
-    status: "Delivered",
-    total: 234.99,
-    items: [
-        { id: 1, name: "Wireless Earbuds", quantity: 1, price: 79.99 },
-        { id: 2, name: "Smartphone Case", quantity: 2, price: 24.99 },
-        { id: 3, name: "USB-C Cable", quantity: 3, price: 15.99 },
-    ],
-    shipping: {
-        method: "Standard Shipping",
-        address: "123 Main St, Anytown, AN 12345",
-        cost: 9.99,
-    },
-    payment: {
-        method: "Credit Card",
-        cardLast4: "1234",
-    },
-}
+const formatStripeName = (name: string) =>
+    name
+        .split("_")
+        .map((t) => R.capitalize(t))
+        .join(" ")
 
-export default function OrderDetails() {
+const cardType = new Map<string, string>([
+    ["debit", "debito"],
+    ["credit", "crédito"],
+])
+
+export default async function OrderDetails({ params: { id } }: { params: { id: string } }) {
+    const order = await db.order.findUnique({
+        where: {
+            id,
+        },
+        include: {
+            BookOnOrder: {
+                include: {
+                    Book: true,
+                },
+            },
+        },
+    })
+
+    if (!order) {
+        return <p>Pedido não foi encontrado.</p>
+    }
+
+    const ticketInfo = await getProductInfo(order.ticketId).catch((error) => {
+        console.error("TICKET_INFO_ERROR_USER_ORDER_DETAILS", error)
+        return undefined
+    })
+
+    if (!ticketInfo) {
+        return <p>Não foi possível encontrar as informações do endereço de entrega.</p>
+    }
+
+    const stripePaymentInfo = await stripe.paymentIntents.retrieve(order.paymentId)
+
+    if (!stripePaymentInfo) {
+        return <p>Não foi possível encontrar as informações do pagamento.</p>
+    }
+
+    const paymentMethod = await stripe.paymentMethods.retrieve(stripePaymentInfo.payment_method?.toString() ?? "")
+
+    if (!paymentMethod) {
+        return <p>Não foi possível encontrar as informações do método de pagamento.</p>
+    }
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-                <h1 className="text-3xl font-bold mb-4 md:mb-0">Order Details</h1>
+                <h1 className="text-3xl font-bold mb-4 md:mb-0">Detalhes do pedido</h1>
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                     <div className="flex items-center gap-2">
                         <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                        <span>{order.date}</span>
+                        <span>{order.createdAt.toLocaleString()}</span>
                     </div>
-                    <Badge
-                        variant="outline"
-                        className="text-lg py-1"
-                    >
-                        {order.status}
-                    </Badge>
                 </div>
             </div>
 
             <div className="grid gap-8 md:grid-cols-3">
                 <Card className="md:col-span-2">
                     <CardHeader>
-                        <CardTitle>Order Summary</CardTitle>
-                        <CardDescription>Order ID: {order.id}</CardDescription>
+                        <CardTitle>Resumo do pedido</CardTitle>
+                        <CardDescription>ID: {order.id}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
+                        <Table className="text-lg">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Item</TableHead>
-                                    <TableHead className="text-right">Quantity</TableHead>
-                                    <TableHead className="text-right">Price</TableHead>
+                                    <TableHead className="text-right">Quantidade</TableHead>
+                                    <TableHead className="text-right">Preço</TableHead>
                                     <TableHead className="text-right">Total</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {order.items.map((item) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell>{item.name}</TableCell>
-                                        <TableCell className="text-right">{item.quantity}</TableCell>
-                                        <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">${(item.quantity * item.price).toFixed(2)}</TableCell>
+                                {order.BookOnOrder.map((bo) => (
+                                    <TableRow key={bo.Book.id}>
+                                        <TableCell>{bo.Book.title}</TableCell>
+                                        <TableCell className="text-right">{bo.amount}</TableCell>
+                                        <TableCell className="text-right">R$ {bo.price.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">R$ {(bo.amount * bo.price.toNumber()).toFixed(2)}</TableCell>
                                     </TableRow>
                                 ))}
                                 <TableRow>
@@ -78,16 +104,18 @@ export default function OrderDetails() {
                                     >
                                         Subtotal
                                     </TableCell>
-                                    <TableCell className="text-right">${(order.total - order.shipping.cost).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">
+                                        R$ {(order.totalPrice.toNumber() - order.shippingPrice.toNumber()).toFixed(2)}
+                                    </TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell
                                         colSpan={3}
                                         className="font-medium"
                                     >
-                                        Shipping
+                                        Entrega
                                     </TableCell>
-                                    <TableCell className="text-right">${order.shipping.cost.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">R$ {order.shippingPrice.toFixed(2)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell
@@ -96,7 +124,7 @@ export default function OrderDetails() {
                                     >
                                         Total
                                     </TableCell>
-                                    <TableCell className="text-right font-bold">${order.total.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-bold text-2xl text-green-500">R$ {order.totalPrice.toFixed(2)}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -108,48 +136,68 @@ export default function OrderDetails() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Truck className="h-5 w-5" />
-                                Shipping Information
+                                Informação da entrega
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="font-medium">{order.shipping.method}</p>
-                            <p className="text-muted-foreground mt-2">{order.shipping.address}</p>
+                            <p className="font-medium">{order.shippingServiceName}</p>
+                            <p className="text-muted-foreground mt-2">Entregar para {ticketInfo.to.name}</p>
+                            <p className="text-muted-foreground mt-2">
+                                {ticketInfo.to.city}/{ticketInfo.to.state_abbr}, {ticketInfo.to.postal_code}
+                            </p>
+                            <p className="text-muted-foreground mt-2">
+                                {ticketInfo.to.address}, {ticketInfo.to.district}
+                            </p>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <CreditCard className="h-5 w-5" />
-                                Payment Information
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="font-medium">{order.payment.method}</p>
-                            <p className="text-muted-foreground mt-2">Card ending in {order.payment.cardLast4}</p>
-                        </CardContent>
-                    </Card>
+                    {paymentMethod.type === "card" && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <CreditCard className="h-5 w-5" />
+                                    Informação do pagamento
+                                </CardTitle>
+                            </CardHeader>
+
+                            <CardContent>
+                                <p className="font-medium">
+                                    Cartão de {cardType.get(paymentMethod.card?.funding ?? "") ?? paymentMethod.card?.funding}{" "}
+                                    {formatStripeName(paymentMethod.card?.brand ?? "")}
+                                    {paymentMethod.card?.wallet && (
+                                        <span> pela carteira digital {formatStripeName(paymentMethod.card?.wallet.type)}</span>
+                                    )}
+                                </p>
+                                <p className="text-muted-foreground mt-2">Cartão terminando em {paymentMethod.card?.last4}</p>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Package className="h-5 w-5" />
-                                Order Status
+                                Status
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex items-center gap-2">
-                                <Badge
-                                    variant="outline"
-                                    className="text-lg py-1"
-                                >
-                                    {order.status}
-                                </Badge>
+                            <div className="flex gap-3 items- justify-center items-center">
+                                <OrderStatus status={order.status}></OrderStatus>
+                                <span className="text-nowrap text-muted-foreground text-lg font-light">
+                                    Atualizado em: {order.updatedAt.toLocaleString()}
+                                </span>
                             </div>
                         </CardContent>
-                        <CardFooter>
-                            <Button className="w-full">Track Order</Button>
-                        </CardFooter>
+                        {order.tracking && (
+                            <CardFooter>
+                                <a
+                                    href={`https://www.linkcorreios.com.br/?id=${order.tracking}`}
+                                    className="w-full"
+                                >
+                                    <Button className="w-full">Rastrear envio</Button>
+                                </a>
+                            </CardFooter>
+                        )}
                     </Card>
                 </div>
             </div>

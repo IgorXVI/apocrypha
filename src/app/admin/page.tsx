@@ -161,6 +161,7 @@ export default async function Admin({
                                         },
                                         data: {
                                             printUrl: ticketEmitedResult.printUrl,
+                                            updatedAt: new Date(),
                                         },
                                     })
                                     .catch((error) => {
@@ -226,6 +227,7 @@ export default async function Admin({
                                         data: {
                                             tracking: ticketInfo.tracking,
                                             status: ticketInfo.status && ticketInfo.tracking ? "IN_TRANSIT" : "PREPARING",
+                                            updatedAt: new Date(),
                                         },
                                     })
                                     .catch((error) => {
@@ -278,6 +280,7 @@ export default async function Admin({
                                         },
                                         data: {
                                             status: order.status === "IN_TRANSIT" ? "DELIVERED" : order.status,
+                                            updatedAt: new Date(),
                                         },
                                     })
                                     .catch((error) => {

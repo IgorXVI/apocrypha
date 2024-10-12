@@ -144,6 +144,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                         data: productsForTicket.map((p) => ({
                             bookId: p.bookDBId,
                             price: p.unitary_value,
+                            amount: p.quantity,
                         })),
                     },
                 },

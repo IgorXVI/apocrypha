@@ -154,6 +154,7 @@ model BookOnOrder {
     Order   Order   @relation(fields: [orderId], references: [id])
     orderId String  @db.Uuid
     price   Decimal
+    amount  Int     @default(0)
 
     @@id([bookId, orderId])
 }

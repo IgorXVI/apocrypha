@@ -56,89 +56,97 @@ export default async function UserOrders({
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Seus pedidos, {userData.fullName}</h1>
+            {orders.length > 0 ? (
+                <>
+                    <h1 className="text-3xl font-bold mb-8">Seus pedidos, {userData.fullName}</h1>
 
-            <div className="grid gap-6 md:grid-cols-3 mb-8">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Número de pedidos</CardTitle>
-                        <PackageIcon className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{ordersStats._count}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Gastos</CardTitle>
-                        <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">R$ {ordersStats._sum.totalPrice?.toFixed(2)}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Média de gastos por pedido</CardTitle>
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">R$ {ordersStats._avg.totalPrice?.toFixed(2)}</div>
-                    </CardContent>
-                </Card>
-            </div>
+                    <div className="grid gap-6 md:grid-cols-3 mb-8">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Número de pedidos</CardTitle>
+                                <PackageIcon className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{ordersStats._count}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Gastos</CardTitle>
+                                <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">R$ {ordersStats._sum.totalPrice?.toFixed(2)}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Média de gastos por pedido</CardTitle>
+                                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">R$ {ordersStats._avg.totalPrice?.toFixed(2)}</div>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Histórico de pedidos</CardTitle>
-                    <CardDescription>Lista dos seus pedidos na Apocrypha</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Data</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                                <TableHead></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {orders.map((order) => (
-                                <TableRow key={order.id}>
-                                    <TableCell>{order.createdAt.toLocaleString()}</TableCell>
-                                    <TableCell>
-                                        <OrderStatus status={order.status}></OrderStatus>
-                                    </TableCell>
-                                    <TableCell className="text-right">R$ {order.totalPrice.toFixed(2)}</TableCell>
-                                    <TableCell>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                        >
-                                            <Link
-                                                href={`/commerce/user/order/${order.id}`}
-                                                className="w-full h-full grid place-content-center"
-                                            >
-                                                Ver detalhes
-                                            </Link>
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Pedidos</CardTitle>
+                            <CardDescription>Lista dos seus pedidos na Apocrypha</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Data</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Total</TableHead>
+                                        <TableHead></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {orders.map((order) => (
+                                        <TableRow key={order.id}>
+                                            <TableCell>{order.createdAt.toLocaleString()}</TableCell>
+                                            <TableCell>
+                                                <OrderStatus status={order.status}></OrderStatus>
+                                            </TableCell>
+                                            <TableCell className="text-right">R$ {order.totalPrice.toFixed(2)}</TableCell>
+                                            <TableCell>
+                                                <Link href={`/commerce/user/order/${order.id}`}>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                    >
+                                                        Ver detalhes
+                                                    </Button>
+                                                </Link>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
 
-                <CardFooter className="grid place-content-center">
-                    <PaginationNumbers
-                        urlPageParamName="page"
-                        total={ordersStats._count}
-                        page={currentPage}
-                        take={currentTake}
-                    ></PaginationNumbers>
-                </CardFooter>
-            </Card>
+                        <CardFooter className="grid place-content-center">
+                            <PaginationNumbers
+                                urlPageParamName="page"
+                                total={ordersStats._count}
+                                page={currentPage}
+                                take={currentTake}
+                            ></PaginationNumbers>
+                        </CardFooter>
+                    </Card>
+                </>
+            ) : (
+                <div className="text-center min-h-[50vh] flex flex-col justify-center items-center">
+                    <p className="text-3xl mb-4">Você não fez nenhum pedido ainda</p>
+                    <Button asChild>
+                        <Link href="/commerce">Continuar comprando</Link>
+                    </Button>
+                </div>
+            )}
         </div>
     )
 }
