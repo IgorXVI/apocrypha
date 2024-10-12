@@ -3,6 +3,8 @@ import DataTable from "./_components/data-table"
 import { calcSkip } from "~/lib/utils"
 import { type User } from "@clerk/nextjs/server"
 import { authClient } from "~/server/auth-api"
+import { emitTicket, getProductInfo } from "~/server/shipping-api"
+import { revalidatePath } from "next/cache"
 
 export default async function Admin({
     searchParams,
@@ -114,15 +116,135 @@ export default async function Admin({
                     label: "Atualizar pedido",
                     actions: [
                         {
-                            label: "Mudar stauts",
+                            label: "Emitir Ticket",
                             serverAction: async (id: unknown) => {
                                 "use server"
                                 if (typeof id !== "string") {
                                     return {
                                         success: false,
-                                        errorMessage: "ID should be string.",
+                                        errorMessage: "ID deve ser uma string.",
                                     }
                                 }
+
+                                const order = await db.order.findUnique({
+                                    where: {
+                                        id,
+                                    },
+                                })
+
+                                if (!order) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Pedido não foi encontrado.",
+                                    }
+                                }
+
+                                const ticketEmitedResult = await emitTicket(order.ticketId).catch((error) => {
+                                    console.error("EMIT_TICKET_ON_ADMIN_ERROR", error)
+                                    return undefined
+                                })
+
+                                if (typeof ticketEmitedResult === "string") {
+                                    return {
+                                        success: false,
+                                        errorMessage: `Mensagem do Super Frete: ${ticketEmitedResult}`,
+                                    }
+                                }
+
+                                if (!ticketEmitedResult) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Aconteceu um erro ao tentar emitir o ticket.",
+                                    }
+                                }
+
+                                const updateResult = await db.order
+                                    .update({
+                                        where: {
+                                            id,
+                                        },
+                                        data: {
+                                            printUrl: ticketEmitedResult.printUrl,
+                                        },
+                                    })
+                                    .catch((error) => {
+                                        console.error("UPDATE_ORDER_ON_ADMIN_ERROR", error)
+                                        return undefined
+                                    })
+
+                                if (!updateResult) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Aconteceu um erro ao atualizar o pedido.",
+                                    }
+                                }
+
+                                revalidatePath("/admin")
+
+                                return {
+                                    success: true,
+                                }
+                            },
+                        },
+                        {
+                            label: "Inferir novo Status",
+                            serverAction: async (id: unknown) => {
+                                "use server"
+                                if (typeof id !== "string") {
+                                    return {
+                                        success: false,
+                                        errorMessage: "ID deve ser uma string.",
+                                    }
+                                }
+
+                                const order = await db.order.findUnique({
+                                    where: {
+                                        id,
+                                    },
+                                })
+
+                                if (!order) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Pedido não foi encontrado.",
+                                    }
+                                }
+
+                                const ticketInfo = await getProductInfo(order.ticketId).catch((error) => {
+                                    console.error("GET_TICKET_INFO_ON_ADMIN_ERROR", error)
+                                    return undefined
+                                })
+
+                                if (!ticketInfo) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Não foi possível buscar as informações do ticket no Super Frete.",
+                                    }
+                                }
+
+                                const updateResult = await db.order
+                                    .update({
+                                        where: {
+                                            id,
+                                        },
+                                        data: {
+                                            tracking: ticketInfo.tracking,
+                                            status: ticketInfo.status && ticketInfo.tracking ? "IN_TRANSIT" : "PREPARING",
+                                        },
+                                    })
+                                    .catch((error) => {
+                                        console.error("UPDATE_ORDER_ON_ADMIN_ERROR", error)
+                                        return undefined
+                                    })
+
+                                if (!updateResult) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Aconteceu um erro ao atualizar o pedido.",
+                                    }
+                                }
+
+                                revalidatePath("/admin")
 
                                 return {
                                     success: true,

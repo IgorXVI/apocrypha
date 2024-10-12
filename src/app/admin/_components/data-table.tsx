@@ -1,7 +1,7 @@
 "use client"
 
 import * as R from "remeda"
-import React, { useMemo } from "react"
+import React, { useMemo, useState } from "react"
 import { MoreHorizontal, PlusCircle, LoaderCircle, CircleX, AlertCircle, CheckIcon, XIcon } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "~/components/ui/dropdown-menu"
@@ -12,7 +12,8 @@ import { convertSvgToImgSrc } from "~/lib/utils"
 import { Button } from "~/components/ui/button"
 import { type Prisma } from "prisma/prisma-client"
 import PaginationNumbers from "~/components/pagination/pagination-numbers"
-import { toastError } from "~/components/toast/toasting"
+import { toastError, toastLoading, toastSuccess } from "~/components/toast/toasting"
+import { toast } from "sonner"
 
 type PossibleTableCellTypes = string | number | Prisma.Decimal | Date | undefined | null | unknown[] | React.ReactNode
 
@@ -45,6 +46,8 @@ export default function DataTable(props: {
     const headers = useMemo(() => Object.values(props.tableHeaders), [props.tableHeaders])
 
     const headerKeys = useMemo(() => Object.keys(props.tableHeaders), [props.tableHeaders])
+
+    const [disableActions, setDisableActions] = useState(false)
 
     return (
         <Card x-chunk="dashboard-06-chunk-0">
@@ -109,7 +112,10 @@ export default function DataTable(props: {
                                         {props.tableRowActions && (
                                             <TableCell className="grid place-content-center border-r-[1px]">
                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
+                                                    <DropdownMenuTrigger
+                                                        asChild
+                                                        disabled={disableActions}
+                                                    >
                                                         <Button
                                                             aria-haspopup="true"
                                                             size="icon"
@@ -127,16 +133,27 @@ export default function DataTable(props: {
                                                                     action.onClick
                                                                         ? action.onClick(row.id as string)
                                                                         : action.serverAction
-                                                                          ? action
-                                                                                .serverAction(row.id as string)
-                                                                                .then((result) => {
-                                                                                    if (!result.success) {
-                                                                                        toastError(result.errorMessage ?? "Erro desconhecido")
-                                                                                    }
-                                                                                })
-                                                                                .catch((error) => {
-                                                                                    toastError(JSON.stringify(error))
-                                                                                })
+                                                                          ? (() => {
+                                                                                toastLoading("Execuntando ação...", "exe-action")
+                                                                                setDisableActions(true)
+
+                                                                                action
+                                                                                    .serverAction(row.id as string)
+                                                                                    .then((result) => {
+                                                                                        toast.dismiss("exe-action")
+                                                                                        setDisableActions(false)
+                                                                                        if (!result.success) {
+                                                                                            toastError(result.errorMessage ?? "Erro desconhecido")
+                                                                                            return
+                                                                                        }
+                                                                                        toastSuccess("Ação foi bem-sucedida")
+                                                                                    })
+                                                                                    .catch((error) => {
+                                                                                        toast.dismiss("exe-action")
+                                                                                        setDisableActions(false)
+                                                                                        toastError(JSON.stringify(error))
+                                                                                    })
+                                                                            })()
                                                                           : null
                                                                 }
                                                             >

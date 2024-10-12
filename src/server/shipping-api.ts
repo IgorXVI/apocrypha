@@ -152,6 +152,7 @@ type EmitTicketFetchOutput = {
         status: string
         orders: [EmitTicketFetchOrder]
     }
+    error?: string
 }
 
 export type EmitTicketOutput = {
@@ -161,7 +162,7 @@ export type EmitTicketOutput = {
     price: number
 }
 
-export const emitTicket: (ticketId: string) => Promise<EmitTicketOutput | undefined> = async (ticketId) => {
+export const emitTicket: (ticketId: string) => Promise<EmitTicketOutput | undefined | string> = async (ticketId) => {
     const shippingTicket: EmitTicketFetchOutput = await fetch(`${env.SUPER_FRETE_URL}/checkout`, {
         method: "POST",
         headers: {
@@ -176,8 +177,7 @@ export const emitTicket: (ticketId: string) => Promise<EmitTicketOutput | undefi
     }).then((response) => response.json())
 
     if (!shippingTicket.success) {
-        console.error("EMIT_TICKET_ERROR", JSON.stringify(shippingTicket, null, 2))
-        return undefined
+        return shippingTicket.error
     }
 
     const orderData = shippingTicket.purchase.orders[0]
