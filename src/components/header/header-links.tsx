@@ -55,13 +55,6 @@ export default function HeaderLinks() {
             >
                 Contato
             </Link>
-            <Link
-                key="/commerce/about"
-                href="/commerce/about"
-                className="hover:underline"
-            >
-                Sobre
-            </Link>
         </>
     )
 }
