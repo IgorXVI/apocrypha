@@ -52,6 +52,12 @@ export default async function Admin({
                                       equals: orderStatusSearch.get(searchParams.searchTerm?.toLowerCase() ?? ""),
                                   },
                               },
+                              {
+                                  userId: searchParams.searchTerm,
+                              },
+                              {
+                                  sessionId: searchParams.searchTerm,
+                              },
                           ],
                       }
                     : undefined,
