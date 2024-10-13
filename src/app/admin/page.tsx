@@ -11,13 +11,13 @@ import { type $Enums } from "prisma/prisma-client"
 import { z } from "zod"
 
 const orderStatusSearch = new Map<string, $Enums.OrderStatus>([
-    ["Entregue", "DELIVERED"],
-    ["Cancelado", "CANCELED"],
-    ["A caminho", "IN_TRANSIT"],
-    ["Preparando", "PREPARING"],
-    ["Reembolso sendo avaliado", "REFUND_REQUESTED"],
-    ["Reembolso foi feito", "REFUND_ACCEPTED"],
-    ["Reembolso foi recusado", "REFUND_DENIED"],
+    ["entregue", "DELIVERED"],
+    ["cancelado", "CANCELED"],
+    ["a caminho", "IN_TRANSIT"],
+    ["preparando", "PREPARING"],
+    ["reembolso sendo avaliado", "REFUND_REQUESTED"],
+    ["reembolso foi feito", "REFUND_ACCEPTED"],
+    ["reembolso foi recusado", "REFUND_DENIED"],
 ])
 
 export default async function Admin({
@@ -49,7 +49,7 @@ export default async function Admin({
                               },
                               {
                                   status: {
-                                      equals: orderStatusSearch.get(searchParams.searchTerm ?? ""),
+                                      equals: orderStatusSearch.get(searchParams.searchTerm?.toLowerCase() ?? ""),
                                   },
                               },
                           ],
