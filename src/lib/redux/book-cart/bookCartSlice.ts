@@ -16,6 +16,9 @@ export const bookCartSlice = createSlice({
         value: [] as BookCartState[],
     },
     reducers: {
+        replace: (state, action: PayloadAction<BookCartState[]>) => {
+            state.value = action.payload
+        },
         add: (state, action: PayloadAction<BookCartState>) => {
             const book = state.value.find((book) => book.id === action.payload.id)
             if (book) {

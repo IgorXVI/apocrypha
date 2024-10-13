@@ -148,56 +148,57 @@ model Address {
     complement   String?
 }
 
-model OrderShipping {
-    id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    sessionId       String @unique
-    shippingMethods Json[]
-    products        Json[]
-}
-
-enum OrderStatus {
-    AWAITING_CONFIRMATION
-    CANCELED
-    CONFIRMED
-    POSTED
-    DONE
-    REQUESTED_RETURN
-    REFUSED_RETURN
-    AWAITING_RETURN
-    RETURN_DONE
-    HAS_ERROR
-}
-
 model BookOnOrder {
     Book    Book    @relation(fields: [bookId], references: [id])
     bookId  String  @db.Uuid
     Order   Order   @relation(fields: [orderId], references: [id])
     orderId String  @db.Uuid
     price   Decimal
+    amount  Int     @default(0)
 
     @@id([bookId, orderId])
 }
 
+enum OrderStatus {
+    PREPARING
+    IN_TRANSIT
+    DELIVERED
+    REFUND_REQUESTED
+    REFUND_ACCEPTED
+    REFUND_DENIED
+    CANCELED
+}
+
+enum OrderCancelReason {
+    USER
+    ADMIN
+    EXCEPTION
+}
+
 model Order {
-    id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    sessionId           String
+    id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionId           String      @unique
+    paymentId           String      @unique
     userId              String
     ticketId            String
-    status              OrderStatus   @default(AWAITING_CONFIRMATION)
     totalPrice          Decimal
     shippingPrice       Decimal
     shippingDaysMin     Int
     shippingDaysMax     Int
     shippingServiceId   String
     shippingServiceName String
-    shippingTracking    String?
-    printUrl            String?
-    errorMessage        String?
-    errorDetails        Json?
-    createdAt           DateTime      @default(now())
-    updatedAt           DateTime      @default(now())
-    BookOnOrder         BookOnOrder[]
+    status              OrderStatus @default(PREPARING)
 
-    @@unique([sessionId, userId])
-    @@unique([ticketId, userId])
+    cancelReason  OrderCancelReason?
+    cancelMessage String?
+
+    //Precisa atualizar depois de emitir o ticket
+    printUrl String?
+    tracking String?
+    //
+
+    BookOnOrder BookOnOrder[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now())
 }

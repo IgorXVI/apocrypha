@@ -12,7 +12,7 @@ export default function AddToCartButton({ bookForCart, showButtonText = false }:
 
     const isInCart = useMemo(() => cartContent.some((item) => item.id === bookForCart.id), [cartContent, bookForCart.id])
 
-    const iconsSize = useMemo(() => (showButtonText ? 32 : 24), [])
+    const iconsSize = useMemo(() => (showButtonText ? 32 : 24), [showButtonText])
 
     return (
         <Button

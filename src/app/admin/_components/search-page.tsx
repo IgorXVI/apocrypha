@@ -1,58 +1,42 @@
 "use client"
 
-import * as R from "remeda"
-import { MoreHorizontal, PlusCircle, Search, LoaderCircle, CircleX, AlertCircle, CheckIcon, XIcon } from "lucide-react"
+import { PlusCircle, Search } from "lucide-react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useCallback, useMemo } from "react"
 import { useDebouncedCallback } from "use-debounce"
 import { type ControllerRenderProps, type FieldValues } from "react-hook-form"
 import { type ZodObject, type ZodRawShape } from "zod"
-
 import { Button } from "~/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "~/components/ui/dropdown-menu"
 import { Input } from "~/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
-import FieldTooLong from "./field-too-long"
-import Image from "next/image"
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "~/components/ui/select"
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "~/components/ui/pagination"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import DeleteOne from "./delete-one"
 import { type PossibleDBOutput } from "~/lib/types"
 import CreateOrUpdate from "./create-or-update"
 import { toastError } from "~/components/toast/toasting"
 import { mainApi } from "~/lib/redux/apis/main-api/main"
-import { convertSvgToImgSrc } from "~/lib/utils"
+import DataTable from "./data-table"
+import { calcSkip } from "~/lib/utils"
 
-type inputKeysWithoutId<I> = Omit<keyof I, "id"> extends string ? Omit<keyof I, "id"> : never
-
-export default function SearchPage<I, D extends PossibleDBOutput, K extends PossibleDBOutput>(
+export default function SearchPage(
     props: Readonly<{
         slug: string
         name: string
         namePlural: string
-        tableHeaders: Record<keyof D, string>
+        tableHeaders: Record<string, string>
         formSchema: ZodObject<ZodRawShape>
         inputKeyMap: Record<
             string,
             {
-                node: (field: ControllerRenderProps<FieldValues, inputKeysWithoutId<I>>) => React.ReactNode
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                node: (field: ControllerRenderProps<FieldValues, any>) => React.ReactNode
                 label: string
                 description: string | React.ReactNode
                 className?: string
             }
         >
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tableValuesMap?: Record<keyof K, (value: any) => React.ReactNode | string>
+        tableValuesMap?: Record<string, (value: any) => React.ReactNode | string>
     }>,
 ) {
     const searchParams = useSearchParams()
@@ -68,9 +52,16 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
     const getRowsQuery = mainApi.useGetManyQuery({
         slug: props.slug,
         take: currentTake,
-        skip: currentTake * (currentPage - 1),
+        skip: calcSkip(currentPage, currentTake),
         searchTerm: currentSearchTerm,
     })
+
+    const rows = useMemo(
+        () => (getRowsQuery.data ? (getRowsQuery.data.success ? (getRowsQuery.data.data.rows as PossibleDBOutput[]) : []) : []),
+        [getRowsQuery.data],
+    )
+
+    const total = useMemo(() => (getRowsQuery.data ? (getRowsQuery.data.success ? getRowsQuery.data.data.total : 0) : 0), [getRowsQuery.data])
 
     if (getRowsQuery.isError) {
         toastError(JSON.stringify(getRowsQuery.error))
@@ -79,43 +70,6 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
     if (!getRowsQuery.isLoading && !getRowsQuery.data?.success) {
         toastError(getRowsQuery.data?.errorMessage ?? "Erro desconhecido")
     }
-
-    const rows = useMemo(
-        () => (getRowsQuery.data ? (getRowsQuery.data.success ? (getRowsQuery.data.data.rows as D[]) : []) : []),
-        [getRowsQuery.data],
-    )
-
-    const total = useMemo(() => (getRowsQuery.data ? (getRowsQuery.data.success ? getRowsQuery.data.data.total : 0) : 0), [getRowsQuery.data])
-
-    const maxPage = useMemo(() => Math.ceil(total / currentTake), [total, currentTake])
-
-    const getChangedPageLink = useCallback(
-        (page: number) => {
-            const params = new URLSearchParams(searchParams)
-
-            params.set("page", page.toString())
-
-            return `${pathname}?${params.toString()}`
-        },
-        [searchParams, pathname],
-    )
-
-    const getNextPageLink = useCallback(
-        (offset: number) => {
-            const params = new URLSearchParams(searchParams)
-
-            const newPage = currentPage + offset
-
-            if (newPage <= 0) {
-                return pathname
-            }
-
-            params.set("page", newPage.toString())
-
-            return `${pathname}?${params.toString()}`
-        },
-        [searchParams, pathname, currentPage],
-    )
 
     enum ModalParams {
         delete = "delete_id",
@@ -153,10 +107,6 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
         return searchParams.has(ModalParams.delete) || searchParams.has(ModalParams.update) || searchParams.has(ModalParams.create)
     }, [ModalParams, searchParams])
 
-    const headers = useMemo(() => Object.values(props.tableHeaders), [props.tableHeaders])
-
-    const headerKeys = useMemo(() => Object.keys(props.tableHeaders), [props.tableHeaders])
-
     return (
         <main className="flex flex-col p-2 gap-3">
             <div className="flex flex-row items-center p-2 gap-3">
@@ -165,7 +115,7 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                     <Input
                         type="search"
                         placeholder="Procure..."
-                        className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                        className="w-full rounded-lg bg-background pl-8 lg:w-[320px]"
                         defaultValue={searchParams.get("search")?.toString()}
                         onChange={useDebouncedCallback((e) => {
                             const params = new URLSearchParams(searchParams)
@@ -203,219 +153,34 @@ export default function SearchPage<I, D extends PossibleDBOutput, K extends Poss
                 </Button>
             </div>
 
-            <Card x-chunk="dashboard-06-chunk-0">
-                {getRowsQuery.isLoading && (
-                    <div className="flex w-full justify-center items-center h-[80vh]">
-                        <LoaderCircle
-                            width={100}
-                            height={100}
-                            className="animate-spin"
-                        ></LoaderCircle>
-                    </div>
-                )}
-                {getRowsQuery.isError && (
-                    <div className="flex w-full justify-center items-center h-[80vh]">
-                        <CircleX
-                            width={100}
-                            height={100}
-                            color="red"
-                        ></CircleX>
-                    </div>
-                )}
-                {getRowsQuery.isSuccess && rows.length === 0 && (
-                    <div className="flex flex-col items-center justify-center p-6 text-center h-[80vh]">
-                        <AlertCircle className="h-10 w-10 text-yellow-500 mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">Sem {props.namePlural}</h3>
-                        <p className="text-sm text-neutral-500 mb-4">Parece que não há dados para {props.namePlural} cadastrados ainda.</p>
-                        <Button
-                            onClick={() => setNewModalParams(ModalParams.create, "true")}
-                            className="flex items-center"
-                        >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Criar {props.name}
-                        </Button>
-                    </div>
-                )}
-                {getRowsQuery.isSuccess && rows.length !== 0 && (
-                    <>
-                        <CardHeader>
-                            <CardTitle>{R.capitalize(props.namePlural)}</CardTitle>
-                            <CardDescription>Crie, atualize, apague ou busque {props.namePlural}.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="text-nowrap">
-                                        {headers.map((text, index) => (
-                                            <TableHead
-                                                key={index}
-                                                className="text-center"
-                                            >
-                                                {text}
-                                            </TableHead>
-                                        ))}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {rows.map((row) => (
-                                        <TableRow key={row.id}>
-                                            {headerKeys.map((attr) => (
-                                                <TableCell
-                                                    key={attr}
-                                                    className="table-cell border-r-[1px]"
-                                                >
-                                                    <div className="flex items-center justify-center w-full">
-                                                        {props.tableValuesMap?.[attr] ? (
-                                                            props.tableValuesMap[attr](row[attr])
-                                                        ) : attr.includes("Url") && row[attr] ? (
-                                                            <Image
-                                                                alt={attr}
-                                                                className="aspect-square rounded-md object-cover"
-                                                                src={row[attr]}
-                                                                height="64"
-                                                                width="64"
-                                                            />
-                                                        ) : attr.endsWith("Svg") && row[attr] ? (
-                                                            <img
-                                                                src={convertSvgToImgSrc(row[attr])}
-                                                                alt={attr}
-                                                                className="aspect-square rounded-md object-cover"
-                                                                height="64"
-                                                                width="64"
-                                                            />
-                                                        ) : typeof row[attr] === "boolean" ? (
-                                                            row[attr] ? (
-                                                                <CheckIcon className="w-4 h-4 text-green-500" />
-                                                            ) : (
-                                                                <XIcon className="w-4 h-4 text-red-500" />
-                                                            )
-                                                        ) : typeof row[attr] === "string" && attr.endsWith("Date") ? (
-                                                            new Date(row[attr]).toLocaleDateString()
-                                                        ) : !row[attr] ? (
-                                                            "N/A"
-                                                        ) : row[attr] instanceof Date ? (
-                                                            row[attr].toLocaleDateString()
-                                                        ) : typeof row[attr] === "string" ? (
-                                                            <FieldTooLong
-                                                                content={row[attr]}
-                                                                numberOfCols={headers.length}
-                                                            ></FieldTooLong>
-                                                        ) : (
-                                                            row[attr]
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                            ))}
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                            aria-haspopup="true"
-                                                            size="icon"
-                                                            variant="ghost"
-                                                        >
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                        <DropdownMenuItem
-                                                            className="cursor-pointer"
-                                                            onClick={() => setNewModalParams(ModalParams.update, row.id as string)}
-                                                        >
-                                                            Atualizar
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            className="cursor-pointer"
-                                                            onClick={() => setNewModalParams(ModalParams.delete, row.id as string)}
-                                                        >
-                                                            Apagar
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-
-                        <CardFooter className="flex flex-row gap-2 text-sm justify-between">
-                            <Pagination>
-                                <PaginationContent>
-                                    <PaginationItem>
-                                        {currentPage !== 1 && <PaginationPrevious href={currentPage === 1 ? "#" : getNextPageLink(-1)} />}
-                                    </PaginationItem>
-
-                                    {currentPage - 5 > 1 && (
-                                        <div className="hidden md:flex">
-                                            <PaginationItem>
-                                                <PaginationLink href={getChangedPageLink(1)}>1</PaginationLink>
-                                            </PaginationItem>
-
-                                            {currentPage - 6 !== 1 && <PaginationEllipsis />}
-                                        </div>
-                                    )}
-
-                                    <PaginationItem className="hidden md:block">
-                                        {currentPage - 5 > 0 && <PaginationLink href={getNextPageLink(-5)}>{currentPage - 5}</PaginationLink>}
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden md:block">
-                                        {currentPage - 4 > 0 && <PaginationLink href={getNextPageLink(-4)}>{currentPage - 4}</PaginationLink>}
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden md:block">
-                                        {currentPage - 3 > 0 && <PaginationLink href={getNextPageLink(-3)}>{currentPage - 3}</PaginationLink>}
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden md:block">
-                                        {currentPage - 2 > 0 && <PaginationLink href={getNextPageLink(-2)}>{currentPage - 2}</PaginationLink>}
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden md:block">
-                                        {currentPage - 1 > 0 && <PaginationLink href={getNextPageLink(-1)}>{currentPage - 1}</PaginationLink>}
-                                    </PaginationItem>
-
-                                    <PaginationItem>
-                                        <PaginationLink
-                                            href="#"
-                                            isActive
-                                        >
-                                            {currentPage}
-                                        </PaginationLink>
-                                    </PaginationItem>
-
-                                    <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 1 && <PaginationLink href={getNextPageLink(1)}>{currentPage + 1}</PaginationLink>}
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 2 && <PaginationLink href={getNextPageLink(2)}>{currentPage + 2}</PaginationLink>}
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 3 && <PaginationLink href={getNextPageLink(3)}>{currentPage + 3}</PaginationLink>}
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 4 && <PaginationLink href={getNextPageLink(4)}>{currentPage + 4}</PaginationLink>}
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden md:block">
-                                        {maxPage >= currentPage + 5 && <PaginationLink href={getNextPageLink(5)}>{currentPage + 5}</PaginationLink>}
-                                    </PaginationItem>
-
-                                    {maxPage > currentPage + 5 && (
-                                        <div className="hidden md:flex">
-                                            {currentPage + 6 !== maxPage && <PaginationEllipsis />}
-                                            <PaginationItem>
-                                                <PaginationLink href={getChangedPageLink(maxPage)}>{maxPage}</PaginationLink>
-                                            </PaginationItem>
-                                        </div>
-                                    )}
-
-                                    <PaginationItem>
-                                        {currentPage !== maxPage && <PaginationNext href={maxPage > currentPage ? getNextPageLink(1) : "#"} />}
-                                    </PaginationItem>
-                                </PaginationContent>
-                            </Pagination>
-                        </CardFooter>
-                    </>
-                )}
-            </Card>
+            <DataTable
+                {...props}
+                tableDescription={`Crie, atualize, apague ou busque ${props.namePlural}.`}
+                rows={rows}
+                isError={getRowsQuery.isError}
+                isSuccess={getRowsQuery.isSuccess}
+                isLoading={getRowsQuery.isLoading}
+                pagination={{
+                    urlPageParamName: "page",
+                    total,
+                    page: currentPage,
+                    take: currentTake,
+                }}
+                tableRowActions={{
+                    label: "Modificar",
+                    actions: [
+                        {
+                            label: "Atualizar",
+                            onClick: (rowId) => setNewModalParams(ModalParams.update, rowId),
+                        },
+                        {
+                            label: "Apagar",
+                            onClick: (rowId) => setNewModalParams(ModalParams.delete, rowId),
+                        },
+                    ],
+                }}
+                onCreate={() => setNewModalParams(ModalParams.create, "true")}
+            ></DataTable>
 
             <Dialog
                 open={hasModalParams()}

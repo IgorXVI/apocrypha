@@ -5,9 +5,8 @@ import Stripe from "stripe"
 import { env } from "../env"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "./db"
-import { type SuperFreteShippingProduct } from "~/lib/types"
 import { type Prisma } from "prisma/prisma-client"
-import { calcShippingFee } from "./shipping-api"
+import { calcShippingFee, type CreateShippingTicketProduct } from "./shipping-api"
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -87,7 +86,7 @@ export const restoreProduct = async (stripeId: string) => {
     }
 }
 
-export const createCheckoutSession = async (products: { stripeId: string; quantity: number }[]) => {
+export const createCheckoutSession = async (inputProducts: { stripeId: string; quantity: number }[]) => {
     const user = auth()
 
     if (!user.userId) {
@@ -110,34 +109,10 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         }
     }
 
-    const productQantityMap = new Map<string, number>()
-    products.forEach((product) => {
-        productQantityMap.set(product.stripeId, product.quantity)
-    })
-
-    const [stripeProducts] = await Promise.allSettled([
-        stripe.products.list({
-            ids: [...productQantityMap.keys()],
-            limit: products.length,
-        }),
-    ])
-
-    if (stripeProducts.status === "rejected") {
-        return {
-            success: false,
-            message: `Failed to fetch products: ${stripeProducts.reason}`,
-        }
-    }
-
-    const lineItems = stripeProducts.value.data.map((stripeProduct) => ({
-        price: stripeProduct.default_price?.toString() ?? "",
-        quantity: productQantityMap.get(stripeProduct.id),
-    }))
-
     const books = await db.book.findMany({
         where: {
             stripeId: {
-                in: products.map((p) => p.stripeId),
+                in: inputProducts.map((p) => p.stripeId),
             },
         },
         select: {
@@ -170,44 +145,88 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
         booksMap.set(book.stripeId, book)
     })
 
-    const superFreteResult = await calcShippingFee({
-        toPostalCode: userAddress.cep,
-        products: stripeProducts.value.data.map((stripeProduct) => ({
-            quantity: productQantityMap.get(stripeProduct.id)!,
-            height: booksMap.get(stripeProduct.id)!.heightCm,
-            width: booksMap.get(stripeProduct.id)!.widthCm,
-            length: booksMap.get(stripeProduct.id)!.thicknessCm,
-            weight: (booksMap.get(stripeProduct.id)!.weightGrams ?? 0) / 1000,
-        })),
+    const products = inputProducts.filter((p) => booksMap.get(p.stripeId))
+
+    const productQuantityMap = new Map<string, number>()
+    products.forEach((product) => {
+        productQuantityMap.set(product.stripeId, product.quantity)
     })
+
+    const [stripeProducts] = await Promise.allSettled([
+        stripe.products.list({
+            ids: [...productQuantityMap.keys()],
+            limit: products.length,
+        }),
+    ])
+
+    if (stripeProducts.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to fetch products: ${stripeProducts.reason}`,
+        }
+    }
+
+    const lineItems = stripeProducts.value.data.map((sp) => ({
+        price: sp.default_price?.toString() ?? "",
+        quantity: productQuantityMap.get(sp.id),
+    }))
+
+    const shippingOptions = await calcShippingFee({
+        toPostalCode: userAddress.cep,
+        products: stripeProducts.value.data.map((sp) => ({
+            quantity: productQuantityMap.get(sp.id)!,
+            height: booksMap.get(sp.id)!.heightCm,
+            width: booksMap.get(sp.id)!.widthCm,
+            length: booksMap.get(sp.id)!.thicknessCm,
+            weight: (booksMap.get(sp.id)!.weightGrams ?? 0) / 1000,
+        })),
+    }).catch((error) => {
+        console.error("SHIPPING_OPTIONS_ERROR", error)
+        return undefined
+    })
+
+    if (!shippingOptions) {
+        throw new Error("Not able to fetch shipping prices.")
+    }
+
+    const productsForTicket: CreateShippingTicketProduct[] = products.map((product) => ({
+        bookDBId: booksMap.get(product.stripeId)?.id ?? "N/A",
+        name: booksMap.get(product.stripeId)?.title ?? "N/A",
+        quantity: product.quantity,
+        unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
+    }))
 
     const [checkoutSession] = await Promise.allSettled([
         stripe.checkout.sessions.create({
+            metadata: {
+                productsForTicketJSON: JSON.stringify(productsForTicket),
+            },
             mode: "payment",
             currency: "brl",
             line_items: lineItems,
             success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
             cancel_url: `${env.URL}/commerce/payment-canceled/{CHECKOUT_SESSION_ID}`,
             locale: "pt-BR",
-            shipping_options: superFreteResult.map((el) => ({
+            shipping_options: shippingOptions.map((shipping) => ({
                 shipping_rate_data: {
                     type: "fixed_amount",
                     metadata: {
-                        serviceId: el.id,
+                        serviceId: shipping.id,
+                        packagesJSON: JSON.stringify(shipping.packages),
                     },
-                    display_name: el.name,
+                    display_name: shipping.name,
                     delivery_estimate: {
                         minimum: {
                             unit: "business_day",
-                            value: el.delivery_range.min,
+                            value: shipping.delivery_range.min,
                         },
                         maximum: {
                             unit: "business_day",
-                            value: el.delivery_range.max,
+                            value: shipping.delivery_range.max,
                         },
                     },
                     fixed_amount: {
-                        amount: Math.ceil(el.price * 100),
+                        amount: Math.ceil(shipping.price * 100),
                         currency: "brl",
                     },
                 },
@@ -221,21 +240,6 @@ export const createCheckoutSession = async (products: { stripeId: string; quanti
             message: `Failed to create checkout session: ${checkoutSession.reason}`,
         }
     }
-
-    const productsForOrderShipping: SuperFreteShippingProduct[] = products.map((product) => ({
-        bookDBId: booksMap.get(product.stripeId)?.id ?? "N/A",
-        name: booksMap.get(product.stripeId)?.title ?? "N/A",
-        quantity: product.quantity,
-        unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
-    }))
-
-    await db.orderShipping.create({
-        data: {
-            sessionId: checkoutSession.value.id,
-            shippingMethods: superFreteResult,
-            products: productsForOrderShipping,
-        },
-    })
 
     return {
         success: true,

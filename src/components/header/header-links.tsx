@@ -13,7 +13,6 @@ export default function HeaderLinks() {
         <>
             {isAdmin && (
                 <Link
-                    key="/admin"
                     href="/admin"
                     className="hover:underline"
                 >
@@ -21,22 +20,31 @@ export default function HeaderLinks() {
                 </Link>
             )}
             <Link
-                key="/books"
                 href="/commerce/book"
                 className="hover:underline"
             >
                 Livros
             </Link>
             <Link
-                key="/about"
-                href="/about"
+                href="/commerce/author"
                 className="hover:underline"
             >
-                Sobre
+                Autores
             </Link>
             <Link
-                key="/contact"
-                href="/contact"
+                href="/commerce/user/order"
+                className="hover:underline"
+            >
+                Meus Pedidos
+            </Link>
+            <Link
+                href="/commerce/user/wish-list"
+                className="hover:underline"
+            >
+                Meus Favoritos
+            </Link>
+            <Link
+                href="/commerce/contact"
                 className="hover:underline"
             >
                 Contato

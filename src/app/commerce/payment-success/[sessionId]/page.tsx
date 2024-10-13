@@ -1,35 +1,18 @@
-import { auth, clerkClient } from "@clerk/nextjs/server"
-import Link from "next/link"
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 import { env } from "~/env"
-import { type SuperFreteShippingProduct, type SuperFreteShipping } from "~/lib/types"
+import { authClient } from "~/server/auth-api"
 import { db } from "~/server/db"
-import { createShippingTicket } from "~/server/shipping-api"
+import { type CreateShippingTicketProduct, type CalcShippingFeePackage, createShippingTicket } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 
-const cClient = clerkClient()
-
-function PaymentSuccessView({
-    order,
-}: {
-    order: {
-        id: string
-    }
-}) {
+function PaymentFailedMessage({ sessionId, message }: { sessionId: string; message: string }) {
     return (
-        <div className="py-32 flex flex-col items-center space-y-6">
-            <p className="text-2xl text-center font-bold text-green-500">O pagamento foi realizado com sucesso!</p>
-            <Link
-                href={`/commerce/user-order/${order.id}`}
-                className="text-blue-500 text-center"
-            >
-                Ver pedido
-            </Link>
-            <Link
-                href="/commerce"
-                className="text-blue-500 text-center"
-            >
-                Continuar comprando
-            </Link>
+        <div className="container mx-auto flex flex-col items-center justify-center text-xl gap-10 p-10">
+            <p className="text-red-500 text-6xl font-extrabold">ERRO!</p>
+            <p className="text-red-500 font-extrabold text-4xl">{message}</p>
+            <p>ID da Stripe Checkout Session: {sessionId}</p>
+            <p>Salve o ID e entre em contato com o suporte por email: {env.APP_USER_AGENT}</p>
         </div>
     )
 }
@@ -39,131 +22,142 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         const user = auth()
 
         if (!user.userId) {
-            return <div>Não autorizado</div>
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Não autorizado."
+                ></PaymentFailedMessage>
+            )
         }
 
-        const existingOrder = await db.order.findFirst({
+        const exitingOrder = await db.order.findFirst({
             where: {
                 sessionId,
-                userId: user.userId,
+            },
+            select: {
+                id: true,
             },
         })
 
-        if (existingOrder) {
-            return <PaymentSuccessView order={existingOrder}></PaymentSuccessView>
+        if (exitingOrder) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Pedido ja está cadastrado."
+                ></PaymentFailedMessage>
+            )
         }
 
         const session = await stripe.checkout.sessions.retrieve(sessionId)
 
-        if (session.status === "expired") {
-            return <p>Stripe session não é mais válida.</p>
+        if (!session || session.status !== "complete" || !session.payment_intent) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Stripe session não está completa."
+                ></PaymentFailedMessage>
+            )
         }
 
-        const [sessionShippingChoice, userAddress, userData, orderShippingData] = await Promise.all([
-            stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
-                console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)
-                return undefined
-            }),
-            db.address
-                .findUnique({
-                    where: {
-                        userId: user.userId,
-                    },
-                })
-                .catch((error) => {
-                    console.error("SESSION_SUCCESS_DB_ADDRESS_FIND_ERROR", error)
-                    return undefined
-                }),
-            cClient.users.getUser(user.userId).catch((error) => {
-                console.error("SESSION_SUCCESS_CLERK_GET_USER_ERROR", error)
-                return undefined
-            }),
-            db.orderShipping
-                .findUnique({
-                    where: {
-                        sessionId,
-                    },
-                })
-                .catch((error) => {
-                    console.error("SESSION_SUCCESS_DB_ORDER_SHIPPING_FIND_ERROR", error)
-                    return undefined
-                }),
-        ])
+        const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id
 
-        const shippingMehtodsJSONs = orderShippingData?.shippingMethods.map((el) => el?.valueOf()) as SuperFreteShipping[]
-        const shippingProducts = orderShippingData?.products.map((el) => el?.valueOf()) as SuperFreteShippingProduct[]
-
-        const shippingMethodChoice = shippingMehtodsJSONs.find((sm) => sm.id.toString() === sessionShippingChoice!.metadata.serviceId)
-
-        const ticketId = await createShippingTicket({
-            to: {
-                name: `${userData!.firstName} ${userData!.lastName}`,
-                address: `${userAddress!.street}, número ${userAddress!.number}${userAddress!.complement ? `, ${userAddress!.complement}` : ""}`,
-                district: userAddress!.neighborhood,
-                city: userAddress!.city,
-                state_abbr: userAddress!.state,
-                postal_code: userAddress!.cep,
-                email: userData!.primaryEmailAddress!.emailAddress,
-            },
-            service: Number(sessionShippingChoice!.metadata.serviceId),
-            products: shippingProducts,
-            volumes: { ...shippingMethodChoice!.packages[0].dimensions, weight: shippingMethodChoice!.packages[0].weight },
-            tag: JSON.stringify({ sessionId, userId: user.userId }),
+        const stripeShipping = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
+            console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)
+            return undefined
         })
 
-        const order = await db.order.create({
+        if (!stripeShipping) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Não foram encontrados os dados de entrega no stripe."
+                ></PaymentFailedMessage>
+            )
+        }
+
+        const userAddress = await db.address.findUnique({
+            where: {
+                userId: user.userId,
+            },
+        })
+
+        if (!userAddress) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Usuário não possui os dados de endereço."
+                ></PaymentFailedMessage>
+            )
+        }
+
+        const productsForTicket: CreateShippingTicketProduct[] = JSON.parse(session.metadata?.productsForTicketJSON ?? "[]")
+        const shippingPackages: CalcShippingFeePackage[] = JSON.parse(stripeShipping.metadata.packagesJSON ?? "[]")
+
+        const fristPackage = shippingPackages[0]
+
+        if (!fristPackage) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Dados de tamanho do pacote não foram encotrados no stripe."
+                ></PaymentFailedMessage>
+            )
+        }
+
+        const userData = await authClient.users.getUser(user.userId)
+
+        const ticketRes = await createShippingTicket({
+            to: {
+                name: `${userData.firstName} ${userData.lastName}`,
+                address: `${userAddress.street}, número ${userAddress.number}${userAddress.complement ? `, ${userAddress.complement}` : ""}`,
+                district: userAddress.neighborhood,
+                city: userAddress.city,
+                state_abbr: userAddress.state,
+                postal_code: userAddress.cep,
+                email: userData.primaryEmailAddress?.emailAddress ?? "N/A",
+            },
+            service: Number(stripeShipping.metadata.serviceId) ?? 0,
+            products: productsForTicket,
+            volumes: {
+                weight: fristPackage.weight,
+                height: fristPackage.dimensions.height,
+                length: fristPackage.dimensions.length,
+                width: fristPackage.dimensions.width,
+            },
+            tag: JSON.stringify({ sessionId: session.id, userId: user.userId }),
+        })
+
+        await db.order.create({
             data: {
                 userId: user.userId,
-                sessionId: sessionId,
-                ticketId,
+                sessionId: session.id,
+                paymentId,
+                ticketId: ticketRes.id,
                 totalPrice: session.amount_total! / 100,
-                shippingPrice: shippingMethodChoice!.price,
-                shippingServiceId: shippingMethodChoice!.id.toString(),
-                shippingServiceName: shippingMethodChoice!.name,
-                shippingDaysMin: shippingMethodChoice!.delivery_range.min,
-                shippingDaysMax: shippingMethodChoice!.delivery_range.max,
+                shippingPrice: session.shipping_cost!.amount_total / 100,
+                shippingServiceId: stripeShipping.metadata.serviceId!,
+                shippingServiceName: stripeShipping.display_name!,
+                shippingDaysMin: stripeShipping.delivery_estimate!.minimum!.value,
+                shippingDaysMax: stripeShipping.delivery_estimate!.maximum!.value,
                 BookOnOrder: {
                     createMany: {
-                        data: shippingProducts.map((sp) => ({
-                            bookId: sp.bookDBId,
-                            price: sp.unitary_value,
+                        data: productsForTicket.map((p) => ({
+                            bookId: p.bookDBId,
+                            price: p.unitary_value,
+                            amount: p.quantity,
                         })),
                     },
                 },
             },
         })
-
-        return <PaymentSuccessView order={order}></PaymentSuccessView>
     } catch (error) {
-        console.error("SESSION_SUCCESS_SESSION_ID_CAUSED_ERROR", sessionId)
-        console.error("SESSION_SUCCESS_ERROR", error)
-        try {
-            const sessionData = await stripe.checkout.sessions.retrieve(sessionId)
-            const refund = await stripe.refunds.create({
-                amount: sessionData.amount_total ?? 0,
-                reason: "requested_by_customer",
-                reverse_transfer: true,
-                refund_application_fee: true,
-                payment_intent: sessionData.payment_intent?.toString(),
-            })
-            return (
-                <div className="container mx-auto grid place-content-center">
-                    <p className="text-2xl">
-                        Ocorreu um erro durante a conclusão do checkout, mas o seu dinheiro foi devolvido. Qualquer dúvida contate o suporte por email{" "}
-                        {env.APP_SUPPORT_EMAIL}. Refund status: {refund.status}
-                    </p>
-                </div>
-            )
-        } catch (sessionCancelError) {
-            console.error("SESSION_SUCCESS_CANCEL_ERROR", sessionCancelError)
-            return (
-                <div className="container mx-auto grid place-content-center">
-                    <p className="text-4xl text-red-500 font-extrabold">
-                        Ocorreu um erro durante a conclusão do checkout, O SEU DINHEIRO NÃO FOI DEVOLVIDO, CONTATE O SUPORTE POR EMAIL:{" "}
-                        {env.APP_SUPPORT_EMAIL}. CHECKOUT_SESSION_ID: {sessionId}
-                    </p>
-                </div>
-            )
-        }
+        return (
+            <PaymentFailedMessage
+                sessionId={sessionId}
+                message={`${error instanceof Error ? error.message : JSON.stringify(error)}`}
+            ></PaymentFailedMessage>
+        )
     }
+
+    redirect("/commerce/user/order")
 }

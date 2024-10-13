@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import Image from "next/image"
 
 export default function BookDetailsImages({ images, title }: { images: string[]; title: string }) {
