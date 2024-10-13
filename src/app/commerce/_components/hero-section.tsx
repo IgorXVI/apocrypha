@@ -14,7 +14,7 @@ export default async function HeroSection() {
                             width={200}
                             height={200}
                         />
-                        {env.APP_NAME}
+                        <span className="font-serif">{env.APP_NAME}</span>
                     </h1>
                     <p className="max-w-xl mb-6 font-light lg:mb-8 md:text-lg lg:text-xl text-neutral-200">
                         Descubra seu próximo livro favorito, explore nossa vasta coleção de livros em todos os gêneros.
