@@ -126,11 +126,14 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                 {order.BookOnOrder.map((bo) => (
                                     <TableRow key={bo.Book.id}>
                                         <TableCell>
-                                            <Link href={`/commerce/book/${bo.Book.id}`}>
+                                            <Link
+                                                href={`/commerce/book/${bo.Book.id}`}
+                                                className="max-w-[50px]"
+                                            >
                                                 <Image
                                                     src={bo.Book.DisplayImage[0]?.url ?? ""}
                                                     alt={bo.Book.title}
-                                                    className="min-h-[50px] min-w-[40px] rounded-md object-cover"
+                                                    className="min-h-[50px] min-w-[50px] rounded-md object-cover"
                                                     width={100}
                                                     height={100}
                                                 ></Image>
@@ -228,7 +231,10 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-wrap gap-3 text-2xl justify-center items-center">
-                                <OrderStatus status={order.status}></OrderStatus>
+                                <OrderStatus
+                                    className="px-4"
+                                    status={order.status}
+                                ></OrderStatus>
                                 <span className="text-muted-foreground text-lg font-light text-nowrap">
                                     Atualizado em: {order.updatedAt.toLocaleString()}
                                 </span>

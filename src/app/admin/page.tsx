@@ -6,26 +6,63 @@ import { authClient } from "~/server/auth-api"
 import { cancelTicket, emitTicket, getProductInfo } from "~/server/shipping-api"
 import { revalidatePath } from "next/cache"
 import OrderStatus from "~/components/order/order-status"
+import OrderSearch from "./_components/order-search"
+import { type $Enums } from "prisma/prisma-client"
+import { z } from "zod"
+
+const orderStatusSearch = new Map<string, $Enums.OrderStatus>([
+    ["Entregue", "DELIVERED"],
+    ["Cancelado", "CANCELED"],
+    ["A caminho", "IN_TRANSIT"],
+    ["Preparando", "PREPARING"],
+    ["Reembolso sendo avaliado", "REFUND_REQUESTED"],
+    ["Reembolso foi feito", "REFUND_ACCEPTED"],
+    ["Reembolso foi recusado", "REFUND_DENIED"],
+])
 
 export default async function Admin({
     searchParams,
 }: {
     searchParams: {
         page?: string
+        searchTerm?: string
     }
 }) {
     const currentPage = Number(searchParams.page) || 1
 
     const currentTake = 10
 
+    const UUIDValidation = z.string().uuid()
+    const searchTermIsUUIDResult = UUIDValidation.safeParse(searchParams.searchTerm)
+    const idSearch = searchTermIsUUIDResult.success ? searchParams.searchTerm : undefined
+
     const [orders, total] = await Promise.all([
-        db.order.findMany({
-            take: currentTake,
-            skip: calcSkip(currentPage, currentTake),
-            orderBy: {
-                createdAt: "desc",
-            },
-        }),
+        db.order
+            .findMany({
+                take: currentTake,
+                skip: calcSkip(currentPage, currentTake),
+                where: searchParams.searchTerm
+                    ? {
+                          OR: [
+                              {
+                                  id: idSearch,
+                              },
+                              {
+                                  status: {
+                                      equals: orderStatusSearch.get(searchParams.searchTerm ?? ""),
+                                  },
+                              },
+                          ],
+                      }
+                    : undefined,
+                orderBy: {
+                    createdAt: "desc",
+                },
+            })
+            .catch((error) => {
+                console.error("ADMIN_ORDER_SEARCH_ERROR", error)
+                return []
+            }),
         db.order.count(),
     ])
 
@@ -80,6 +117,9 @@ export default async function Admin({
 
     return (
         <div className="container flex flex-col gap-5 py-5">
+            <div className="flex flex-row justify-end">
+                <OrderSearch paramName="searchTerm"></OrderSearch>
+            </div>
             <DataTable
                 name="pedido"
                 namePlural="pedidos"

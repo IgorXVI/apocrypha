@@ -1,5 +1,6 @@
 import { CheckCircleIcon, PackageIcon, TruckIcon, XCircleIcon } from "lucide-react"
 import { type $Enums } from "prisma/prisma-client"
+import { cn } from "~/lib/utils"
 
 const orderStatusStyle = new Map<$Enums.OrderStatus, string>([
     ["DELIVERED", "bg-green-500"],
@@ -57,9 +58,9 @@ const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
     ["REFUND_DENIED", "Reembolso foi recusado"],
 ])
 
-export default function OrderStatus({ status }: { status: $Enums.OrderStatus }) {
+export default function OrderStatus({ status, className = "" }: { status: $Enums.OrderStatus; className?: string }) {
     return (
-        <div className={`p-2 text-white rounded-lg font-bold ${orderStatusStyle.get(status) ?? "bg-black"}`}>
+        <div className={cn(`p-2 text-white rounded-lg font-bold ${orderStatusStyle.get(status) ?? "bg-black"}`, className)}>
             {orderStatusLabel.get(status) ?? status}
         </div>
     )
