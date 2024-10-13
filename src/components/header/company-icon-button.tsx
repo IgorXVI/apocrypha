@@ -39,7 +39,7 @@ export default function CompanyIconButton() {
             className="flex items-center space-x-2 py-2 md:py-0"
         >
             <LogoSvg size={40}></LogoSvg>
-            <span className="text-xl font-bold font-serif">{env.APP_NAME}</span>
+            <span className="text-xl font-bold">{env.APP_NAME}</span>
         </Link>
     )
 }
