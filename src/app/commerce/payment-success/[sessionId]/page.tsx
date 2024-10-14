@@ -122,12 +122,6 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             )
         }
 
-        await db.checkoutSessionStore.delete({
-            where: {
-                sessionId,
-            },
-        })
-
         const userData = await authClient.users.getUser(user.userId)
 
         const ticketRes = await createShippingTicket({
@@ -172,6 +166,12 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                         })),
                     },
                 },
+            },
+        })
+
+        await db.checkoutSessionStore.delete({
+            where: {
+                sessionId,
             },
         })
     } catch (error) {
