@@ -257,7 +257,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-5 gap-8">
-                <div className="md:col-span-3 md:col-start-2">
+                <div className="md:col-span-3">
                     <div className="flex gap-2">
                         <div>
                             <h1 className="text-3xl font-bold">{book.title}</h1>
@@ -288,7 +288,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         />
                     </div>
 
-                    <div>
+                    <div className="md:hidden">
                         <BookPriceCard
                             id={DBBook.id}
                             title={DBBook.title}
@@ -344,6 +344,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                                     alt={book.authorInfo.name}
                                     width={75}
                                     height={75}
+                                    className="rounded-full"
                                 ></Image>
                             </Link>
                             <div className="flex flex-col">
@@ -432,6 +433,18 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                             </Card>
                         ))}
                     </div>
+                </div>
+                <div className="hidden md:flex flex-col col-span-2">
+                    <BookPriceCard
+                        id={DBBook.id}
+                        title={DBBook.title}
+                        stripeId={DBBook.stripeId}
+                        amount={1}
+                        mainImg={DBBook.DisplayImage[0]?.url ?? ""}
+                        author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
+                        price={DBBook.price.toNumber()}
+                    />
+                    {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                 </div>
             </div>
         </div>
