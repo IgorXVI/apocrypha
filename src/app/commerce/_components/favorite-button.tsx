@@ -17,7 +17,10 @@ export default function FavoriteButton({ bookId, size }: { bookId: string; size:
     const isLoading = useMemo(() => mutationLoading || isFavQuery.isLoading, [isFavQuery.isLoading, mutationLoading])
     const isFav = useMemo(() => Boolean(isFavQuery.data?.success && isFavQuery.data.isFav), [isFavQuery.data])
 
-    if (mutationError) {
+    if (isFavQuery.isError || mutationError) {
+        if (isFavQuery.error) {
+            toastError(JSON.stringify(isFavQuery.error))
+        }
         return (
             <Button
                 variant="link"
