@@ -9,7 +9,6 @@ import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
 import { calcSkip } from "~/lib/utils"
-import { authClient } from "~/server/auth-api"
 import { db } from "~/server/db"
 
 export default async function UserOrders({
@@ -24,8 +23,6 @@ export default async function UserOrders({
     if (!user.userId) {
         return <p>Não autorizado.</p>
     }
-
-    const userData = await authClient.users.getUser(user.userId)
 
     const currentPage = Number(searchParams.page) || 1
     const currentTake = 10
@@ -75,9 +72,7 @@ export default async function UserOrders({
         <div className="container mx-auto px-4 py-8">
             {orders.length > 0 ? (
                 <>
-                    <h1 className="text-3xl font-bold mb-8">
-                        Seus pedidos, <span className="text-nowrap">{userData.fullName}</span>
-                    </h1>
+                    <h1 className="text-3xl font-bold mb-8">Seus pedidos</h1>
 
                     <div className="grid gap-6 md:grid-cols-3 mb-8">
                         <Card>
