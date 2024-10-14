@@ -10,6 +10,7 @@ import BookDetailsImages from "../../_components/book-details-images"
 import { db } from "~/server/db"
 import AddToCartButton from "../../_components/add-to-cart-button"
 import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import FavoriteButton from "../../_components/favorite-button"
 
 const langsMap: Record<string, string> = {
     PORTUGUESE: "Português",
@@ -257,8 +258,16 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-5 gap-8">
                 <div className="md:col-span-3 md:col-start-2">
-                    <h1 className="text-3xl font-bold">{book.title}</h1>
-                    <h2 className="text-xl text-muted-foreground mt-2">{book.subtitle}</h2>
+                    <div className="flex gap-2">
+                        <div>
+                            <h1 className="text-3xl font-bold">{book.title}</h1>
+                            <h2 className="text-xl text-muted-foreground mt-2">{book.subtitle}</h2>
+                        </div>
+                        <FavoriteButton
+                            bookId={DBBook.id}
+                            size={32}
+                        ></FavoriteButton>
+                    </div>
 
                     <div className="flex items-center mt-4 space-x-4">
                         <div className="flex items-center">

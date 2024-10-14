@@ -6,6 +6,7 @@ import { convertSvgToImgSrc } from "~/lib/utils"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion"
 import HorizontalList from "./_components/horizontal-list"
 import HeroSection from "./_components/hero-section"
+import { auth } from "@clerk/nextjs/server"
 
 function SuperCategoriesSection(props: {
     superCategories: {
@@ -69,6 +70,11 @@ function SuperCategoriesSection(props: {
 }
 
 export default async function MainCommercePage() {
+    const user = auth()
+    if (!user.userId) {
+        return <p>Unauthorized</p>
+    }
+
     const [books, superCategories] = await Promise.all([
         db.book.findMany({
             include: {
@@ -92,6 +98,15 @@ export default async function MainCommercePage() {
                                 name: true,
                             },
                         },
+                    },
+                    take: 1,
+                },
+                Favorite: {
+                    where: {
+                        userId: user.userId,
+                    },
+                    select: {
+                        id: true,
                     },
                     take: 1,
                 },
@@ -134,6 +149,7 @@ export default async function MainCommercePage() {
                         authorId: book.AuthorOnBook[0]?.authorId ?? "",
                         stripeId: book.stripeId,
                         description: book.description,
+                        isFav: book.Favorite[0]?.id !== undefined,
                     }))}
                 />
 
@@ -148,6 +164,7 @@ export default async function MainCommercePage() {
                         authorId: book.AuthorOnBook[0]?.authorId ?? "",
                         stripeId: book.stripeId,
                         description: book.description,
+                        isFav: book.Favorite[0]?.id !== undefined,
                     }))}
                 />
 

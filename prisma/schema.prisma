@@ -55,6 +55,7 @@ model Book {
     relatedBookId    String?            @db.Uuid
     RelatedBooks     Book[]             @relation("BookToBook")
     BookOnOrder      BookOnOrder[]
+    Favorite         Favorite[]
 }
 
 model Series {
@@ -201,4 +202,15 @@ model Order {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now())
+}
+
+model Favorite {
+    id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    Book   Book   @relation(fields: [bookId], references: [id])
+    userId String
+    bookId String @db.Uuid
+
+    createdAt DateTime @default(now())
+
+    @@unique([userId, bookId])
 }

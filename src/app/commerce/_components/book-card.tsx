@@ -2,6 +2,7 @@ import { Card, CardContent } from "~/components/ui/card"
 import AddToCartButton from "./add-to-cart-button"
 import Link from "next/link"
 import Image from "next/image"
+import FavoriteButton from "./favorite-button"
 
 export default function BookCard({
     book,
@@ -31,6 +32,12 @@ export default function BookCard({
                         height={200}
                     ></Image>
                 </Link>
+                <div className="absolute top-1 right-1">
+                    <FavoriteButton
+                        bookId={book.id}
+                        size={32}
+                    ></FavoriteButton>
+                </div>
             </div>
             <CardContent>
                 <div className="flex flex-col gap-2 mt-2">
