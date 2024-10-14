@@ -6,7 +6,7 @@ import { env } from "../env"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "./db"
 import { type Prisma } from "prisma/prisma-client"
-import { calcShippingFee, type CreateShippingTicketProduct } from "./shipping-api"
+import { calcShippingFee, type CalcShippingFeePackage, type CreateShippingTicketProduct } from "./shipping-api"
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-06-20",
@@ -16,6 +16,11 @@ type ProductData = {
     name: string
     price: number
     mainImg: string
+}
+
+export type ShippingPackageData = {
+    id: string
+    packages: CalcShippingFeePackage[]
 }
 
 export const createProduct = async (productData: ProductData) => {
@@ -189,18 +194,8 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
         throw new Error("Not able to fetch shipping prices.")
     }
 
-    const productsForTicket: CreateShippingTicketProduct[] = products.map((product) => ({
-        bookDBId: booksMap.get(product.stripeId)?.id ?? "N/A",
-        name: booksMap.get(product.stripeId)?.title ?? "N/A",
-        quantity: product.quantity,
-        unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
-    }))
-
     const [checkoutSession] = await Promise.allSettled([
         stripe.checkout.sessions.create({
-            metadata: {
-                productsForTicketJSON: JSON.stringify(productsForTicket),
-            },
             mode: "payment",
             currency: "brl",
             line_items: lineItems,
@@ -212,7 +207,6 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
                     type: "fixed_amount",
                     metadata: {
                         serviceId: shipping.id,
-                        packagesJSON: JSON.stringify(shipping.packages),
                     },
                     display_name: shipping.name,
                     delivery_estimate: {
@@ -240,6 +234,26 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             message: `Failed to create checkout session: ${checkoutSession.reason}`,
         }
     }
+
+    const productsForTicket: CreateShippingTicketProduct[] = products.map((product) => ({
+        bookDBId: booksMap.get(product.stripeId)?.id ?? "N/A",
+        name: booksMap.get(product.stripeId)?.title ?? "N/A",
+        quantity: product.quantity,
+        unitary_value: booksMap.get(product.stripeId)?.price.toNumber() ?? 0,
+    }))
+
+    const shippingPackages: ShippingPackageData[] = shippingOptions.map((shipping) => ({
+        id: shipping.id.toString(),
+        packages: shipping.packages,
+    }))
+
+    await db.checkoutSessionStore.create({
+        data: {
+            sessionId: checkoutSession.value.id,
+            products: productsForTicket,
+            shippingPackages: shippingPackages,
+        },
+    })
 
     return {
         success: true,

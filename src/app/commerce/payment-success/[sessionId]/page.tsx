@@ -4,7 +4,7 @@ import { env } from "~/env"
 import { authClient } from "~/server/auth-api"
 import { db } from "~/server/db"
 import { type CreateShippingTicketProduct, type CalcShippingFeePackage, createShippingTicket } from "~/server/shipping-api"
-import { stripe } from "~/server/stripe-api"
+import { type ShippingPackageData, stripe } from "~/server/stripe-api"
 
 function PaymentFailedMessage({ sessionId, message }: { sessionId: string; message: string }) {
     return (
@@ -90,8 +90,26 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             )
         }
 
-        const productsForTicket: CreateShippingTicketProduct[] = JSON.parse(session.metadata?.productsForTicketJSON ?? "[]")
-        const shippingPackages: CalcShippingFeePackage[] = JSON.parse(stripeShipping.metadata.packagesJSON ?? "[]")
+        const checkoutSessionStore = await db.checkoutSessionStore.findUnique({
+            where: {
+                sessionId,
+            },
+        })
+
+        if (!checkoutSessionStore) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message="Dados dos produtos comprados não foram encontrados."
+                ></PaymentFailedMessage>
+            )
+        }
+
+        const productsForTicket: CreateShippingTicketProduct[] = checkoutSessionStore.products.map((p) => p?.valueOf() as CreateShippingTicketProduct)
+
+        const allShippingPackages: ShippingPackageData[] = checkoutSessionStore.shippingPackages.map((sp) => sp?.valueOf() as ShippingPackageData)
+        const shippingPackages: CalcShippingFeePackage[] =
+            allShippingPackages.find((sp) => sp.id === (stripeShipping.metadata.serviceId ?? ""))?.packages ?? []
 
         const fristPackage = shippingPackages[0]
 

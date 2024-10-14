@@ -214,3 +214,10 @@ model Favorite {
 
     @@unique([userId, bookId])
 }
+
+model CheckoutSessionStore {
+    id               String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionId        String @unique
+    products         Json[]
+    shippingPackages Json[]
+}
