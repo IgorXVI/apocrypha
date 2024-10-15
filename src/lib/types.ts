@@ -23,7 +23,7 @@ export type GetManyOutput<T> = {
 export type BookGetManyOneRowOutput = {
     id: string
     price: number
-    isAvailable: boolean
+    stock: number
     title: string
     description: string
     pages: number
