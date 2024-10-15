@@ -12,7 +12,7 @@ function PaymentFailedMessage({ sessionId, message }: { sessionId: string; messa
             <p className="text-red-500 text-6xl font-extrabold">ERRO!</p>
             <p className="text-red-500 font-extrabold text-4xl">{message}</p>
             <p>ID da Stripe Checkout Session: {sessionId}</p>
-            <p>Salve o ID e entre em contato com o suporte por email: {env.APP_USER_AGENT}</p>
+            <p>Salve o(s) ID(s) e entre em contato com o suporte por email: {env.APP_USER_AGENT}</p>
         </div>
     )
 }
@@ -23,12 +23,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         const user = auth()
 
         if (!user.userId) {
-            return (
-                <PaymentFailedMessage
-                    sessionId={sessionId}
-                    message="Não autorizado."
-                ></PaymentFailedMessage>
-            )
+            throw new Error("Unauthorized")
         }
 
         const exitingOrder = await db.order.findFirst({
@@ -41,23 +36,13 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         })
 
         if (exitingOrder) {
-            return (
-                <PaymentFailedMessage
-                    sessionId={sessionId}
-                    message="Pedido ja está cadastrado."
-                ></PaymentFailedMessage>
-            )
+            throw new Error("Order already exists")
         }
 
         const session = await stripe.checkout.sessions.retrieve(sessionId)
 
         if (!session || session.status !== "complete" || !session.payment_intent) {
-            return (
-                <PaymentFailedMessage
-                    sessionId={sessionId}
-                    message="Stripe session não está completa."
-                ></PaymentFailedMessage>
-            )
+            throw new Error("Stripe session not completed")
         }
 
         const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id
@@ -69,12 +54,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         })
 
         if (!stripeShipping) {
-            return (
-                <PaymentFailedMessage
-                    sessionId={sessionId}
-                    message="Não foram encontrados os dados de entrega no stripe."
-                ></PaymentFailedMessage>
-            )
+            throw new Error("Shipping data nout found")
         }
 
         const userAddress = await db.address.findUnique({
@@ -84,12 +64,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         })
 
         if (!userAddress) {
-            return (
-                <PaymentFailedMessage
-                    sessionId={sessionId}
-                    message="Usuário não possui os dados de endereço."
-                ></PaymentFailedMessage>
-            )
+            throw new Error("User address data nout found")
         }
 
         const checkoutSessionStore = await db.checkoutSessionStore.findUnique({
@@ -99,12 +74,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         })
 
         if (!checkoutSessionStore) {
-            return (
-                <PaymentFailedMessage
-                    sessionId={sessionId}
-                    message="Dados dos produtos comprados não foram encontrados."
-                ></PaymentFailedMessage>
-            )
+            throw new Error("Product data nout found")
         }
 
         const productsForTicket: CreateShippingTicketProduct[] = checkoutSessionStore.products.map((p) => p?.valueOf() as CreateShippingTicketProduct)
@@ -116,12 +86,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         const fristPackage = shippingPackages[0]
 
         if (!fristPackage) {
-            return (
-                <PaymentFailedMessage
-                    sessionId={sessionId}
-                    message="Dados de tamanho do pacote não foram encotrados no stripe."
-                ></PaymentFailedMessage>
-            )
+            throw new Error("Shipping package size data nout found")
         }
 
         const userData = await authClient.users.getUser(user.userId)
@@ -227,18 +192,18 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
     } catch (error) {
         const getErrorStr = (e: unknown) => (e instanceof Error ? e.message : JSON.stringify(e || "NULL"))
 
+        console.error("PAYMENT_SUCCESS_ERROR:", getErrorStr(error))
+
         if (!globalPaymentId) {
             return (
                 <PaymentFailedMessage
                     sessionId={sessionId}
-                    message={getErrorStr(error)}
+                    message="Um erro inesperado acontecer ao tentar concluir a compra."
                 ></PaymentFailedMessage>
             )
         }
 
         try {
-            console.error("PAYMENT_SUCCESS_ERROR:", getErrorStr(error))
-
             let refund = await stripe.refunds
                 .list({
                     payment_intent: globalPaymentId,
