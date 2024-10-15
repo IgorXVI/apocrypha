@@ -226,8 +226,8 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             }
 
             return (
-                <div className="text-2xl flex flex-col justify-center items-center min-h-[50vh]">
-                    <p className="text-3xl">
+                <div className="text-lg flex flex-col justify-center items-center min-h-[50vh]">
+                    <p className="text-3xl mb-10">
                         Um erro aconteceu, porém o <span className="text-green-500">seu dinheiro foi devolvido</span>
                     </p>
                     <p>Status do reembolso no Stripe: {refund.status}</p>
