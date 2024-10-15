@@ -18,6 +18,7 @@ function PaymentFailedMessage({ sessionId, message }: { sessionId: string; messa
 }
 
 export default async function PaymentSuccess({ params: { sessionId } }: { params: { sessionId: string } }) {
+    let globalPaymentId: string | undefined
     try {
         const user = auth()
 
@@ -60,6 +61,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         }
 
         const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id
+        globalPaymentId = paymentId
 
         const stripeShipping = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
             console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)
@@ -171,7 +173,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                 const book = books.find((b) => b.id === p.bookDBId)
 
                 if (!book || book.stock < p.quantity) {
-                    throw new Error(`Livro "${p.name}" está esgotado.`)
+                    throw new Error(`Book "${p.name}" is out of stock.`)
                 }
 
                 updateManyBooks.push({
@@ -223,12 +225,55 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             })
         })
     } catch (error) {
-        return (
-            <PaymentFailedMessage
-                sessionId={sessionId}
-                message={`${error instanceof Error ? error.message : JSON.stringify(error)}`}
-            ></PaymentFailedMessage>
-        )
+        const getErrorStr = (e: unknown) => (e instanceof Error ? e.message : JSON.stringify(e || "NULL"))
+
+        if (!globalPaymentId) {
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message={getErrorStr(error)}
+                ></PaymentFailedMessage>
+            )
+        }
+
+        try {
+            console.error("PAYMENT_SUCCESS_ERROR:", getErrorStr(error))
+
+            let refund = await stripe.refunds
+                .list({
+                    payment_intent: globalPaymentId,
+                })
+                .then((res) => res.data[0])
+
+            if (!refund) {
+                refund = await stripe.refunds.create({
+                    payment_intent: globalPaymentId,
+                })
+            }
+
+            if (refund.status !== "succeeded") {
+                throw new Error(`Erro ao tentar fazer reembolso no Stripe, retornou status: ${refund.status}, ID do pagamento: ${globalPaymentId}`)
+            }
+
+            return (
+                <div className="text-2xl flex flex-col justify-center items-center min-h-[50vh]">
+                    <p className="text-3xl">
+                        Um erro aconteceu, porém o <span className="text-green-500">seu dinheiro foi devolvido</span>
+                    </p>
+                    <p>ID do pagamento: {globalPaymentId}</p>
+                    <p>Se tiver alguma dúvida, salve o ID e entre em contato com o suporte por email: {env.APP_USER_AGENT}</p>
+                </div>
+            )
+        } catch (stripeError) {
+            console.error("STRIPE_REFUND_ERROR:", stripeError)
+
+            return (
+                <PaymentFailedMessage
+                    sessionId={sessionId}
+                    message={`Um erro inesperado aconteceu durante criação do reembolso no Stripe, ID do pagamento: ${globalPaymentId}`}
+                ></PaymentFailedMessage>
+            )
+        }
     }
 
     redirect("/commerce/user/order")
