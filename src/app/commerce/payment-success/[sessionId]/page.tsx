@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import type Stripe from "stripe"
 import { env } from "~/env"
 import { authClient } from "~/server/auth-api"
 import { db } from "~/server/db"
@@ -18,15 +19,14 @@ function PaymentFailedMessage({ sessionId, message }: { sessionId: string; messa
 }
 
 export default async function PaymentSuccess({ params: { sessionId } }: { params: { sessionId: string } }) {
-    let globalPaymentId: string | undefined
-    try {
-        const user = auth()
+    const user = auth()
 
-        if (!user.userId) {
-            throw new Error("Unauthorized")
-        }
+    if (!user.userId) {
+        redirect("/commerce/user/order")
+    }
 
-        const exitingOrder = await db.order.findFirst({
+    const exitingOrder = await db.order
+        .findFirst({
             where: {
                 sessionId,
             },
@@ -34,11 +34,18 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                 id: true,
             },
         })
+        .catch((error) => {
+            console.error("PAYMENT_SUCCESS_FIND_EXISTING_ORDER_ERROR:", error)
+            return undefined
+        })
 
-        if (exitingOrder) {
-            throw new Error("Order already exists")
-        }
+    if (exitingOrder) {
+        redirect("/commerce/user/order")
+    }
 
+    let globalPaymentId: string | undefined
+    let globalRefund: Stripe.Refund | undefined
+    try {
         const session = await stripe.checkout.sessions.retrieve(sessionId)
 
         if (!session || session.status !== "complete" || !session.payment_intent) {
@@ -48,10 +55,22 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         const paymentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id
         globalPaymentId = paymentId
 
-        const stripeShipping = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "").catch((error) => {
-            console.error("SESSION_SUCCESS_SHIPPING_RATES_RETRIEVE_ERROR", error)
-            return undefined
-        })
+        const refund = await stripe.refunds
+            .list({
+                payment_intent: globalPaymentId,
+            })
+            .then((res) => res.data[0])
+            .catch((error) => {
+                console.error("STRIPE_GET_REFUND_ERROR:", error)
+                return undefined
+            })
+
+        if (refund) {
+            globalRefund = refund
+            throw new Error("Payment already refunded.")
+        }
+
+        const stripeShipping = await stripe.shippingRates.retrieve(session.shipping_cost?.shipping_rate?.toString() ?? "")
 
         if (!stripeShipping) {
             throw new Error("Shipping data nout found")
@@ -204,11 +223,15 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         }
 
         try {
-            let refund = await stripe.refunds
-                .list({
-                    payment_intent: globalPaymentId,
-                })
-                .then((res) => res.data[0])
+            let refund = globalRefund
+
+            if (!refund) {
+                refund = await stripe.refunds
+                    .list({
+                        payment_intent: globalPaymentId,
+                    })
+                    .then((res) => res.data[0])
+            }
 
             if (!refund) {
                 refund = await stripe.refunds.create({
