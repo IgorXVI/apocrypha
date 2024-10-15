@@ -207,7 +207,11 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
     } catch (error) {
         const getErrorStr = (e: unknown) => (e instanceof Error ? e.message : JSON.stringify(e || "NULL"))
 
-        console.error("PAYMENT_SUCCESS_ERROR:", getErrorStr(error))
+        const mainErrorStr = getErrorStr(error)
+
+        if (mainErrorStr !== "Payment already refunded.") {
+            console.error("PAYMENT_SUCCESS_ERROR:", getErrorStr(error))
+        }
 
         if (!globalPaymentId) {
             return (
