@@ -196,7 +196,7 @@ export default function DataTable(props: {
                                                         )
                                                     ) : typeof row[attr] === "string" && attr.endsWith("Date") ? (
                                                         new Date(row[attr]).toLocaleDateString()
-                                                    ) : !row[attr] ? (
+                                                    ) : !row[attr] && row[attr] !== 0 ? (
                                                         "N/A"
                                                     ) : row[attr] instanceof Date ? (
                                                         row[attr].toLocaleDateString()

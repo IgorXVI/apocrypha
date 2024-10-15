@@ -68,7 +68,7 @@ export type SuperCategorySchemaType = z.infer<typeof superCategoryValidationSche
 
 export const bookValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }).default(0),
-    stock: z.number().positive({ message: "A quantidade em estoque deve ser um número positivo." }).default(0),
+    stock: z.number().nonnegative({ message: "A quantidade em estoque deve ser um número positivo ou zero." }).default(0),
     title: z.string().min(1, { message: "O título é obrigatório." }).default(""),
     description: z.string({ required_error: "A descrição é obrigatória." }).default(""),
     pages: z.number().int().positive({ message: "O número de páginas deve ser um número inteiro positivo." }).default(0),

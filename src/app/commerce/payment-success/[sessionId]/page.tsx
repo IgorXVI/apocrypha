@@ -145,34 +145,82 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
             tag: JSON.stringify({ sessionId: session.id, userId: user.userId }),
         })
 
-        await db.order.create({
-            data: {
-                userId: user.userId,
-                sessionId: session.id,
-                paymentId,
-                ticketId: ticketRes.id,
-                totalPrice: session.amount_total! / 100,
-                shippingPrice: session.shipping_cost!.amount_total / 100,
-                shippingServiceId: stripeShipping.metadata.serviceId!,
-                shippingServiceName: stripeShipping.display_name!,
-                shippingDaysMin: stripeShipping.delivery_estimate!.minimum!.value,
-                shippingDaysMax: stripeShipping.delivery_estimate!.maximum!.value,
-                BookOnOrder: {
-                    createMany: {
-                        data: productsForTicket.map((p) => ({
-                            bookId: p.bookDBId,
-                            price: p.unitary_value,
-                            amount: p.quantity,
-                        })),
+        await db.$transaction(async (transaction) => {
+            const books = await transaction.book.findMany({
+                where: {
+                    id: {
+                        in: productsForTicket.map((p) => p.bookDBId),
                     },
                 },
-            },
-        })
+                select: {
+                    id: true,
+                    stock: true,
+                },
+            })
 
-        await db.checkoutSessionStore.delete({
-            where: {
-                sessionId,
-            },
+            const updateManyBooks: {
+                data: {
+                    stock: number
+                }
+                where: {
+                    id: string
+                }
+            }[] = []
+
+            productsForTicket.forEach((p) => {
+                const book = books.find((b) => b.id === p.bookDBId)
+
+                if (!book || book.stock < p.quantity) {
+                    throw new Error(`Livro "${p.name}" está esgotado.`)
+                }
+
+                updateManyBooks.push({
+                    data: {
+                        stock: book.stock - p.quantity,
+                    },
+                    where: {
+                        id: book.id,
+                    },
+                })
+            })
+
+            const updateResults = await Promise.allSettled(updateManyBooks.map((u) => transaction.book.update(u)))
+
+            updateResults.forEach((ur) => {
+                if (ur.status === "rejected") {
+                    throw ur.reason
+                }
+            })
+
+            await transaction.order.create({
+                data: {
+                    userId: user.userId,
+                    sessionId: session.id,
+                    paymentId,
+                    ticketId: ticketRes.id,
+                    totalPrice: session.amount_total! / 100,
+                    shippingPrice: session.shipping_cost!.amount_total / 100,
+                    shippingServiceId: stripeShipping.metadata.serviceId!,
+                    shippingServiceName: stripeShipping.display_name!,
+                    shippingDaysMin: stripeShipping.delivery_estimate!.minimum!.value,
+                    shippingDaysMax: stripeShipping.delivery_estimate!.maximum!.value,
+                    BookOnOrder: {
+                        createMany: {
+                            data: productsForTicket.map((p) => ({
+                                bookId: p.bookDBId,
+                                price: p.unitary_value,
+                                amount: p.quantity,
+                            })),
+                        },
+                    },
+                },
+            })
+
+            await transaction.checkoutSessionStore.delete({
+                where: {
+                    sessionId,
+                },
+            })
         })
     } catch (error) {
         return (

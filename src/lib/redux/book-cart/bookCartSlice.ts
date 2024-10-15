@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
 export type BookCartState = {
     id: string
+    stock: number
     mainImg: string
     title: string
     author: string

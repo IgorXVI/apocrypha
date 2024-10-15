@@ -40,10 +40,12 @@ export default function CartPage() {
         }
     }, [cartUrlState, dispatch])
 
-    const updateQuantity = (id: string, newQuantity: number) => {
+    const updateQuantity = (id: string, newQuantity: number, stock: number) => {
         if (newQuantity < 1) return
 
-        dispatch(bookCartSlice.actions.updateAmount({ id, amount: newQuantity }))
+        const amount = stock < newQuantity ? stock : newQuantity
+
+        dispatch(bookCartSlice.actions.updateAmount({ id, amount }))
     }
 
     const removeItem = (id: string) => {
@@ -146,7 +148,7 @@ export default function CartPage() {
                                                     disabled={isDisabled}
                                                     variant="outline"
                                                     size="icon"
-                                                    onClick={() => updateQuantity(item.id, item.amount - 1)}
+                                                    onClick={() => updateQuantity(item.id, item.amount - 1, item.stock)}
                                                 >
                                                     <Minus className="h-4 w-4" />
                                                 </Button>
@@ -155,14 +157,14 @@ export default function CartPage() {
                                                     type="number"
                                                     min="1"
                                                     value={item.amount}
-                                                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
+                                                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value), item.stock)}
                                                     className="w-16 text-center"
                                                 />
                                                 <Button
                                                     disabled={isDisabled}
                                                     variant="outline"
                                                     size="icon"
-                                                    onClick={() => updateQuantity(item.id, item.amount + 1)}
+                                                    onClick={() => updateQuantity(item.id, item.amount + 1, item.stock)}
                                                 >
                                                     <Plus className="h-4 w-4" />
                                                 </Button>

@@ -297,6 +297,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                             mainImg={DBBook.DisplayImage[0]?.url ?? ""}
                             author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
                             price={DBBook.price.toNumber()}
+                            stock={DBBook.stock}
                         />
                         {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                     </div>
@@ -443,6 +444,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         mainImg={DBBook.DisplayImage[0]?.url ?? ""}
                         author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
                         price={DBBook.price.toNumber()}
+                        stock={DBBook.stock}
                     />
                     {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                 </div>

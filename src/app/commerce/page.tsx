@@ -150,6 +150,7 @@ export default async function MainCommercePage() {
                         stripeId: book.stripeId,
                         description: book.description,
                         isFav: book.Favorite[0]?.id !== undefined,
+                        stock: book.stock,
                     }))}
                 />
 
@@ -165,6 +166,7 @@ export default async function MainCommercePage() {
                         stripeId: book.stripeId,
                         description: book.description,
                         isFav: book.Favorite[0]?.id !== undefined,
+                        stock: book.stock,
                     }))}
                 />
 

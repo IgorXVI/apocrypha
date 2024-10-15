@@ -15,6 +15,7 @@ export default function BookCard({
         author: string
         price: number
         stripeId: string
+        stock: number
     }
 }) {
     return (

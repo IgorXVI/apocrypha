@@ -129,6 +129,7 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             widthCm: true,
             heightCm: true,
             thicknessCm: true,
+            stock: true,
         },
     })
 
@@ -143,6 +144,7 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             widthCm: number
             heightCm: number
             thicknessCm: number
+            stock: number
         }
     >()
 
@@ -150,7 +152,22 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
         booksMap.set(book.stripeId, book)
     })
 
-    const products = inputProducts.filter((p) => booksMap.get(p.stripeId))
+    const products = inputProducts.filter((p) => {
+        const bookInfo = booksMap.get(p.stripeId)
+
+        if (!bookInfo || bookInfo.stock < p.quantity) {
+            return false
+        }
+
+        return true
+    })
+
+    if (products.length === 0) {
+        return {
+            success: false,
+            message: "No valid products.",
+        }
+    }
 
     const productQuantityMap = new Map<string, number>()
     products.forEach((product) => {

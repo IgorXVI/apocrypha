@@ -12,6 +12,7 @@ type Book = {
     description: string
     price: number
     mainImg: string
+    stock: number
 }
 
 export default function HorizontalList({ title, books }: { title: string; books: Book[] }) {

@@ -73,6 +73,7 @@ export default async function WishListPage() {
                                 author: fav.Book.AuthorOnBook[0]?.Author.name ?? "",
                                 authorId: fav.Book.AuthorOnBook[0]?.authorId ?? "",
                                 mainImg: fav.Book.DisplayImage[0]?.url ?? "",
+                                stock: fav.Book.stock,
                             }}
                         ></BookCard>
                     ))}
