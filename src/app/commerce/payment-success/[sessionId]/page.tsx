@@ -60,10 +60,6 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                 payment_intent: globalPaymentId,
             })
             .then((res) => res.data[0])
-            .catch((error) => {
-                console.error("STRIPE_GET_REFUND_ERROR:", error)
-                return undefined
-            })
 
         if (refund) {
             globalRefund = refund
