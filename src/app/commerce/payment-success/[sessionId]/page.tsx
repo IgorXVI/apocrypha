@@ -216,8 +216,13 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                 })
             }
 
-            if (refund.status !== "succeeded") {
-                throw new Error(`Erro ao tentar fazer reembolso no Stripe, retornou status: ${refund.status}, ID do pagamento: ${globalPaymentId}`)
+            if (refund.status !== "succeeded" && refund.status !== "pending") {
+                return (
+                    <PaymentFailedMessage
+                        sessionId={sessionId}
+                        message={`Erro ao tentar fazer reembolso no Stripe, retornou status: ${refund.status}, ID do pagamento: ${globalPaymentId}`}
+                    ></PaymentFailedMessage>
+                )
             }
 
             return (
@@ -225,6 +230,7 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
                     <p className="text-3xl">
                         Um erro aconteceu, porém o <span className="text-green-500">seu dinheiro foi devolvido</span>
                     </p>
+                    <p>Status do reembolso no Stripe: {refund.status}</p>
                     <p>ID do pagamento: {globalPaymentId}</p>
                     <p>Se tiver alguma dúvida, salve o ID e entre em contato com o suporte por email: {env.APP_USER_AGENT}</p>
                 </div>
