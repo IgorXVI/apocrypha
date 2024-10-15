@@ -28,7 +28,7 @@ enum Langs {
 model Book {
     id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     stripeId         String             @unique
-    isAvailable      Boolean            @default(true)
+    stock            Int                @default(1)
     price            Decimal            @default(0) @db.Decimal(10, 4)
     title            String
     description      String
@@ -55,6 +55,7 @@ model Book {
     relatedBookId    String?            @db.Uuid
     RelatedBooks     Book[]             @relation("BookToBook")
     BookOnOrder      BookOnOrder[]
+    Favorite         Favorite[]
 }
 
 model Series {
@@ -201,4 +202,22 @@ model Order {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now())
+}
+
+model Favorite {
+    id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    Book   Book   @relation(fields: [bookId], references: [id])
+    userId String
+    bookId String @db.Uuid
+
+    createdAt DateTime @default(now())
+
+    @@unique([userId, bookId])
+}
+
+model CheckoutSessionStore {
+    id               String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionId        String @unique
+    products         Json[]
+    shippingPackages Json[]
 }

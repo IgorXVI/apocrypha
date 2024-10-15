@@ -17,6 +17,7 @@ type SuperCategory = {
                 stripeId: string
                 description: string
                 price: Prisma.Decimal
+                stock: number
                 DisplayImage: {
                     url: string
                 }[]
@@ -40,6 +41,7 @@ type Book = {
     stripeId: string
     description: string
     authorId: string
+    stock: number
 }
 
 type SuperCategoryWithAll = {
@@ -287,6 +289,7 @@ export default async function BooksPage({
         description: book.description,
         authorId: book.AuthorOnBook[0]?.Author.id ?? "",
         stripeId: book.stripeId,
+        stock: book.stock,
     }))
 
     const categories = superCategory.Category.map((category) => ({

@@ -14,7 +14,6 @@ import SingleImageField from "../_components/single-image-field"
 import { bookValidationSchema, type BookSchemaType } from "~/lib/validation"
 import { AdminRichTextInput } from "../_components/admin-rich-text-editor"
 import SelectEnum from "../_components/select-enum"
-import BooleanInput from "../_components/boolean-input"
 
 type ModelAttrs = keyof BookSchemaType
 
@@ -232,11 +231,6 @@ const inputKeyMap: Record<
         label: "Outras Categorias",
         description: "Escolha as demais categorias do livro.",
     },
-    isAvailable: {
-        node: (field) => <BooleanInput {...field} />,
-        label: "Disponível",
-        description: "Esse é o status de disponibilidade do livro.",
-    },
     language: {
         node: (field) => (
             <SelectEnum
@@ -259,6 +253,11 @@ const inputKeyMap: Record<
         label: "Livro Relacionado",
         description: "Escolha o livro que possui uma relação com este.",
     },
+    stock: {
+        node: (field) => <NumberInput {...field} />,
+        label: "Estoque",
+        description: "Quantidade de livros em estoque.",
+    },
 }
 
 export default function MainPage() {
@@ -271,7 +270,7 @@ export default function MainPage() {
                 mainImageUrl: "Imagem Principal",
                 title: "Título",
                 price: "Preço",
-                isAvailable: "Disponível",
+                stock: "Estoque",
                 stripeId: "Stripe ID",
                 description: "Descrição",
                 pages: "Páginas",

@@ -3,10 +3,10 @@ import CommerceHeader from "./_components/commerce-header"
 
 export default function CommerceLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <>
+        <div>
             <CommerceHeader></CommerceHeader>
-            <div className="min-h-[70vh] mb-auto">{children}</div>
+            <div className="min-h-[80vh] mb-auto">{children}</div>
             <CommerceFooter></CommerceFooter>
-        </>
+        </div>
     )
 }

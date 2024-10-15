@@ -10,6 +10,7 @@ import BookDetailsImages from "../../_components/book-details-images"
 import { db } from "~/server/db"
 import AddToCartButton from "../../_components/add-to-cart-button"
 import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import FavoriteButton from "../../_components/favorite-button"
 
 const langsMap: Record<string, string> = {
     PORTUGUESE: "Português",
@@ -256,9 +257,17 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-5 gap-8">
-                <div className="md:col-span-3 md:col-start-2">
-                    <h1 className="text-3xl font-bold">{book.title}</h1>
-                    <h2 className="text-xl text-muted-foreground mt-2">{book.subtitle}</h2>
+                <div className="md:col-span-3">
+                    <div className="flex gap-2">
+                        <div>
+                            <h1 className="text-3xl font-bold">{book.title}</h1>
+                            <h2 className="text-xl text-muted-foreground mt-2">{book.subtitle}</h2>
+                        </div>
+                        <FavoriteButton
+                            bookId={DBBook.id}
+                            size={32}
+                        ></FavoriteButton>
+                    </div>
 
                     <div className="flex items-center mt-4 space-x-4">
                         <div className="flex items-center">
@@ -279,7 +288,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         />
                     </div>
 
-                    <div>
+                    <div className="md:hidden">
                         <BookPriceCard
                             id={DBBook.id}
                             title={DBBook.title}
@@ -288,6 +297,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                             mainImg={DBBook.DisplayImage[0]?.url ?? ""}
                             author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
                             price={DBBook.price.toNumber()}
+                            stock={DBBook.stock}
                         />
                         {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                     </div>
@@ -335,6 +345,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                                     alt={book.authorInfo.name}
                                     width={75}
                                     height={75}
+                                    className="rounded-full"
                                 ></Image>
                             </Link>
                             <div className="flex flex-col">
@@ -423,6 +434,19 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                             </Card>
                         ))}
                     </div>
+                </div>
+                <div className="hidden md:flex flex-col col-span-2">
+                    <BookPriceCard
+                        id={DBBook.id}
+                        title={DBBook.title}
+                        stripeId={DBBook.stripeId}
+                        amount={1}
+                        mainImg={DBBook.DisplayImage[0]?.url ?? ""}
+                        author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
+                        price={DBBook.price.toNumber()}
+                        stock={DBBook.stock}
+                    />
+                    {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                 </div>
             </div>
         </div>

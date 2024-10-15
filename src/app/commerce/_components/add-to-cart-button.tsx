@@ -16,12 +16,15 @@ export default function AddToCartButton({ bookForCart, showButtonText = false }:
 
     return (
         <Button
+            disabled={bookForCart.stock <= 0}
             size={showButtonText ? "lg" : "sm"}
             className="flex flex-col items-center"
-            variant={isInCart ? "destructive" : "default"}
+            variant={bookForCart.stock <= 0 ? "outline" : isInCart ? "destructive" : "default"}
             onClick={() => (isInCart ? dispatch(bookCartSlice.actions.removeAmount(bookForCart)) : dispatch(bookCartSlice.actions.add(bookForCart)))}
         >
-            {isInCart ? (
+            {bookForCart.stock <= 0 ? (
+                <span className={`text-center ${showButtonText ? "text-2xl" : "text-lg"}`}>Esgotado</span>
+            ) : isInCart ? (
                 <span className="flex items-center gap-1">
                     {showButtonText && <span className="mr-4 text-2xl">Devolver</span>} <MinusIcon size={iconsSize}></MinusIcon>
                     <ShoppingCartIcon size={iconsSize}></ShoppingCartIcon>

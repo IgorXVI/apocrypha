@@ -1,160 +1,91 @@
-"use client"
-
-import { Heart, ShoppingCart, Trash2 } from "lucide-react"
-import Image from "next/image"
-import { useState } from "react"
-
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
-import { Separator } from "~/components/ui/separator"
-import { toast } from "sonner"
+import { db } from "~/server/db"
+import { auth } from "@clerk/nextjs/server"
+import BookCard from "../../_components/book-card"
+import { HeartIcon } from "lucide-react"
+import Link from "next/link"
 
-// Mock data for the user's wish-list
-const initialWishList = [
-    {
-        id: 1,
-        title: "The Great Gatsby",
-        author: "F. Scott Fitzgerald",
-        cover: "/placeholder.svg?height=200&width=150",
-        price: 12.99,
-        inStock: true,
-    },
-    {
-        id: 2,
-        title: "To Kill a Mockingbird",
-        author: "Harper Lee",
-        cover: "/placeholder.svg?height=200&width=150",
-        price: 14.99,
-        inStock: true,
-    },
-    {
-        id: 3,
-        title: "1984",
-        author: "George Orwell",
-        cover: "/placeholder.svg?height=200&width=150",
-        price: 11.99,
-        inStock: false,
-    },
-    {
-        id: 4,
-        title: "Pride and Prejudice",
-        author: "Jane Austen",
-        cover: "/placeholder.svg?height=200&width=150",
-        price: 9.99,
-        inStock: true,
-    },
-]
+export default async function WishListPage() {
+    const user = auth()
 
-export default function WishListPage() {
-    const [wishList, setWishList] = useState(initialWishList)
-
-    const removeFromWishList = (id: number) => {
-        setWishList(wishList.filter((book) => book.id !== id))
-        toast("The book has been removed from your wish list.")
+    if (!user.userId) {
+        return <p>Unauthorized</p>
     }
 
-    const addToCart = (id: number) => {
-        // In a real application, this would add the item to the cart
-        toast("The book has been added to your cart.")
-    }
-
-    const totalValue = wishList.reduce((sum, book) => sum + book.price, 0)
+    const favs = await db.favorite.findMany({
+        where: {
+            userId: user.userId,
+        },
+        include: {
+            Book: {
+                include: {
+                    DisplayImage: {
+                        select: {
+                            id: true,
+                            url: true,
+                        },
+                        orderBy: {
+                            order: "asc",
+                        },
+                        take: 1,
+                    },
+                    AuthorOnBook: {
+                        orderBy: {
+                            main: "asc",
+                        },
+                        include: {
+                            Author: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                        },
+                        take: 1,
+                    },
+                },
+            },
+        },
+    })
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 mb-auto">
             <div className="flex items-center justify-between mb-8">
-                <h1 className="text-4xl font-bold">Your Wish List</h1>
+                <h1 className="text-4xl font-bold">Seus favoritos</h1>
                 <Badge
                     variant="secondary"
                     className="text-lg py-1 px-3"
                 >
-                    {wishList.length} {wishList.length === 1 ? "item" : "items"}
+                    {favs.length} {favs.length === 1 ? "livro" : "livros"}
                 </Badge>
             </div>
 
-            {wishList.length > 0 ? (
-                <>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-                        {wishList.map((book) => (
-                            <Card
-                                key={book.id}
-                                className="flex flex-col"
-                            >
-                                <CardHeader>
-                                    <div className="relative w-full h-48 mb-4">
-                                        <Image
-                                            src={book.cover}
-                                            alt={book.title}
-                                            layout="fill"
-                                            objectFit="cover"
-                                            className="rounded-lg"
-                                        />
-                                    </div>
-                                    <CardTitle>{book.title}</CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex-1">
-                                    <p className="text-muted-foreground">{book.author}</p>
-                                    <p className="font-semibold mt-2">${book.price.toFixed(2)}</p>
-                                    {!book.inStock && (
-                                        <Badge
-                                            variant="destructive"
-                                            className="mt-2"
-                                        >
-                                            Out of Stock
-                                        </Badge>
-                                    )}
-                                </CardContent>
-                                <CardFooter className="flex justify-between">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => removeFromWishList(book.id)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                        <span className="sr-only">Remove from wish list</span>
-                                    </Button>
-                                    <Button
-                                        onClick={() => addToCart(book.id)}
-                                        disabled={!book.inStock}
-                                    >
-                                        <ShoppingCart className="h-4 w-4 mr-2" />
-                                        Add to Cart
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        ))}
-                    </div>
-
-                    <Separator className="my-8" />
-
-                    <div className="flex flex-col md:flex-row justify-between items-center">
-                        <div className="mb-4 md:mb-0">
-                            <p className="text-lg">
-                                Total Value: <span className="font-bold">${totalValue.toFixed(2)}</span>
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                {wishList.filter((book) => book.inStock).length} out of {wishList.length} items in stock
-                            </p>
-                        </div>
-                        <Button
-                            size="lg"
-                            className="w-full md:w-auto"
-                        >
-                            <ShoppingCart className="h-4 w-4 mr-2" />
-                            Add All to Cart
-                        </Button>
-                    </div>
-                </>
+            {favs.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-5 mb-8">
+                    {favs.map((fav) => (
+                        <BookCard
+                            key={fav.id}
+                            book={{
+                                id: fav.Book.id,
+                                price: fav.Book.price.toNumber(),
+                                stripeId: fav.Book.stripeId,
+                                title: fav.Book.title,
+                                author: fav.Book.AuthorOnBook[0]?.Author.name ?? "",
+                                authorId: fav.Book.AuthorOnBook[0]?.authorId ?? "",
+                                mainImg: fav.Book.DisplayImage[0]?.url ?? "",
+                                stock: fav.Book.stock,
+                            }}
+                        ></BookCard>
+                    ))}
+                </div>
             ) : (
-                <Card>
-                    <CardContent className="flex flex-col items-center py-8">
-                        <Heart className="h-16 w-16 text-muted-foreground mb-4" />
-                        <h2 className="text-2xl font-semibold mb-2">Your Wish List is Empty</h2>
-                        <p className="text-muted-foreground mb-4">Start adding books you love to your wish list!</p>
-                        <Button>Browse Books</Button>
-                    </CardContent>
-                </Card>
+                <div className="text-center min-h-[50vh] flex flex-col items-center justify-center">
+                    <HeartIcon className="h-16 w-16 text-muted-foreground mb-4"></HeartIcon>
+                    <p className="text-3xl mb-4">Sua lista de favoritos está vazia</p>
+                    <Button asChild>
+                        <Link href="/commerce/book">Explorar livros</Link>
+                    </Button>
+                </div>
             )}
         </div>
     )

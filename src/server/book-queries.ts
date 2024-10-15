@@ -40,8 +40,8 @@ const transformBookInput = (data: BookSchemaType) => {
     }))
 
     return {
-        isAvailable: data.isAvailable,
         title: data.title,
+        stock: data.stock,
         description: data.description,
         pages: data.pages,
         price: data.price,

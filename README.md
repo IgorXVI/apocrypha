@@ -21,14 +21,13 @@
 -   [x] Adicionar relação entre lívros
 -   [x] Adicionar categorias secundárias para livros
 -   [ ] Adicionar imagens flutuantes no hero section
--   [ ] Adicionar loading quando um link é clicado
--   [ ] Modificar header para aparecer sempre em mobile
 -   [ ] Adicionar páginação na listagem de livros
--   [ ] Adicionar simulação de envio da compra
+-   [x] Adicionar simulação de envio da compra
 -   [ ] Fazer página de autores
--   [ ] Fazer página de sobre
 -   [ ] Fazer página de contato
--   [ ] Fazer página de perguntas frequentes
--   [ ] Fazer página de devolução
--   [ ] Fazer página de entrega
--   [ ] Fazer página de histórico de compras
+-   [x] Fazer página de entrega
+-   [x] Fazer página de histórico de compras
+-   [ ] Adicionar reviews
+-   [ ] Adicionar paginação das reviews
+-   [ ] Melhorar atualização de favoritos
+-   [ ] Adicionar controle de estoque atravéz do carrinho de compras

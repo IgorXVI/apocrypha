@@ -26,12 +26,6 @@ export default function HeaderLinks() {
                 Livros
             </Link>
             <Link
-                href="/commerce/author"
-                className="hover:underline"
-            >
-                Autores
-            </Link>
-            <Link
                 href="/commerce/user/order"
                 className="hover:underline"
             >
