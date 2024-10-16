@@ -25,6 +25,7 @@ export default function AddToFavoriteButton({ book, size }: { book: BookCartStat
         <Button
             variant="link"
             size="icon"
+            className="hover:scale-150 transition-all duration-300"
             onClick={toggleFav}
         >
             <HeartIcon

@@ -120,8 +120,21 @@ export default function CartPage() {
                                             </Link>
                                         </TableCell>
                                         <TableCell>
-                                            <h3 className="font-semibold">{item.title}</h3>
-                                            <p className="text-sm text-muted-foreground">{item.author}</p>
+                                            <div className="flex flex-col gap-1">
+                                                <Link
+                                                    href={`/commerce/book/${item.id}`}
+                                                    className="hover:underline"
+                                                >
+                                                    <span className="font-semibold">{item.title}</span>
+                                                </Link>
+
+                                                <Link
+                                                    href={`/commerce/author/${item.id}`}
+                                                    className="hover:underline"
+                                                >
+                                                    <span className="text-sm text-muted-foreground">{item.author}</span>
+                                                </Link>
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center space-x-2">
@@ -193,7 +206,7 @@ export default function CartPage() {
                 <div className="text-center min-h-[50vh] flex flex-col justify-center items-center">
                     <p className="text-3xl mb-4">Seu carrinho está vazio</p>
                     <Button asChild>
-                        <Link href="/commerce">Continuar comprando</Link>
+                        <Link href="/commerce/book">Continuar comprando</Link>
                     </Button>
                 </div>
             )}

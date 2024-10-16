@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import FavoriteButton from "./add-to-favorite-button"
 import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 
 export default function BookCard({ book }: { book: BookCartState }) {
     return (
@@ -30,14 +31,26 @@ export default function BookCard({ book }: { book: BookCartState }) {
             </div>
             <CardContent>
                 <div className="flex flex-col gap-2 mt-2">
-                    <Link href={`/commerce/book/${book.id}`}>
-                        <p className="hover:underline">
-                            <span className="line-clamp-1 hover:line-clamp-none text-lg">{book.title}</span>
-                        </p>
-                    </Link>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger className="text-left">
+                                <Link
+                                    href={`/commerce/book/${book.id}`}
+                                    className="hover:underline"
+                                >
+                                    <span className="line-clamp-1 text-lg font-bold">{book.title}</span>
+                                </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{book.title}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
                     <Link href={`/commerce/author/${book.authorId}`}>
                         <p className="text-sm text-muted-foreground hover:underline">{book.author}</p>
                     </Link>
+
                     <div className="flex flex-row items-center justify-between">
                         <p className="font-bold text-2xl text-green-500">R$ {book.price.toFixed(2)}</p>
                         <AddToCartButton
