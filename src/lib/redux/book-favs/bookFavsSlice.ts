@@ -6,12 +6,12 @@ export const bookFavsSlice = createSlice({
         value: {} as Record<string, boolean>,
         loading: false,
     },
-    reducers: (create) => ({
+    reducers: () => ({
         add: (state, action: PayloadAction<string>) => {
             state.value[action.payload] = true
         },
         remove: (state, action: PayloadAction<string>) => {
-            state.value[action.payload] = true
+            state.value[action.payload] = false
         },
     }),
 })
