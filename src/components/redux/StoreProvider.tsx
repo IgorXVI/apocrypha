@@ -3,6 +3,7 @@
 import { Loader2Icon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { Provider } from "react-redux"
+import { useDebouncedCallback } from "use-debounce"
 import { type POSTApiUserStateInput, type GETApiUserStateOutput } from "~/app/api/user/state/route"
 import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
 import { makeStore, type AppStore } from "~/lib/redux/store"
@@ -61,6 +62,13 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
         }
     }, [])
 
+    const saveStateFun = useDebouncedCallback((apiInput: POSTApiUserStateInput) => {
+        fetch("/api/user/state", {
+            method: "POST",
+            body: JSON.stringify(apiInput.data),
+        }).catch((error) => console.error(error))
+    }, 500)
+
     if (isLoading) {
         return (
             <div className="flex flex-col flex-grow min-h-screen items-center justify-center gap-5">
@@ -88,17 +96,12 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
         storeRef.current.subscribe(() => {
             const state = storeRef.current?.getState()
 
-            const apiInput: POSTApiUserStateInput = {
+            saveStateFun({
                 data: {
                     bookCart: state?.bookCart.value ?? [],
                     bookFavs: state?.bookFavs.value ?? [],
                 },
-            }
-
-            fetch("/api/user/state", {
-                method: "POST",
-                body: JSON.stringify(apiInput.data),
-            }).catch((error) => console.error(error))
+            })
         })
     }
 
