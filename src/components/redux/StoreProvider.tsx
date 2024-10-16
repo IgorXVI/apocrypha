@@ -22,8 +22,8 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
         }).catch((error) => console.error("API_POST_USER_STATE_ERROR:", error))
     }, 500)
 
-    const getStateFun = useDebouncedCallback(() => {
-        if (!storeRef.current) {
+    useEffect(() => {
+        try {
             fetch("/api/user/state")
                 .then((res) =>
                     res.json().then((json: GETApiUserStateOutput) => {
@@ -38,19 +38,11 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
                     setIsLoading(false)
                     console.error("API_GET_USER_STATE_ERROR:", error)
                 })
-        } else {
-            setIsLoading(false)
-        }
-    }, 500)
-
-    useEffect(() => {
-        try {
-            getStateFun()
         } catch (error) {
             console.error("GET_STATE_FUN_ERROR:", error)
             setIsLoading(false)
         }
-    }, [getStateFun])
+    }, [])
 
     if (isLoading) {
         return <LogoAndSpinner></LogoAndSpinner>
@@ -71,16 +63,12 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
         storeRef.current.subscribe(() => {
             const state = storeRef.current?.getState()
 
-            try {
-                saveStateFun({
-                    data: {
-                        bookCart: state?.bookCart.value ?? [],
-                        bookFavs: state?.bookFavs.value ?? [],
-                    },
-                })
-            } catch (error) {
-                console.error("SAVE_STATE_FUN_ERROR:", error)
-            }
+            saveStateFun({
+                data: {
+                    bookCart: state?.bookCart.value ?? [],
+                    bookFavs: state?.bookFavs.value ?? [],
+                },
+            })
         })
     }
 
