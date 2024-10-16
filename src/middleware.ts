@@ -2,7 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { type UserMetadata } from "./lib/types"
 
-const isPublicRoute = createRouteMatcher(["/api/cron(.*)", "/sign-in(.*)", "/sign-up(.*)"])
+const isPublicRoute = createRouteMatcher(["/api/user/state", "/api/cron(.*)", "/sign-in(.*)", "/sign-up(.*)"])
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)", "/api/admin(.*)"])
 
