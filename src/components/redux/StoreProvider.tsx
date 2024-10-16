@@ -35,7 +35,10 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
                         }
                     }),
                 )
-                .catch((error) => console.error(error))
+                .catch((error) => {
+                    setIsLoading(false)
+                    console.error(error)
+                })
         }
     }, 500)
 
