@@ -46,17 +46,19 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        fetch("/api/user/state")
-            .then((res) =>
-                res.json().then((json: GETApiUserStateOutput) => {
-                    setIsLoading(false)
-                    if (json.success) {
-                        setBookCart(json.data?.bookCart ?? [])
-                        setBookFavs(json.data?.bookFavs ?? [])
-                    }
-                }),
-            )
-            .catch((error) => console.error(error))
+        if (!storeRef.current) {
+            fetch("/api/user/state")
+                .then((res) =>
+                    res.json().then((json: GETApiUserStateOutput) => {
+                        setIsLoading(false)
+                        if (json.success) {
+                            setBookCart(json.data?.bookCart ?? [])
+                            setBookFavs(json.data?.bookFavs ?? [])
+                        }
+                    }),
+                )
+                .catch((error) => console.error(error))
+        }
     }, [])
 
     if (isLoading) {
@@ -96,17 +98,7 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
             fetch("/api/user/state", {
                 method: "POST",
                 body: JSON.stringify(apiInput.data),
-            })
-                .then((res) =>
-                    res.json().then((json: GETApiUserStateOutput) => {
-                        setIsLoading(false)
-                        if (json.success) {
-                            setBookCart(json.data?.bookCart ?? [])
-                            setBookFavs(json.data?.bookFavs ?? [])
-                        }
-                    }),
-                )
-                .catch((error) => console.error(error))
+            }).catch((error) => console.error(error))
         })
     }
 
