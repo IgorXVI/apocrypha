@@ -1,51 +1,25 @@
 "use client"
 
-import { HeartIcon, XIcon } from "lucide-react"
-import { useMemo, useState } from "react"
-import { toastError } from "~/components/toast/toasting"
+import { HeartIcon } from "lucide-react"
+import { useMemo } from "react"
 import { Button } from "~/components/ui/button"
-import { mainApi } from "~/lib/redux/apis/main-api/main"
+import { bookFavsSlice } from "~/lib/redux/book-favs/bookFavsSlice"
+import { useAppDispatch, useAppSelector } from "~/lib/redux/hooks"
 
 export default function FavoriteButton({ bookId, size }: { bookId: string; size: number }) {
-    const [triggerAddFav] = mainApi.useSaveUserFavBookMutation()
-    const [triggerRemoveFav] = mainApi.useRemoveUserFavBookMutation()
-    const isFavQuery = mainApi.useGetUserFavBookQuery(bookId)
+    const dispatch = useAppDispatch()
+    const isFavMap = useAppSelector((state) => state.bookFavs.value)
 
-    const [mutationLoading, setMutationLoading] = useState(false)
-    const [mutationError, setMutationError] = useState(false)
+    const isFav = useMemo(() => isFavMap[bookId] ?? false, [bookId, isFavMap])
 
-    const isLoading = useMemo(() => mutationLoading || isFavQuery.isLoading, [isFavQuery.isLoading, mutationLoading])
-    const isFav = useMemo(() => Boolean(isFavQuery.data?.success && isFavQuery.data.isFav), [isFavQuery.data])
-
-    if (isFavQuery.isError || mutationError) {
-        if (isFavQuery.error) {
-            toastError(JSON.stringify(isFavQuery.error))
-        }
-        return (
-            <Button
-                variant="link"
-                size="icon"
-                disabled={true}
-            >
-                <XIcon
-                    size={size}
-                    className="text-red-500"
-                ></XIcon>
-            </Button>
-        )
-    }
+    const isLoading = false
 
     const toggleFav = () => {
-        setMutationLoading(true)
-        const p = isFav ? triggerRemoveFav(bookId) : triggerAddFav(bookId)
-        p.then(() => isFavQuery.refetch().then(() => setMutationLoading(false))).catch((error) => {
-            setMutationError(true)
-            if (error instanceof Error) {
-                toastError(error.message)
-                return
-            }
-            toastError(JSON.stringify(error))
-        })
+        if (isFav) {
+            dispatch(bookFavsSlice.actions.remove(bookId))
+        } else {
+            dispatch(bookFavsSlice.actions.add(bookId))
+        }
     }
 
     return (
