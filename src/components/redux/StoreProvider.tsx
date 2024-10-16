@@ -16,31 +16,52 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     const [isLoading, setIsLoading] = useState(true)
 
     const saveStateFun = useDebouncedCallback((apiInput: POSTApiUserStateInput) => {
-        fetch("/api/user/state", {
-            method: "POST",
-            body: JSON.stringify(apiInput.data),
-        }).catch((error) => console.error(error))
-    }, 500)
-
-    const getStateFun = useDebouncedCallback(() => {
-        if (!storeRef.current) {
-            fetch("/api/user/state")
-                .then((res) =>
-                    res.json().then((json: GETApiUserStateOutput) => {
-                        setIsLoading(false)
-                        if (json.success) {
-                            setBookCart(json.data?.bookCart ?? [])
-                            setBookFavs(json.data?.bookFavs ?? [])
-                        }
-                    }),
-                )
-                .catch((error) => console.error(error))
+        try {
+            fetch("/api/user/state", {
+                method: "POST",
+                body: JSON.stringify(apiInput.data),
+                headers: {
+                    accept: "application/json",
+                    "content-type": "application/json",
+                },
+            }).catch((error) => console.error("API_POST_USER_STATE_ERROR:", error))
+        } catch (error) {
+            console.error("BEFORE_API_POST_USER_STATE_ERROR:", error)
         }
     }, 500)
 
     useEffect(() => {
-        getStateFun()
-    }, [getStateFun])
+        try {
+            fetch("/api/user/state", {
+                headers: {
+                    accept: "application/json",
+                    "content-type": "application/json",
+                },
+            })
+                .then((res) => {
+                    return res
+                        .json()
+                        .then((json: GETApiUserStateOutput) => {
+                            setIsLoading(false)
+                            if (json.success) {
+                                setBookCart(json.data?.bookCart ?? [])
+                                setBookFavs(json.data?.bookFavs ?? [])
+                            }
+                        })
+                        .catch((error) => {
+                            setIsLoading(false)
+                            console.error("API_GET_USER_STATE_RESPONSE_JSON_ERROR:", error)
+                        })
+                })
+                .catch((error) => {
+                    setIsLoading(false)
+                    console.error("API_GET_USER_STATE_ERROR:", error)
+                })
+        } catch (error) {
+            console.error("GET_STATE_FUN_ERROR:", error)
+            setIsLoading(false)
+        }
+    }, [])
 
     if (isLoading) {
         return <LogoAndSpinner></LogoAndSpinner>
