@@ -16,6 +16,7 @@ import {
 import { type GETApiSuggestionOutput, type GETApiSuggestionInput } from "~/app/api/admin/suggestions/[slug]/route"
 import { type POSTApiCheckoutInput, type POSTApiCheckoutOutput } from "~/app/api/checkout/route"
 import { type GETApiUserAddressOutput, type POSTApiUserAddressInput, type POSTApiUserAddressOutput } from "~/app/api/user/address/route"
+import { type GETApiUserStateOutput, type POSTApiUserStateInput, type POSTApiUserStateOutput } from "~/app/api/user/state/route"
 
 export const mainApi = createApi({
     reducerPath: "mainApi",
@@ -94,6 +95,16 @@ export const mainApi = createApi({
         saveUserAddress: builder.mutation<POSTApiUserAddressOutput, POSTApiUserAddressInput>({
             query: ({ data }) => ({
                 url: "user/address",
+                method: "POST",
+                body: data,
+            }),
+        }),
+        getUserState: builder.query<GETApiUserStateOutput, undefined>({
+            query: () => ({ url: "user/state" }),
+        }),
+        saveUserState: builder.mutation<POSTApiUserStateOutput, POSTApiUserStateInput>({
+            query: ({ data }) => ({
+                url: "user/state",
                 method: "POST",
                 body: data,
             }),

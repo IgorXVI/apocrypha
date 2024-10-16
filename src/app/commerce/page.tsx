@@ -151,6 +151,7 @@ export default async function MainCommercePage() {
                         description: book.description,
                         isFav: book.Favorite[0]?.id !== undefined,
                         stock: book.stock,
+                        amount: 1,
                     }))}
                 />
 
@@ -167,6 +168,7 @@ export default async function MainCommercePage() {
                         description: book.description,
                         isFav: book.Favorite[0]?.id !== undefined,
                         stock: book.stock,
+                        amount: 1,
                     }))}
                 />
 
