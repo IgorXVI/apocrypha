@@ -217,7 +217,7 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             currency: "brl",
             line_items: lineItems,
             success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
-            cancel_url: `${env.URL}/commerce/payment-canceled/{CHECKOUT_SESSION_ID}`,
+            cancel_url: `${env.URL}/commerce/cart`,
             locale: "pt-BR",
             shipping_options: shippingOptions.map((shipping) => ({
                 shipping_rate_data: {
