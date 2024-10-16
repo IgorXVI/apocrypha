@@ -13,7 +13,7 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
 
     const [bookFavs, setBookFavs] = useState<BookCartState[]>([])
     const [bookCart, setBookCart] = useState<BookCartState[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
 
     const saveStateFun = useDebouncedCallback((apiInput: POSTApiUserStateInput) => {
         fetch("/api/user/state", {
@@ -24,6 +24,7 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
 
     const getStateFun = useDebouncedCallback(() => {
         if (!storeRef.current) {
+            setIsLoading(true)
             fetch("/api/user/state")
                 .then((res) =>
                     res.json().then((json: GETApiUserStateOutput) => {
