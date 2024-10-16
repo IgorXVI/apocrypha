@@ -263,6 +263,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         author: DBBook.AuthorOnBook[0]?.Author.name ?? "",
         price: DBBook.price.toNumber(),
         stock: DBBook.stock,
+        authorId: DBBook.AuthorOnBook[0]?.authorId ?? "",
     }
 
     return (
@@ -351,7 +352,14 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                                 ></Image>
                             </Link>
                             <div className="flex flex-col">
-                                <h4 className="font-medium">{book.authorInfo.name}</h4>
+                                <h4 className="font-medium">
+                                    <Link
+                                        href={`/commerce/author/${book.authorInfo.id}`}
+                                        className="hover:underline"
+                                    >
+                                        {book.authorInfo.name}
+                                    </Link>
+                                </h4>
                                 <div className="text-sm text-muted-foreground mt-2">
                                     <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.authorInfo.bio) }}></div>
                                 </div>
