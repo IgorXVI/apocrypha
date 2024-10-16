@@ -46,7 +46,14 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     const [bookCart, setBookCart] = useState<BookCartState[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
-    useEffect(() => {
+    const saveStateFun = useDebouncedCallback((apiInput: POSTApiUserStateInput) => {
+        fetch("/api/user/state", {
+            method: "POST",
+            body: JSON.stringify(apiInput.data),
+        }).catch((error) => console.error(error))
+    }, 500)
+
+    const getStateFun = useDebouncedCallback(() => {
         if (!storeRef.current) {
             fetch("/api/user/state")
                 .then((res) =>
@@ -60,14 +67,11 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
                 )
                 .catch((error) => console.error(error))
         }
-    }, [])
-
-    const saveStateFun = useDebouncedCallback((apiInput: POSTApiUserStateInput) => {
-        fetch("/api/user/state", {
-            method: "POST",
-            body: JSON.stringify(apiInput.data),
-        }).catch((error) => console.error(error))
     }, 500)
+
+    useEffect(() => {
+        getStateFun()
+    }, [getStateFun])
 
     if (isLoading) {
         return (
