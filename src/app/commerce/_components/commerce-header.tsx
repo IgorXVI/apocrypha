@@ -6,6 +6,7 @@ import CompanyIconButton from "~/components/header/company-icon-button"
 import UserAddress from "./user-address"
 import CartButton from "./cart-button"
 import DesktopHeaderNav from "~/components/header/desktop-header-nav"
+import FavoritesButton from "./favorites-button"
 
 export default function CommerceHeader() {
     return (
@@ -27,6 +28,7 @@ export default function CommerceHeader() {
                 <ProductSearch></ProductSearch>
 
                 <div className="flex justify-center gap-6 items-center p-2">
+                    <FavoritesButton></FavoritesButton>
                     <CartButton></CartButton>
                     <HeaderUserButton></HeaderUserButton>
                 </div>

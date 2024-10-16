@@ -2,22 +2,10 @@ import { Card, CardContent } from "~/components/ui/card"
 import AddToCartButton from "./add-to-cart-button"
 import Link from "next/link"
 import Image from "next/image"
-import FavoriteButton from "./favorite-button"
+import FavoriteButton from "./add-to-favorite-button"
+import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
 
-export default function BookCard({
-    book,
-}: {
-    book: {
-        mainImg: string
-        id: string
-        title: string
-        authorId: string
-        author: string
-        price: number
-        stripeId: string
-        stock: number
-    }
-}) {
+export default function BookCard({ book }: { book: BookCartState }) {
     return (
         <Card>
             <div className="aspect-[3/4] relative">
@@ -35,7 +23,7 @@ export default function BookCard({
                 </Link>
                 <div className="absolute top-1 right-1">
                     <FavoriteButton
-                        bookId={book.id}
+                        book={book}
                         size={32}
                     ></FavoriteButton>
                 </div>

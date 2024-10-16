@@ -3,6 +3,7 @@ import { type Prisma } from "@prisma/client"
 import { db } from "~/server/db"
 import { BooksFilters } from "../_components/books-filters"
 import BookCard from "../_components/book-card"
+import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
 
 type SuperCategory = {
     id: string
@@ -30,18 +31,6 @@ type SuperCategory = {
             }
         }[]
     }[]
-}
-
-type Book = {
-    id: string
-    title: string
-    mainImg: string
-    price: number
-    author: string
-    stripeId: string
-    description: string
-    authorId: string
-    stock: number
 }
 
 type SuperCategoryWithAll = {
@@ -280,7 +269,7 @@ export default async function BooksPage({
         ? selectedCategory.CategoryOnBook.map((categoryOnBook) => categoryOnBook.Book)
         : superCategory?.Category.flatMap((category) => category.CategoryOnBook.map((categoryOnBook) => categoryOnBook.Book))
 
-    const books: Book[] = unformatedBooks.map((book) => ({
+    const books: BookCartState[] = unformatedBooks.map((book) => ({
         id: book.id,
         title: book.title,
         mainImg: book.DisplayImage[0]?.url ?? "",
@@ -290,6 +279,7 @@ export default async function BooksPage({
         authorId: book.AuthorOnBook[0]?.Author.id ?? "",
         stripeId: book.stripeId,
         stock: book.stock,
+        amount: 1,
     }))
 
     const categories = superCategory.Category.map((category) => ({

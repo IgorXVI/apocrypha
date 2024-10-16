@@ -6,6 +6,7 @@ export type BookCartState = {
     mainImg: string
     title: string
     author: string
+    authorId: string
     price: number
     amount: number
     stripeId: string

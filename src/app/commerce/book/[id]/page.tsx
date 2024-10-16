@@ -10,7 +10,7 @@ import BookDetailsImages from "../../_components/book-details-images"
 import { db } from "~/server/db"
 import AddToCartButton from "../../_components/add-to-cart-button"
 import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
-import FavoriteButton from "../../_components/favorite-button"
+import AddToFavoriteButton from "../../_components/add-to-favorite-button"
 
 const langsMap: Record<string, string> = {
     PORTUGUESE: "Português",
@@ -254,6 +254,17 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         },
     }
 
+    const bookForCart: BookCartState = {
+        id: DBBook.id,
+        title: DBBook.title,
+        stripeId: DBBook.stripeId,
+        amount: 1,
+        mainImg: DBBook.DisplayImage[0]?.url ?? "",
+        author: DBBook.AuthorOnBook[0]?.Author.name ?? "",
+        price: DBBook.price.toNumber(),
+        stock: DBBook.stock,
+    }
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-5 gap-8">
@@ -263,10 +274,10 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                             <h1 className="text-3xl font-bold">{book.title}</h1>
                             <h2 className="text-xl text-muted-foreground mt-2">{book.subtitle}</h2>
                         </div>
-                        <FavoriteButton
-                            bookId={DBBook.id}
+                        <AddToFavoriteButton
+                            book={bookForCart}
                             size={32}
-                        ></FavoriteButton>
+                        ></AddToFavoriteButton>
                     </div>
 
                     <div className="flex items-center mt-4 space-x-4">
@@ -289,16 +300,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                     </div>
 
                     <div className="md:hidden">
-                        <BookPriceCard
-                            id={DBBook.id}
-                            title={DBBook.title}
-                            stripeId={DBBook.stripeId}
-                            amount={1}
-                            mainImg={DBBook.DisplayImage[0]?.url ?? ""}
-                            author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
-                            price={DBBook.price.toNumber()}
-                            stock={DBBook.stock}
-                        />
+                        <BookPriceCard {...bookForCart} />
                         {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                     </div>
 
@@ -436,16 +438,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                     </div>
                 </div>
                 <div className="hidden md:flex flex-col col-span-2">
-                    <BookPriceCard
-                        id={DBBook.id}
-                        title={DBBook.title}
-                        stripeId={DBBook.stripeId}
-                        amount={1}
-                        mainImg={DBBook.DisplayImage[0]?.url ?? ""}
-                        author={DBBook.AuthorOnBook[0]?.Author.name ?? ""}
-                        price={DBBook.price.toNumber()}
-                        stock={DBBook.stock}
-                    />
+                    <BookPriceCard {...bookForCart} />
                     {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                 </div>
             </div>
