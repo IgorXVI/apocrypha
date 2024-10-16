@@ -19,7 +19,7 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
         fetch("/api/user/state", {
             method: "POST",
             body: JSON.stringify(apiInput.data),
-        }).catch((error) => console.error(error))
+        }).catch((error) => console.error("API_POST_USER_STATE_ERROR:", error))
     }, 500)
 
     const getStateFun = useDebouncedCallback(() => {
@@ -71,12 +71,16 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
         storeRef.current.subscribe(() => {
             const state = storeRef.current?.getState()
 
-            saveStateFun({
-                data: {
-                    bookCart: state?.bookCart.value ?? [],
-                    bookFavs: state?.bookFavs.value ?? [],
-                },
-            })
+            try {
+                saveStateFun({
+                    data: {
+                        bookCart: state?.bookCart.value ?? [],
+                        bookFavs: state?.bookFavs.value ?? [],
+                    },
+                })
+            } catch (error) {
+                console.error("SAVE_STATE_FUN_ERROR:", error)
+            }
         })
     }
 
