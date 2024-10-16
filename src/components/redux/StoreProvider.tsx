@@ -38,15 +38,21 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
                     "content-type": "application/json",
                 },
             })
-                .then((res) =>
-                    res.json().then((json: GETApiUserStateOutput) => {
-                        setIsLoading(false)
-                        if (json.success) {
-                            setBookCart(json.data?.bookCart ?? [])
-                            setBookFavs(json.data?.bookFavs ?? [])
-                        }
-                    }),
-                )
+                .then((res) => {
+                    return res
+                        .json()
+                        .then((json: GETApiUserStateOutput) => {
+                            setIsLoading(false)
+                            if (json.success) {
+                                setBookCart(json.data?.bookCart ?? [])
+                                setBookFavs(json.data?.bookFavs ?? [])
+                            }
+                        })
+                        .catch((error) => {
+                            setIsLoading(false)
+                            console.error("API_GET_USER_STATE_RESPONSE_JSON_ERROR:", error)
+                        })
+                })
                 .catch((error) => {
                     setIsLoading(false)
                     console.error("API_GET_USER_STATE_ERROR:", error)
