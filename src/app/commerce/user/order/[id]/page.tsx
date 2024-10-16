@@ -1,4 +1,4 @@
-import * as R from "remeda"
+import * as _ from "lodash"
 
 import { BookOpenIcon, BoxesIcon, CalendarIcon, CreditCard, Package, TagIcon, TagsIcon, Truck } from "lucide-react"
 import OrderStatus from "~/components/order/order-status"
@@ -15,7 +15,7 @@ import Image from "next/image"
 const formatStripeName = (name: string) =>
     name
         .split("_")
-        .map((t) => R.capitalize(t))
+        .map((t) => _.capitalize(t))
         .join(" ")
 
 const cardType = new Map<string, string>([
