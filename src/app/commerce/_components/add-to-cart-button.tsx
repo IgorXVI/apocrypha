@@ -3,10 +3,11 @@
 import { MinusIcon, PlusIcon, ShoppingCartIcon } from "lucide-react"
 import { useMemo } from "react"
 import { Button } from "~/components/ui/button"
-import { bookCartSlice, type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import { bookCartSlice } from "~/lib/redux/book-cart/bookCartSlice"
+import { type BookClientSideState } from "~/lib/types"
 import { useAppDispatch, useAppSelector } from "~/lib/redux/hooks"
 
-export default function AddToCartButton({ bookForCart, showButtonText = false }: { bookForCart: BookCartState; showButtonText?: boolean }) {
+export default function AddToCartButton({ bookForCart, showButtonText = false }: { bookForCart: BookClientSideState; showButtonText?: boolean }) {
     const dispatch = useAppDispatch()
     const cartContent = useAppSelector((state) => state.bookCart.value)
 

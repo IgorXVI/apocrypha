@@ -65,3 +65,20 @@ export type TranslatorInput = Prisma.TranslatorCreateInput
 export type UserMetadata = {
     isAdmin?: boolean
 }
+
+export type BookClientSideState = {
+    id: string
+    stock: number
+    mainImg: string
+    title: string
+    author: string
+    authorId: string
+    price: number
+    amount: number
+    stripeId: string
+}
+
+export type UserClientSideState = {
+    bookFavs: BookClientSideState[]
+    bookCart: BookClientSideState[]
+}

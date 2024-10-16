@@ -1,13 +1,16 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import { type BookCartState } from "../book-cart/bookCartSlice"
+import { type BookClientSideState } from "~/lib/types"
 
 export const bookFavsSlice = createSlice({
     name: "bookFavs",
     initialState: {
-        value: [] as BookCartState[],
+        value: [] as BookClientSideState[],
     },
     reducers: () => ({
-        add: (state, action: PayloadAction<BookCartState>) => {
+        replace: (state, action: PayloadAction<BookClientSideState[]>) => {
+            state.value = action.payload
+        },
+        add: (state, action: PayloadAction<BookClientSideState>) => {
             const book = state.value.find((book) => book.id === action.payload.id)
             if (book) {
                 book.amount += action.payload.amount

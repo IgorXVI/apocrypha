@@ -3,11 +3,11 @@
 import { HeartIcon } from "lucide-react"
 import { useMemo } from "react"
 import { Button } from "~/components/ui/button"
-import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import { type BookClientSideState } from "~/lib/types"
 import { bookFavsSlice } from "~/lib/redux/book-favs/bookFavsSlice"
 import { useAppDispatch, useAppSelector } from "~/lib/redux/hooks"
 
-export default function AddToFavoriteButton({ book, size }: { book: BookCartState; size: number }) {
+export default function AddToFavoriteButton({ book, size }: { book: BookClientSideState; size: number }) {
     const dispatch = useAppDispatch()
     const bookFavs = useAppSelector((state) => state.bookFavs.value)
 

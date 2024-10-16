@@ -3,7 +3,7 @@ import { type Prisma } from "@prisma/client"
 import { db } from "~/server/db"
 import { BooksFilters } from "../_components/books-filters"
 import BookCard from "../_components/book-card"
-import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import { type BookClientSideState } from "~/lib/types"
 
 type SuperCategory = {
     id: string
@@ -269,7 +269,7 @@ export default async function BooksPage({
         ? selectedCategory.CategoryOnBook.map((categoryOnBook) => categoryOnBook.Book)
         : superCategory?.Category.flatMap((category) => category.CategoryOnBook.map((categoryOnBook) => categoryOnBook.Book))
 
-    const books: BookCartState[] = unformatedBooks.map((book) => ({
+    const books: BookClientSideState[] = unformatedBooks.map((book) => ({
         id: book.id,
         title: book.title,
         mainImg: book.DisplayImage[0]?.url ?? "",
