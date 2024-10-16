@@ -16,10 +16,14 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     const [isLoading, setIsLoading] = useState(true)
 
     const saveStateFun = useDebouncedCallback((apiInput: POSTApiUserStateInput) => {
-        fetch("/api/user/state", {
-            method: "POST",
-            body: JSON.stringify(apiInput.data),
-        }).catch((error) => console.error("API_POST_USER_STATE_ERROR:", error))
+        try {
+            fetch("/api/user/state", {
+                method: "POST",
+                body: JSON.stringify(apiInput.data),
+            }).catch((error) => console.error("API_POST_USER_STATE_ERROR:", error))
+        } catch (error) {
+            console.error("BEFORE_API_POST_USER_STATE_ERROR:", error)
+        }
     }, 500)
 
     useEffect(() => {
