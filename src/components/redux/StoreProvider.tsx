@@ -36,7 +36,7 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
                 )
                 .catch((error) => {
                     setIsLoading(false)
-                    console.error(error)
+                    console.error("API_GET_USER_STATE_ERROR:", error)
                 })
         } else {
             setIsLoading(false)
@@ -44,7 +44,12 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     }, 500)
 
     useEffect(() => {
-        getStateFun()
+        try {
+            getStateFun()
+        } catch (error) {
+            console.error("GET_STATE_FUN_ERROR:", error)
+            setIsLoading(false)
+        }
     }, [getStateFun])
 
     if (isLoading) {
