@@ -270,14 +270,14 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-5 gap-8">
                 <div className="md:col-span-3">
-                    <div className="flex gap-2">
-                        <div>
+                    <div className="flex gap-5 items-center">
+                        <div className="flex flex-col items-start justify-center">
                             <h1 className="text-3xl font-bold">{book.title}</h1>
-                            <h2 className="text-xl text-muted-foreground mt-2">{book.subtitle}</h2>
+                            {book.subtitle.length > 0 && <h2 className="text-xl text-muted-foreground mt-2">{book.subtitle}</h2>}
                         </div>
                         <AddToFavoriteButton
                             book={bookForCart}
-                            size={32}
+                            size={100}
                         ></AddToFavoriteButton>
                     </div>
 
