@@ -6,7 +6,6 @@ import { GeistSans } from "geist/font/sans"
 import { type Metadata } from "next"
 
 import { Toaster } from "~/components/ui/sonner"
-import StoreProvider from "~/components/redux/StoreProvider"
 import { env } from "~/env"
 
 export const metadata: Metadata = {
@@ -36,7 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 className={`${GeistSans.variable}`}
             >
                 <body className="min-h-screen">
-                    <StoreProvider>{children}</StoreProvider>
+                    {children}
                     <Toaster></Toaster>
                 </body>
             </html>
