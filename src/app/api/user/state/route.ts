@@ -4,8 +4,6 @@ import { auth } from "@clerk/nextjs/server"
 import { db } from "~/server/db"
 import { errorHandler } from "~/server/generic-queries"
 
-export const dynamic = "force-dynamic"
-
 const userStateValidationSchema = z.object({
     bookCart: z.array(
         z.object({
