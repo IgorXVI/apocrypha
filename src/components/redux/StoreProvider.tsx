@@ -64,12 +64,7 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     }, [])
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center">
-                <p>Store Provider</p>
-                <LogoAndSpinner></LogoAndSpinner>
-            </div>
-        )
+        return <LogoAndSpinner></LogoAndSpinner>
     }
 
     if (!storeRef.current) {
