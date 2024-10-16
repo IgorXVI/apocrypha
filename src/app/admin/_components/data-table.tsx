@@ -1,6 +1,6 @@
 "use client"
 
-import * as R from "remeda"
+import * as _ from "lodash"
 import React, { useMemo, useState } from "react"
 import { MoreHorizontal, PlusCircle, LoaderCircle, CircleX, AlertCircle, CheckIcon, XIcon } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
@@ -52,7 +52,7 @@ export default function DataTable(props: {
     return (
         <Card x-chunk="dashboard-06-chunk-0">
             <CardHeader>
-                <CardTitle>{R.capitalize(props.namePlural)}</CardTitle>
+                <CardTitle>{_.capitalize(props.namePlural)}</CardTitle>
                 <CardDescription>{props.tableDescription}</CardDescription>
             </CardHeader>
             {props.isLoading && (

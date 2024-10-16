@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { dbQueryWithToast } from "~/components/toast/toasting"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useState } from "react"
 
 export default function CartPage() {
     const dispatch = useAppDispatch()
@@ -21,24 +21,6 @@ export default function CartPage() {
     const router = useRouter()
     const [triggerCheckout] = mainApi.useCheckoutMutation()
     const [isDisabled, setIsDisabled] = useState(false)
-    const hasRemoved = useRef(false)
-
-    if (typeof window !== "undefined" && (cartContent.length > 0 || hasRemoved.current)) {
-        localStorage.setItem("cartState", JSON.stringify(cartContent))
-    }
-
-    const cartUrlState = useMemo(() => (typeof window !== "undefined" ? localStorage.getItem("cartState") : null), [])
-
-    useEffect(() => {
-        if (cartUrlState) {
-            try {
-                const cartStateJSON = JSON.parse(cartUrlState)
-                dispatch(bookCartSlice.actions.replace(cartStateJSON))
-            } catch (error) {
-                console.error("PARSING_URL_CART_STATE", error)
-            }
-        }
-    }, [cartUrlState, dispatch])
 
     const updateQuantity = (id: string, newQuantity: number, stock: number) => {
         if (newQuantity < 1) return
@@ -50,7 +32,6 @@ export default function CartPage() {
 
     const removeItem = (id: string) => {
         dispatch(bookCartSlice.actions.remove(id))
-        hasRemoved.current = true
     }
 
     const total = cartContent.reduce((sum, item) => sum + item.price * item.amount, 0)
@@ -139,8 +120,21 @@ export default function CartPage() {
                                             </Link>
                                         </TableCell>
                                         <TableCell>
-                                            <h3 className="font-semibold">{item.title}</h3>
-                                            <p className="text-sm text-muted-foreground">{item.author}</p>
+                                            <div className="flex flex-col gap-1">
+                                                <Link
+                                                    href={`/commerce/book/${item.id}`}
+                                                    className="hover:underline"
+                                                >
+                                                    <span className="font-semibold">{item.title}</span>
+                                                </Link>
+
+                                                <Link
+                                                    href={`/commerce/author/${item.id}`}
+                                                    className="hover:underline"
+                                                >
+                                                    <span className="text-sm text-muted-foreground">{item.author}</span>
+                                                </Link>
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center space-x-2">
@@ -212,7 +206,7 @@ export default function CartPage() {
                 <div className="text-center min-h-[50vh] flex flex-col justify-center items-center">
                     <p className="text-3xl mb-4">Seu carrinho está vazio</p>
                     <Button asChild>
-                        <Link href="/commerce">Continuar comprando</Link>
+                        <Link href="/commerce/book">Continuar comprando</Link>
                     </Button>
                 </div>
             )}

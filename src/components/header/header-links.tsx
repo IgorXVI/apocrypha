@@ -32,12 +32,6 @@ export default function HeaderLinks() {
                 Meus Pedidos
             </Link>
             <Link
-                href="/commerce/user/wish-list"
-                className="hover:underline"
-            >
-                Meus Favoritos
-            </Link>
-            <Link
                 href="/commerce/contact"
                 className="hover:underline"
             >

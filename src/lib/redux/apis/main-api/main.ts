@@ -16,11 +16,7 @@ import {
 import { type GETApiSuggestionOutput, type GETApiSuggestionInput } from "~/app/api/admin/suggestions/[slug]/route"
 import { type POSTApiCheckoutInput, type POSTApiCheckoutOutput } from "~/app/api/checkout/route"
 import { type GETApiUserAddressOutput, type POSTApiUserAddressInput, type POSTApiUserAddressOutput } from "~/app/api/user/address/route"
-import {
-    type GETApiFavoriteBookOutput,
-    type DELETEApiFavoriteBookOutput,
-    type POSTApiFavoriteBookOutput,
-} from "~/app/api/user/favorite/[bookId]/route"
+import { type GETApiUserStateOutput, type POSTApiUserStateInput, type POSTApiUserStateOutput } from "~/app/api/user/state/route"
 
 export const mainApi = createApi({
     reducerPath: "mainApi",
@@ -103,21 +99,14 @@ export const mainApi = createApi({
                 body: data,
             }),
         }),
-        getUserFavBook: builder.query<GETApiFavoriteBookOutput, string>({
-            query: (bookId) => ({
-                url: `user/favorite/${bookId}`,
-            }),
+        getUserState: builder.query<GETApiUserStateOutput, undefined>({
+            query: () => ({ url: "user/state" }),
         }),
-        saveUserFavBook: builder.mutation<POSTApiFavoriteBookOutput, string>({
-            query: (bookId) => ({
-                url: `user/favorite/${bookId}`,
+        saveUserState: builder.mutation<POSTApiUserStateOutput, POSTApiUserStateInput>({
+            query: ({ data }) => ({
+                url: "user/state",
                 method: "POST",
-            }),
-        }),
-        removeUserFavBook: builder.mutation<DELETEApiFavoriteBookOutput, string>({
-            query: (bookId) => ({
-                url: `user/favorite/${bookId}`,
-                method: "DELETE",
+                body: data,
             }),
         }),
     }),

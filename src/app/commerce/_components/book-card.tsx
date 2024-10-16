@@ -2,22 +2,11 @@ import { Card, CardContent } from "~/components/ui/card"
 import AddToCartButton from "./add-to-cart-button"
 import Link from "next/link"
 import Image from "next/image"
-import FavoriteButton from "./favorite-button"
+import FavoriteButton from "./add-to-favorite-button"
+import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 
-export default function BookCard({
-    book,
-}: {
-    book: {
-        mainImg: string
-        id: string
-        title: string
-        authorId: string
-        author: string
-        price: number
-        stripeId: string
-        stock: number
-    }
-}) {
+export default function BookCard({ book }: { book: BookCartState }) {
     return (
         <Card>
             <div className="aspect-[3/4] relative">
@@ -35,21 +24,33 @@ export default function BookCard({
                 </Link>
                 <div className="absolute top-1 right-1">
                     <FavoriteButton
-                        bookId={book.id}
+                        book={book}
                         size={32}
                     ></FavoriteButton>
                 </div>
             </div>
             <CardContent>
                 <div className="flex flex-col gap-2 mt-2">
-                    <Link href={`/commerce/book/${book.id}`}>
-                        <p className="hover:underline">
-                            <span className="line-clamp-1 hover:line-clamp-none text-lg">{book.title}</span>
-                        </p>
-                    </Link>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger className="text-left">
+                                <Link
+                                    href={`/commerce/book/${book.id}`}
+                                    className="hover:underline"
+                                >
+                                    <span className="line-clamp-1 text-lg font-bold">{book.title}</span>
+                                </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{book.title}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
                     <Link href={`/commerce/author/${book.authorId}`}>
                         <p className="text-sm text-muted-foreground hover:underline">{book.author}</p>
                     </Link>
+
                     <div className="flex flex-row items-center justify-between">
                         <p className="font-bold text-2xl text-green-500">R$ {book.price.toFixed(2)}</p>
                         <AddToCartButton

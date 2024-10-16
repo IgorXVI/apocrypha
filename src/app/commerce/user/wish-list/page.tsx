@@ -1,52 +1,14 @@
+"use client"
+
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
-import { db } from "~/server/db"
-import { auth } from "@clerk/nextjs/server"
 import BookCard from "../../_components/book-card"
 import { HeartIcon } from "lucide-react"
 import Link from "next/link"
+import { useAppSelector } from "~/lib/redux/hooks"
 
-export default async function WishListPage() {
-    const user = auth()
-
-    if (!user.userId) {
-        return <p>Unauthorized</p>
-    }
-
-    const favs = await db.favorite.findMany({
-        where: {
-            userId: user.userId,
-        },
-        include: {
-            Book: {
-                include: {
-                    DisplayImage: {
-                        select: {
-                            id: true,
-                            url: true,
-                        },
-                        orderBy: {
-                            order: "asc",
-                        },
-                        take: 1,
-                    },
-                    AuthorOnBook: {
-                        orderBy: {
-                            main: "asc",
-                        },
-                        include: {
-                            Author: {
-                                select: {
-                                    name: true,
-                                },
-                            },
-                        },
-                        take: 1,
-                    },
-                },
-            },
-        },
-    })
+export default function WishListPage() {
+    const favs = useAppSelector((state) => state.bookFavs.value)
 
     return (
         <div className="container mx-auto px-4 py-8 mb-auto">
@@ -62,19 +24,10 @@ export default async function WishListPage() {
 
             {favs.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-5 mb-8">
-                    {favs.map((fav) => (
+                    {favs.map((book) => (
                         <BookCard
-                            key={fav.id}
-                            book={{
-                                id: fav.Book.id,
-                                price: fav.Book.price.toNumber(),
-                                stripeId: fav.Book.stripeId,
-                                title: fav.Book.title,
-                                author: fav.Book.AuthorOnBook[0]?.Author.name ?? "",
-                                authorId: fav.Book.AuthorOnBook[0]?.authorId ?? "",
-                                mainImg: fav.Book.DisplayImage[0]?.url ?? "",
-                                stock: fav.Book.stock,
-                            }}
+                            key={book.id}
+                            book={book}
                         ></BookCard>
                     ))}
                 </div>
