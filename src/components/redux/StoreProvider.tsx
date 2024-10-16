@@ -20,6 +20,10 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
             fetch("/api/user/state", {
                 method: "POST",
                 body: JSON.stringify(apiInput.data),
+                headers: {
+                    accept: "application/json",
+                    "content-type": "application/json",
+                },
             }).catch((error) => console.error("API_POST_USER_STATE_ERROR:", error))
         } catch (error) {
             console.error("BEFORE_API_POST_USER_STATE_ERROR:", error)
@@ -28,7 +32,12 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
 
     useEffect(() => {
         try {
-            fetch("/api/user/state")
+            fetch("/api/user/state", {
+                headers: {
+                    accept: "application/json",
+                    "content-type": "application/json",
+                },
+            })
                 .then((res) =>
                     res.json().then((json: GETApiUserStateOutput) => {
                         setIsLoading(false)
