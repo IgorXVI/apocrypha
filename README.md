@@ -31,3 +31,4 @@
 -   [ ] Adicionar paginação das reviews
 -   [ ] Melhorar atualização de favoritos
 -   [ ] Adicionar controle de estoque atravéz do carrinho de compras
+-   [x] Arrumar Bugs que só existiam no preview da vercel

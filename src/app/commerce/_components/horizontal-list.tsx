@@ -2,9 +2,9 @@
 
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel"
 import BookCard from "./book-card"
-import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import { type BookClientSideState } from "~/lib/types"
 
-export default function HorizontalList({ title, books }: { title: string; books: BookCartState[] }) {
+export default function HorizontalList({ title, books }: { title: string; books: BookClientSideState[] }) {
     return (
         <section className="mb-10">
             <h2 className="text-3xl font-bold mb-8 text-center">{title}</h2>

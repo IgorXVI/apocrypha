@@ -3,10 +3,10 @@ import AddToCartButton from "./add-to-cart-button"
 import Link from "next/link"
 import Image from "next/image"
 import FavoriteButton from "./add-to-favorite-button"
-import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
+import { type BookClientSideState } from "~/lib/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 
-export default function BookCard({ book }: { book: BookCartState }) {
+export default function BookCard({ book }: { book: BookClientSideState }) {
     return (
         <Card>
             <div className="aspect-[3/4] relative">

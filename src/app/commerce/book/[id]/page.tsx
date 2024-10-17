@@ -9,8 +9,8 @@ import Image from "next/image"
 import BookDetailsImages from "../../_components/book-details-images"
 import { db } from "~/server/db"
 import AddToCartButton from "../../_components/add-to-cart-button"
-import { type BookCartState } from "~/lib/redux/book-cart/bookCartSlice"
 import AddToFavoriteButton from "../../_components/add-to-favorite-button"
+import { type BookClientSideState } from "~/lib/types"
 
 const langsMap: Record<string, string> = {
     PORTUGUESE: "Português",
@@ -25,7 +25,7 @@ const langsMap: Record<string, string> = {
     PORTUGUESE_BRAZILIAN: "Português (Brasil)",
 }
 
-function BookPriceCard(book: BookCartState) {
+function BookPriceCard(book: BookClientSideState) {
     return (
         <Card className="border-none">
             <CardContent className="p-6">
@@ -254,7 +254,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         },
     }
 
-    const bookForCart: BookCartState = {
+    const bookForCart: BookClientSideState = {
         id: DBBook.id,
         title: DBBook.title,
         stripeId: DBBook.stripeId,

@@ -1,15 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit"
-import { bookCartSlice, type BookCartState } from "./book-cart/bookCartSlice"
+import { bookCartSlice } from "./book-cart/bookCartSlice"
 import { mainApi } from "./apis/main-api/main"
 import { brasilApi } from "./apis/brasil-api/brasil"
 import { bookFavsSlice } from "./book-favs/bookFavsSlice"
+import { type BookClientSideState } from "../types"
 
 export const makeStore = (preloadedState: {
     bookFavs: {
-        value: BookCartState[]
+        value: BookClientSideState[]
     }
     bookCart: {
-        value: BookCartState[]
+        value: BookClientSideState[]
     }
 }) =>
     configureStore({
