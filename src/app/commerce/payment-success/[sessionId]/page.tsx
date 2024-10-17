@@ -128,6 +128,15 @@ export default async function PaymentSuccess({ params: { sessionId } }: { params
         })
 
         await db.$transaction(async (transaction) => {
+            await transaction.userState.update({
+                where: {
+                    userId: user.userId,
+                },
+                data: {
+                    bookCart: [],
+                },
+            })
+
             const books = await transaction.book.findMany({
                 where: {
                     id: {
