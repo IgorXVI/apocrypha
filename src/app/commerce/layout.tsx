@@ -24,6 +24,35 @@ export default async function CommerceLayout({ children }: Readonly<{ children: 
             bookCart: userState.bookCart.map((item) => item?.valueOf() as BookClientSideState),
             bookFavs: userState.bookFavs.map((item) => item?.valueOf() as BookClientSideState),
         }
+
+        const books = await db.book.findMany({
+            where: {
+                id: {
+                    in: init.bookCart.map((bc) => bc.id).concat(init.bookFavs.map((bf) => bf.id)),
+                },
+            },
+            select: {
+                id: true,
+                stock: true,
+            },
+        })
+
+        books.forEach((book) => {
+            const bookCartItem = init?.bookCart.find((bc) => bc.id === book.id)
+            const bookFavsItem = init?.bookFavs.find((bf) => bf.id === book.id)
+
+            if (bookCartItem) {
+                bookCartItem.stock = book.stock
+            }
+
+            if (bookFavsItem) {
+                bookFavsItem.stock = book.stock
+            }
+        })
+
+        if (init?.bookCart) {
+            init.bookCart = init.bookCart.filter((bc) => bc.stock > 0)
+        }
     }
 
     return (

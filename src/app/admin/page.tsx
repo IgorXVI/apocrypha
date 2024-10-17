@@ -9,6 +9,7 @@ import OrderStatus from "~/components/order/order-status"
 import OrderSearch from "./_components/order-search"
 import { type $Enums } from "prisma/prisma-client"
 import { z } from "zod"
+import { stripe } from "~/server/stripe-api"
 
 const orderStatusSearch = new Map<string, $Enums.OrderStatus>([
     ["entregue", "DELIVERED"],
@@ -64,6 +65,9 @@ export default async function Admin({
                 orderBy: {
                     createdAt: "desc",
                 },
+                include: {
+                    BookOnOrder: true,
+                },
             })
             .catch((error) => {
                 console.error("ADMIN_ORDER_SEARCH_ERROR", error)
@@ -95,12 +99,20 @@ export default async function Admin({
     const odersForView = orders.map((order) => ({
         id: order.id,
         status: <OrderStatus status={order.status}></OrderStatus>,
+        booksLink: (
+            <a
+                className="hover:underline text-nowrap"
+                href={`/admin/book?search=IDS-->${order.BookOnOrder.map((bo) => bo.bookId).join("__AND__")}`}
+            >
+                Ver livros
+            </a>
+        ),
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
         price: `R$ ${order.totalPrice.toFixed(2)}`,
         stripeLink: order.paymentId && (
             <a
-                className="hover:underline"
+                className="hover:underline text-nowrap"
                 href={`https://dashboard.stripe.com/test/payments/${order.paymentId}`}
             >
                 Ver no Stripe
@@ -131,10 +143,11 @@ export default async function Admin({
                 namePlural="pedidos"
                 tableDescription="Atualize os pedidos."
                 tableHeaders={{
+                    id: "ID",
                     status: "Status",
+                    booksLink: "Livros",
                     createdAt: "Data de criação",
                     updatedAt: "Data da útlima atualização",
-                    id: "ID",
                     stripeLink: "Informações do pagamento no Stripe",
                     printLink: "Ver Ticket do Super Frete",
                     tracking: "Código de rastreamento",
@@ -400,6 +413,37 @@ export default async function Admin({
                                     }
                                 }
 
+                                let stripeRefundResult = await stripe.refunds
+                                    .list({
+                                        payment_intent: order.paymentId,
+                                    })
+                                    .then((res) => res.data[0])
+
+                                if (!stripeRefundResult) {
+                                    stripeRefundResult = await stripe.refunds
+                                        .create({
+                                            payment_intent: order.paymentId,
+                                        })
+                                        .catch((error) => {
+                                            console.error("CREATE_STRIPE_REFUND_ON_ADMIN_ERROR", error)
+                                            return undefined
+                                        })
+                                }
+
+                                if (!stripeRefundResult) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Erro ao tentar criar o reembolso no stripe.",
+                                    }
+                                }
+
+                                if (stripeRefundResult.status !== "pending" && stripeRefundResult.status !== "succeeded") {
+                                    return {
+                                        success: false,
+                                        errorMessage: `Erro ao tentar criar o reembolso no stripe, status retornado: ${stripeRefundResult.status}`,
+                                    }
+                                }
+
                                 const ticketInfo = await cancelTicket(order.ticketId).catch((error) => {
                                     console.error("GET_TICKET_INFO_ON_ADMIN_ERROR", error)
                                     return "ERRO"
@@ -412,23 +456,64 @@ export default async function Admin({
                                     }
                                 }
 
-                                const updateResult = await db.order
-                                    .update({
-                                        where: {
-                                            id,
-                                        },
-                                        data: {
-                                            status: "CANCELED",
-                                            cancelReason: "ADMIN",
-                                            updatedAt: new Date(),
-                                        },
+                                const transactionResult = await db
+                                    .$transaction(async (transaction) => {
+                                        const booksOnOrder = await transaction.bookOnOrder.findMany({
+                                            where: {
+                                                orderId: id,
+                                            },
+                                        })
+
+                                        const booksStock = await transaction.book.findMany({
+                                            where: {
+                                                id: {
+                                                    in: booksOnOrder.map((bo) => bo.bookId),
+                                                },
+                                            },
+                                            select: {
+                                                id: true,
+                                                stock: true,
+                                            },
+                                        })
+
+                                        const bookUpdates = await Promise.allSettled(
+                                            booksStock.map((bs) =>
+                                                transaction.book.update({
+                                                    where: {
+                                                        id: bs.id,
+                                                    },
+                                                    data: {
+                                                        stock: (booksOnOrder.find((bo) => bo.bookId === bs.id)?.amount ?? 0) + bs.stock,
+                                                    },
+                                                }),
+                                            ),
+                                        )
+
+                                        bookUpdates.forEach((bu) => {
+                                            if (bu.status === "rejected") {
+                                                throw bu.reason
+                                            }
+                                        })
+
+                                        await transaction.order.update({
+                                            where: {
+                                                id,
+                                            },
+                                            data: {
+                                                status: "CANCELED",
+                                                cancelReason: "ADMIN",
+                                                updatedAt: new Date(),
+                                            },
+                                        })
+
+                                        return true
                                     })
                                     .catch((error) => {
                                         console.error("UPDATE_ORDER_ON_ADMIN_ERROR", error)
-                                        return undefined
+                                        return false
                                     })
 
-                                if (!updateResult) {
+                                if (!transactionResult) {
                                     return {
                                         success: false,
                                         errorMessage: "Aconteceu um erro ao atualizar o pedido.",

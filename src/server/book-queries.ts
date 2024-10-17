@@ -356,15 +356,26 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaT
 
 export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<GetManyOutput<BookGetManyOneRowOutput>>> =>
     errorHandler(async () => {
+        const where = input.searchTerm.includes("IDS-->")
+            ? {
+                  id: {
+                      in: input.searchTerm
+                          .split("__AND__")
+                          .filter((s) => s.length > 0)
+                          .map((s) => s.replace("IDS-->", "")),
+                  },
+              }
+            : {
+                  title: {
+                      startsWith: input.searchTerm,
+                  },
+              }
+
         const [rowsResult, totalResult] = await Promise.allSettled([
             db.book.findMany({
                 take: input.take,
                 skip: input.skip,
-                where: {
-                    title: {
-                        startsWith: input.searchTerm,
-                    },
-                },
+                where,
                 include: {
                     AuthorOnBook: {
                         where: {
