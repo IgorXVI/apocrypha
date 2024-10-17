@@ -9,6 +9,7 @@ import OrderStatus from "~/components/order/order-status"
 import OrderSearch from "./_components/order-search"
 import { type $Enums } from "prisma/prisma-client"
 import { z } from "zod"
+import { stripe } from "~/server/stripe-api"
 
 const orderStatusSearch = new Map<string, $Enums.OrderStatus>([
     ["entregue", "DELIVERED"],
@@ -409,6 +410,37 @@ export default async function Admin({
                                     return {
                                         success: false,
                                         errorMessage: "Pedido está cancelado.",
+                                    }
+                                }
+
+                                let stripeRefundResult = await stripe.refunds
+                                    .list({
+                                        payment_intent: order.paymentId,
+                                    })
+                                    .then((res) => res.data[0])
+
+                                if (!stripeRefundResult) {
+                                    stripeRefundResult = await stripe.refunds
+                                        .create({
+                                            payment_intent: order.paymentId,
+                                        })
+                                        .catch((error) => {
+                                            console.error("CREATE_STRIPE_REFUND_ON_ADMIN_ERROR", error)
+                                            return undefined
+                                        })
+                                }
+
+                                if (!stripeRefundResult) {
+                                    return {
+                                        success: false,
+                                        errorMessage: "Erro ao tentar criar o reembolso no stripe.",
+                                    }
+                                }
+
+                                if (stripeRefundResult.status !== "pending" && stripeRefundResult.status !== "succeeded") {
+                                    return {
+                                        success: false,
+                                        errorMessage: `Erro ao tentar criar o reembolso no stripe, status retornado: ${stripeRefundResult.status}`,
                                     }
                                 }
 
