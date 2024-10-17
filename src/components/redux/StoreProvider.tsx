@@ -11,6 +11,7 @@ export default function StoreProvider({ children, initialState }: { children: Re
     const storeRef = useRef<AppStore>()
 
     const saveStateFun = useDebouncedCallback((apiInput: POSTApiUserStateInput) => {
+        console.log("FETCH CALLED")
         try {
             fetch("/api/user/state", {
                 method: "POST",
@@ -23,7 +24,7 @@ export default function StoreProvider({ children, initialState }: { children: Re
         } catch (error) {
             console.error("BEFORE_API_POST_USER_STATE_ERROR:", error)
         }
-    }, 500)
+    }, 1000)
 
     if (!storeRef.current) {
         // Create the store instance the first time this renders
@@ -38,7 +39,9 @@ export default function StoreProvider({ children, initialState }: { children: Re
                 },
             })
 
+            console.log("CREATE SUBSCRIBE")
             storeRef.current.subscribe(() => {
+                console.log("SUBSCRIBE CALLED")
                 const state = storeRef.current?.getState()
 
                 saveStateFun({
