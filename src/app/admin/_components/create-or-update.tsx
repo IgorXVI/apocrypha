@@ -63,7 +63,7 @@ export default function CreateOrUpdate<I>(props: {
                           return result.data.data as ZodRawShape
                       })
                       .catch((error) => {
-                          toastError((error as Error).message)
+                          toastError(error)
                           return getDefaults(props.formSchema)
                       })
                 : getDefaults(props.formSchema),

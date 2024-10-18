@@ -34,6 +34,8 @@ export default async function CommerceLayout({ children }: Readonly<{ children: 
             select: {
                 id: true,
                 stock: true,
+                price: true,
+                prevPrice: true,
             },
         })
 
@@ -43,10 +45,14 @@ export default async function CommerceLayout({ children }: Readonly<{ children: 
 
             if (bookCartItem) {
                 bookCartItem.stock = book.stock
+                bookCartItem.price = book.price.toNumber()
+                bookCartItem.prevPrice = book.prevPrice.toNumber()
             }
 
             if (bookFavsItem) {
                 bookFavsItem.stock = book.stock
+                bookFavsItem.price = book.price.toNumber()
+                bookFavsItem.prevPrice = book.prevPrice.toNumber()
             }
         })
 

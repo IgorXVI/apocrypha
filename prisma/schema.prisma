@@ -30,6 +30,7 @@ model Book {
     stripeId         String             @unique
     stock            Int                @default(1)
     price            Decimal            @default(0) @db.Decimal(10, 4)
+    prevPrice        Decimal            @default(0) @db.Decimal(10, 4)
     title            String
     description      String
     pages            Int
@@ -161,6 +162,7 @@ model BookOnOrder {
 }
 
 enum OrderStatus {
+    AWAITING_CONFIRMATION
     PREPARING
     IN_TRANSIT
     DELIVERED
@@ -179,16 +181,16 @@ enum OrderCancelReason {
 model Order {
     id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     sessionId           String      @unique
-    paymentId           String      @unique
+    paymentId           String?     @unique
     userId              String
-    ticketId            String
-    totalPrice          Decimal
-    shippingPrice       Decimal
-    shippingDaysMin     Int
-    shippingDaysMax     Int
-    shippingServiceId   String
-    shippingServiceName String
-    status              OrderStatus @default(PREPARING)
+    ticketId            String?
+    totalPrice          Decimal?
+    shippingPrice       Decimal?
+    shippingDaysMin     Int?
+    shippingDaysMax     Int?
+    shippingServiceId   String?
+    shippingServiceName String?
+    status              OrderStatus @default(AWAITING_CONFIRMATION)
 
     cancelReason  OrderCancelReason?
     cancelMessage String?

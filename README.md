@@ -29,6 +29,5 @@
 -   [x] Fazer página de histórico de compras
 -   [ ] Adicionar reviews
 -   [ ] Adicionar paginação das reviews
--   [ ] Melhorar atualização de favoritos
--   [ ] Adicionar controle de estoque atravéz do carrinho de compras
+-   [x] Melhorar atualização de favoritos
 -   [x] Arrumar Bugs que só existiam no preview da vercel

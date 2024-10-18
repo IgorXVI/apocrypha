@@ -18,6 +18,7 @@ type SuperCategory = {
                 stripeId: string
                 description: string
                 price: Prisma.Decimal
+                prevPrice: Prisma.Decimal
                 stock: number
                 DisplayImage: {
                     url: string
@@ -280,6 +281,7 @@ export default async function BooksPage({
         stripeId: book.stripeId,
         stock: book.stock,
         amount: 1,
+        prevPrice: book.prevPrice.toNumber(),
     }))
 
     const categories = superCategory.Category.map((category) => ({
@@ -313,12 +315,14 @@ export default async function BooksPage({
             </div>
 
             {books.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:col-span-8 col-span-full">
+                <div className="flex flex-row flex-wrap justify-around items-center gap-4 md:col-span-8 col-span-full">
                     {books.map((book) => (
-                        <BookCard
+                        <div
                             key={book.id}
-                            book={book}
-                        ></BookCard>
+                            className="min-w-[275px] max-w-[275px]"
+                        >
+                            <BookCard book={book}></BookCard>
+                        </div>
                     ))}
                 </div>
             )}

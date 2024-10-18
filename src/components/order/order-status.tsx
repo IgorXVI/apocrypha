@@ -1,8 +1,9 @@
-import { CheckCircleIcon, PackageIcon, TruckIcon, XCircleIcon } from "lucide-react"
+import { CheckCircleIcon, ClockIcon, PackageIcon, TruckIcon, XCircleIcon } from "lucide-react"
 import { type $Enums } from "prisma/prisma-client"
 import { cn } from "~/lib/utils"
 
 const orderStatusStyle = new Map<$Enums.OrderStatus, string>([
+    ["AWAITING_CONFIRMATION", "bg-yellow-500"],
     ["DELIVERED", "bg-green-500"],
     ["CANCELED", "bg-red-500"],
     ["IN_TRANSIT", "bg-teal-500"],
@@ -51,6 +52,16 @@ const orderStatusLabel = new Map<$Enums.OrderStatus, React.ReactNode>([
         >
             <PackageIcon></PackageIcon>
             <span className="text-nowrap">Preparando</span>
+        </div>,
+    ],
+    [
+        "AWAITING_CONFIRMATION",
+        <div
+            key={"AWAITING_CONFIRMATION"}
+            className="flex flex-row items-center justify-center gap-2"
+        >
+            <ClockIcon></ClockIcon>
+            <span className="text-nowrap">Confirmando</span>
         </div>,
     ],
     ["REFUND_REQUESTED", "Reembolso sendo avaliado"],

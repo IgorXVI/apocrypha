@@ -152,7 +152,7 @@ export default async function UserOrders({
                                             <TableCell className="text-right text-nowrap">{order.updatedAt.toLocaleString()}</TableCell>
                                             <TableCell className="text-right text-nowrap">{order.createdAt.toLocaleString()}</TableCell>
                                             <TableCell className="text-right text-nowrap font-bold text-green-500">
-                                                R$ {order.totalPrice.toFixed(2)}
+                                                R$ {order.totalPrice?.toFixed(2) ?? "N/A"}
                                             </TableCell>
                                         </TableRow>
                                     ))}

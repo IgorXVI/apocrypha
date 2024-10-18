@@ -2,8 +2,10 @@ import { toast } from "sonner"
 import { LoaderCircle } from "lucide-react"
 import { type CommonDBReturn } from "~/lib/types"
 
-export const toastError = (errorMessage: string) => {
-    toast(<span className="text-lg text-red-500">{errorMessage}</span>)
+export const toastError = (error: unknown) => {
+    const errorStr = error instanceof Error ? error.message : typeof error === "string" ? error : !error ? "Erro desconhecido" : JSON.stringify(error)
+
+    toast(<span className="text-lg text-red-500">{errorStr}</span>)
 }
 
 export const toastSuccess = (successMessage: string) => toast(<span className="text-lg text-green-500">{successMessage}</span>)
@@ -34,16 +36,7 @@ export async function dbQueryWithToast<T>({
 }) {
     const beginDBCallId = `${mutationName}-begin`
 
-    toast(
-        <div className="flex flex-row items-center gap-4">
-            <LoaderCircle className="animate-spin"></LoaderCircle>
-            <span className="text-lg">{waitingMessage}</span>
-        </div>,
-        {
-            duration: 100000,
-            id: beginDBCallId,
-        },
-    )
+    toastLoading(waitingMessage, beginDBCallId)
 
     try {
         const result = await dbQuery()
@@ -51,15 +44,15 @@ export async function dbQueryWithToast<T>({
         toast.dismiss(beginDBCallId)
 
         if (!result.success) {
-            toast(<span className="text-lg text-red-500">{result.errorMessage}</span>)
+            toastError(result.errorMessage)
             return
         }
 
-        toast(<span className="text-lg text-green-500">{successMessage}</span>)
+        toastSuccess(successMessage)
 
         return result.data
     } catch (error) {
         toast.dismiss(beginDBCallId)
-        toast(<span className="text-lg text-red-500">Erro ao tentar chamar o servidor: {(error as Error).message}</span>)
+        toastError(error)
     }
 }

@@ -14,6 +14,8 @@ import SingleImageField from "../_components/single-image-field"
 import { bookValidationSchema, type BookSchemaType } from "~/lib/validation"
 import { AdminRichTextInput } from "../_components/admin-rich-text-editor"
 import SelectEnum from "../_components/select-enum"
+import BookStockUpdate from "../_components/book-stock-update"
+import BookPriceUpdate from "../_components/book-price-update"
 
 type ModelAttrs = keyof BookSchemaType
 
@@ -270,8 +272,9 @@ export default function MainPage() {
                 mainImageUrl: "Imagem Principal",
                 title: "Título",
                 price: "Preço",
+                prevPrice: "Preço anterior",
                 stock: "Estoque",
-                stripeId: "Stripe ID",
+                stripeId: "Produto no Stripe",
                 description: "Descrição",
                 pages: "Páginas",
                 publicationDate: "Data de Publicação",
@@ -292,8 +295,30 @@ export default function MainPage() {
                 weightGrams: "Peso (g)",
             }}
             tableValuesMap={{
-                price: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
+                stripeId: (value: string) => (
+                    <a
+                        className="hover:underline"
+                        href={`https://dashboard.stripe.com/test/products/${value}`}
+                    >
+                        Ver no Stripe
+                    </a>
+                ),
                 language: (value: string) => <span className="text-nowrap">{langsMap[value] ?? value}</span>,
+                prevPrice: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
+                price: (value: number, id: string, revalidateCache) => (
+                    <BookPriceUpdate
+                        DBValue={value}
+                        id={id}
+                        revalidateCache={revalidateCache}
+                    ></BookPriceUpdate>
+                ),
+                stock: (value: number, id: string, revalidateCache) => (
+                    <BookStockUpdate
+                        DBValue={value}
+                        id={id}
+                        revalidateCache={revalidateCache}
+                    ></BookStockUpdate>
+                ),
             }}
             slug="book"
             inputKeyMap={inputKeyMap}
