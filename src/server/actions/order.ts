@@ -294,7 +294,6 @@ export const cancelOrder = async (id: unknown) => {
 }
 
 export const simulateOrderDone = async (id: unknown) => {
-    "use server"
     if (typeof id !== "string") {
         return {
             success: false,
