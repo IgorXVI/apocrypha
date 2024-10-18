@@ -1,6 +1,5 @@
+import { env } from "~/env"
 import { handleChekoutConfirmation, stripe } from "~/server/stripe-api"
-
-const endpointSecret = "whsec_..."
 
 export async function POST(req: Request) {
     try {
@@ -8,10 +7,18 @@ export async function POST(req: Request) {
 
         const body = await req.text()
 
-        const stripeEvent = stripe.webhooks.constructEvent(body, signature, endpointSecret)
+        const stripeEvent = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET)
 
         if (stripeEvent.type !== "checkout.session.completed") {
-            throw new Error(`Event is of the wrong type: ${stripeEvent.type}`)
+            return Response.json(
+                {
+                    success: false,
+                    errorMessage: `Event is of the wrong type: ${stripeEvent.type}`,
+                },
+                {
+                    status: 400,
+                },
+            )
         }
 
         const session = stripeEvent.data.object
