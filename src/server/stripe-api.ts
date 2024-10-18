@@ -266,7 +266,7 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             currency: "brl",
             line_items: lineItems,
             success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
-            cancel_url: `${env.URL}/commerce/cart`,
+            cancel_url: `${env.URL}/commerce/payment-canceled/{CHECKOUT_SESSION_ID}`,
             locale: "pt-BR",
             shipping_options: shippingOptions.map((shipping) => ({
                 shipping_rate_data: {
@@ -313,13 +313,36 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
         packages: shipping.packages,
     }))
 
-    await db.checkoutSessionStore.create({
-        data: {
-            sessionId: checkoutSession.value.id,
-            products: productsForTicket,
-            shippingPackages: shippingPackages,
-        },
-    })
+    const newOrder = await db
+        .$transaction(async (transaction) => {
+            await transaction.checkoutSessionStore.create({
+                data: {
+                    sessionId: checkoutSession.value.id,
+                    products: productsForTicket,
+                    shippingPackages: shippingPackages,
+                },
+            })
+
+            const result = await transaction.order.create({
+                data: {
+                    userId: user.userId,
+                    sessionId: checkoutSession.value.id,
+                },
+            })
+
+            return result
+        })
+        .catch((error) => {
+            console.error("ERROR_WHEN_TRYING_TO_CREATE_ORDER:", error)
+            return undefined
+        })
+
+    if (!newOrder) {
+        return {
+            success: false,
+            message: "Not able to create order.",
+        }
+    }
 
     return {
         success: true,
