@@ -15,6 +15,7 @@ import { bookValidationSchema, type BookSchemaType } from "~/lib/validation"
 import { AdminRichTextInput } from "../_components/admin-rich-text-editor"
 import SelectEnum from "../_components/select-enum"
 import BookStockUpdate from "../_components/book-stock-update"
+import BookPriceUpdate from "../_components/book-price-update"
 
 type ModelAttrs = keyof BookSchemaType
 
@@ -293,8 +294,13 @@ export default function MainPage() {
                 weightGrams: "Peso (g)",
             }}
             tableValuesMap={{
-                price: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
                 language: (value: string) => <span className="text-nowrap">{langsMap[value] ?? value}</span>,
+                price: (value: number, id?: string) => (
+                    <BookPriceUpdate
+                        DBValue={value}
+                        id={id ?? ""}
+                    ></BookPriceUpdate>
+                ),
                 stock: (value: number, id?: string) => (
                     <BookStockUpdate
                         DBValue={value}
