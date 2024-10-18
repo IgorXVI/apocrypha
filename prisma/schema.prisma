@@ -162,6 +162,7 @@ model BookOnOrder {
 }
 
 enum OrderStatus {
+    AWAITING_CONFIRMATION
     PREPARING
     IN_TRANSIT
     DELIVERED
@@ -189,7 +190,7 @@ model Order {
     shippingDaysMax     Int
     shippingServiceId   String
     shippingServiceName String
-    status              OrderStatus @default(PREPARING)
+    status              OrderStatus @default(AWAITING_CONFIRMATION)
 
     cancelReason  OrderCancelReason?
     cancelMessage String?
