@@ -272,6 +272,7 @@ export default function MainPage() {
                 mainImageUrl: "Imagem Principal",
                 title: "Título",
                 price: "Preço",
+                prevPrice: "Preço anterior",
                 stock: "Estoque",
                 stripeId: "Stripe ID",
                 description: "Descrição",
@@ -295,16 +296,19 @@ export default function MainPage() {
             }}
             tableValuesMap={{
                 language: (value: string) => <span className="text-nowrap">{langsMap[value] ?? value}</span>,
-                price: (value: number, id?: string) => (
+                prevPrice: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
+                price: (value: number, id: string, revalidateCache) => (
                     <BookPriceUpdate
                         DBValue={value}
-                        id={id ?? ""}
+                        id={id}
+                        revalidateCache={revalidateCache}
                     ></BookPriceUpdate>
                 ),
-                stock: (value: number, id?: string) => (
+                stock: (value: number, id: string, revalidateCache) => (
                     <BookStockUpdate
                         DBValue={value}
-                        id={id ?? ""}
+                        id={id}
+                        revalidateCache={revalidateCache}
                     ></BookStockUpdate>
                 ),
             }}

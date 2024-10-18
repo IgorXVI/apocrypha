@@ -74,6 +74,7 @@ export type BookClientSideState = {
     author: string
     authorId: string
     price: number
+    prevPrice: number
     amount: number
     stripeId: string
 }

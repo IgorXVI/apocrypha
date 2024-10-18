@@ -4,7 +4,7 @@ import { toastError, toastLoading, toastSuccess } from "~/components/toast/toast
 import { Input } from "~/components/ui/input"
 import { updateStock } from "~/server/actions/book"
 
-export default function BookStockUpdate({ id, DBValue }: { id: string; DBValue: number }) {
+export default function BookStockUpdate({ id, DBValue, revalidateCache }: { id: string; DBValue: number; revalidateCache: () => Promise<unknown> }) {
     const handleInput = useDebouncedCallback((event) => {
         const target = event.target as HTMLInputElement
 
@@ -19,6 +19,7 @@ export default function BookStockUpdate({ id, DBValue }: { id: string; DBValue: 
 
                 toastSuccess("Atualização bem sucedida.")
             })
+            .then(() => revalidateCache())
             .catch((error) => {
                 toast.dismiss("book-stock-update")
                 toastError(error)

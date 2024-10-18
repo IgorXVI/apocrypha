@@ -15,7 +15,7 @@ import { type PossibleDBOutput } from "~/lib/types"
 import CreateOrUpdate from "./create-or-update"
 import { toastError } from "~/components/toast/toasting"
 import { mainApi } from "~/lib/redux/apis/main-api/main"
-import DataTable from "./data-table"
+import DataTable, { type DataTableValuesMap } from "./data-table"
 import { calcSkip } from "~/lib/utils"
 
 export default function SearchPage(
@@ -36,7 +36,7 @@ export default function SearchPage(
             }
         >
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tableValuesMap?: Record<string, (value: any, id?: string) => React.ReactNode | string>
+        tableValuesMap?: Record<string, (value: any, id: string, revalidateCache: () => Promise<unknown>) => React.ReactNode | string>
     }>,
 ) {
     const searchParams = useSearchParams()
@@ -107,6 +107,15 @@ export default function SearchPage(
         return searchParams.has(ModalParams.delete) || searchParams.has(ModalParams.update) || searchParams.has(ModalParams.create)
     }, [ModalParams, searchParams])
 
+    let tableValuesMapForDataTable: DataTableValuesMap | undefined
+    if (props.tableValuesMap) {
+        const tableValuesMapKeys = Object.keys(props.tableValuesMap)
+        tableValuesMapForDataTable = {}
+        tableValuesMapKeys.forEach((key) => {
+            tableValuesMapForDataTable![key] = (value, id) => props.tableValuesMap![key]!(value, id, () => getRowsQuery.refetch())
+        })
+    }
+
     return (
         <main className="flex flex-col p-2 gap-3">
             <div className="flex flex-row items-center p-2 gap-3">
@@ -155,6 +164,7 @@ export default function SearchPage(
 
             <DataTable
                 {...props}
+                tableValuesMap={tableValuesMapForDataTable}
                 tableDescription={`Crie, atualize, apague ou busque ${props.namePlural}.`}
                 rows={rows}
                 isError={getRowsQuery.isError}

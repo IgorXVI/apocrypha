@@ -193,6 +193,7 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
             },
             data: {
                 ...dataForDB,
+                prevPrice: dataForDB.price !== bookDBData.price.toNumber() ? bookDBData.price : undefined,
                 Series: data.seriesId
                     ? dataForDB.Series
                     : {
@@ -468,6 +469,7 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
             isbn10Code: row.isbn10Code ?? undefined,
             isbn13Code: row.isbn13Code ?? undefined,
             price: row.price.toNumber(),
+            prevPrice: row.prevPrice.toNumber(),
             edition: row.edition ?? undefined,
             mainImageUrl: row.DisplayImage[0]?.url ?? "",
             mainAuthorName: row.AuthorOnBook[0]?.Author.name ?? "",

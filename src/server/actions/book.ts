@@ -66,6 +66,7 @@ export const updatePrice = async (id: unknown, newPrice: unknown) => {
             },
             select: {
                 stripeId: true,
+                price: true,
             },
         })
         .catch((error) => {
@@ -77,6 +78,13 @@ export const updatePrice = async (id: unknown, newPrice: unknown) => {
         return {
             success: false,
             errorMessage: "Erro ao tentar buscar dados do livro.",
+        }
+    }
+
+    if (bookDBData.price.toNumber() === newPrice) {
+        return {
+            success: false,
+            errorMessage: "Novo preço não pode ser igual ao preço atual.",
         }
     }
 
@@ -98,6 +106,7 @@ export const updatePrice = async (id: unknown, newPrice: unknown) => {
             },
             data: {
                 price: newPrice,
+                prevPrice: bookDBData.price,
             },
         })
         .catch((error) => {

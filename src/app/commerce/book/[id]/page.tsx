@@ -26,14 +26,26 @@ const langsMap: Record<string, string> = {
 }
 
 function BookPriceCard(book: BookClientSideState) {
+    const priceDiff = book.price < book.prevPrice ? Math.ceil(100 * (1 - book.price / book.prevPrice)) : 0
+
     return (
         <Card className="border-none">
             <CardContent className="p-6">
-                <div className="w-full mb-4 grid grid-cols-1 gap-4 place-items-center">
-                    <div className="text-green-500 text-nowrap text-5xl md:text-6xl font-bold mb-4">R$ {book.price.toFixed(2)}</div>
+                <div className="w-full mb-4 grid grid-cols-1 gap-7 place-items-center">
+                    <div className="flex flex-col justify-center gap-5">
+                        {priceDiff > 10 && (
+                            <p className="text-2xl text-muted-foreground">
+                                De: <span className="line-through">R$ {book.prevPrice.toFixed(2)}</span>
+                            </p>
+                        )}
+                        <div className="text-5xl flex flex-row gap-5">
+                            {priceDiff > 10 && <span className="text-red-500 font-normal text-nowrap">-{priceDiff}%</span>}
+                            <span className="text-green-500 font-bold text-nowrap">R$ {book.price.toFixed(2)}</span>
+                        </div>
+                    </div>
                     <AddToCartButton
                         bookForCart={book}
-                        showButtonText={true}
+                        large={true}
                     ></AddToCartButton>
                 </div>
             </CardContent>
@@ -264,6 +276,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         price: DBBook.price.toNumber(),
         stock: DBBook.stock,
         authorId: DBBook.AuthorOnBook[0]?.authorId ?? "",
+        prevPrice: DBBook.prevPrice.toNumber(),
     }
 
     return (

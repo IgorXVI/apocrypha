@@ -17,13 +17,15 @@ import { toast } from "sonner"
 
 type PossibleTableCellTypes = string | number | Prisma.Decimal | Date | undefined | null | unknown[] | React.ReactNode
 
+export type DataTableValuesMap = Record<string, (value: PossibleTableCellTypes, id: string) => React.ReactNode | string>
+
 export default function DataTable(props: {
     name: string
     namePlural: string
     tableDescription: string
     rows: Record<string, PossibleTableCellTypes>[]
     tableHeaders: Record<string, string>
-    tableValuesMap?: Record<string, (value: PossibleTableCellTypes, id?: string) => React.ReactNode | string>
+    tableValuesMap?: DataTableValuesMap
     isLoading: boolean
     isError: boolean
     isSuccess: boolean
@@ -171,7 +173,7 @@ export default function DataTable(props: {
                                             >
                                                 <div className="flex items-center justify-center w-full">
                                                     {props.tableValuesMap?.[attr] ? (
-                                                        props.tableValuesMap[attr](row[attr], row.id?.toString() ?? undefined)
+                                                        props.tableValuesMap[attr](row[attr], row.id?.toString() ?? "")
                                                     ) : typeof row[attr] === "string" && attr.includes("Url") && row[attr] ? (
                                                         <Image
                                                             alt={attr}

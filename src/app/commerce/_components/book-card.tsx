@@ -7,6 +7,8 @@ import { type BookClientSideState } from "~/lib/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 
 export default function BookCard({ book }: { book: BookClientSideState }) {
+    const priceDiff = book.price < book.prevPrice ? Math.ceil(100 * (1 - book.price / book.prevPrice)) : 0
+
     return (
         <Card>
             <div className="aspect-[3/4] relative">
@@ -51,8 +53,18 @@ export default function BookCard({ book }: { book: BookClientSideState }) {
                         <p className="text-sm text-muted-foreground hover:underline">{book.author}</p>
                     </Link>
 
-                    <div className="flex flex-row items-center justify-between">
-                        <p className="font-bold text-2xl text-green-500">R$ {book.price.toFixed(2)}</p>
+                    <div className="flex flex-col justify-center gap-3">
+                        <div className="flex flex-col justify-center">
+                            {priceDiff > 10 && (
+                                <p className="text-muted-foreground">
+                                    De: <span className="line-through">R$ {book.prevPrice.toFixed(2)}</span>
+                                </p>
+                            )}
+                            <div className="text-2xl flex flex-row gap-1">
+                                {priceDiff > 10 && <span className="text-red-500 font-normal text-nowrap">-{priceDiff}%</span>}
+                                <span className="text-green-500 font-bold text-nowrap">R$ {book.price.toFixed(2)}</span>
+                            </div>
+                        </div>
                         <AddToCartButton
                             bookForCart={{
                                 ...book,

@@ -18,6 +18,7 @@ type SuperCategory = {
                 stripeId: string
                 description: string
                 price: Prisma.Decimal
+                prevPrice: Prisma.Decimal
                 stock: number
                 DisplayImage: {
                     url: string
@@ -280,6 +281,7 @@ export default async function BooksPage({
         stripeId: book.stripeId,
         stock: book.stock,
         amount: 1,
+        prevPrice: book.prevPrice.toNumber(),
     }))
 
     const categories = superCategory.Category.map((category) => ({
