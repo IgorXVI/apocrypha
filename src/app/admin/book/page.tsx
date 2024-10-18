@@ -14,6 +14,7 @@ import SingleImageField from "../_components/single-image-field"
 import { bookValidationSchema, type BookSchemaType } from "~/lib/validation"
 import { AdminRichTextInput } from "../_components/admin-rich-text-editor"
 import SelectEnum from "../_components/select-enum"
+import BookStockUpdate from "../_components/book-stock-update"
 
 type ModelAttrs = keyof BookSchemaType
 
@@ -294,6 +295,12 @@ export default function MainPage() {
             tableValuesMap={{
                 price: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
                 language: (value: string) => <span className="text-nowrap">{langsMap[value] ?? value}</span>,
+                stock: (value: number, id?: string) => (
+                    <BookStockUpdate
+                        DBValue={value}
+                        id={id ?? ""}
+                    ></BookStockUpdate>
+                ),
             }}
             slug="book"
             inputKeyMap={inputKeyMap}

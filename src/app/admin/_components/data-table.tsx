@@ -23,7 +23,7 @@ export default function DataTable(props: {
     tableDescription: string
     rows: Record<string, PossibleTableCellTypes>[]
     tableHeaders: Record<string, string>
-    tableValuesMap?: Record<string, (value: PossibleTableCellTypes) => React.ReactNode | string>
+    tableValuesMap?: Record<string, (value: PossibleTableCellTypes, id?: string) => React.ReactNode | string>
     isLoading: boolean
     isError: boolean
     isSuccess: boolean
@@ -143,7 +143,7 @@ export default function DataTable(props: {
                                                                                         toast.dismiss("exe-action")
                                                                                         setDisableActions(false)
                                                                                         if (!result.success) {
-                                                                                            toastError(result.errorMessage ?? "Erro desconhecido")
+                                                                                            toastError(result.errorMessage)
                                                                                             return
                                                                                         }
                                                                                         toastSuccess("Ação foi bem-sucedida")
@@ -151,7 +151,7 @@ export default function DataTable(props: {
                                                                                     .catch((error) => {
                                                                                         toast.dismiss("exe-action")
                                                                                         setDisableActions(false)
-                                                                                        toastError(JSON.stringify(error))
+                                                                                        toastError(error)
                                                                                     })
                                                                             })()
                                                                           : null
@@ -171,7 +171,7 @@ export default function DataTable(props: {
                                             >
                                                 <div className="flex items-center justify-center w-full">
                                                     {props.tableValuesMap?.[attr] ? (
-                                                        props.tableValuesMap[attr](row[attr])
+                                                        props.tableValuesMap[attr](row[attr], row.id?.toString() ?? undefined)
                                                     ) : typeof row[attr] === "string" && attr.includes("Url") && row[attr] ? (
                                                         <Image
                                                             alt={attr}

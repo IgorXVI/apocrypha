@@ -167,7 +167,7 @@ export default function UserAddress() {
     }
 
     if (getUserAddress.isError) {
-        toastError(JSON.stringify(getUserAddress.error))
+        toastError(getUserAddress.error)
         return <XCircleIcon color="red"></XCircleIcon>
     }
 

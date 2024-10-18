@@ -36,7 +36,7 @@ export default function SearchPage(
             }
         >
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tableValuesMap?: Record<string, (value: any) => React.ReactNode | string>
+        tableValuesMap?: Record<string, (value: any, id?: string) => React.ReactNode | string>
     }>,
 ) {
     const searchParams = useSearchParams()
@@ -64,11 +64,11 @@ export default function SearchPage(
     const total = useMemo(() => (getRowsQuery.data ? (getRowsQuery.data.success ? getRowsQuery.data.data.total : 0) : 0), [getRowsQuery.data])
 
     if (getRowsQuery.isError) {
-        toastError(JSON.stringify(getRowsQuery.error))
+        toastError(getRowsQuery.error)
     }
 
     if (!getRowsQuery.isLoading && !getRowsQuery.data?.success) {
-        toastError(getRowsQuery.data?.errorMessage ?? "Erro desconhecido")
+        toastError(getRowsQuery.data?.errorMessage)
     }
 
     enum ModalParams {
