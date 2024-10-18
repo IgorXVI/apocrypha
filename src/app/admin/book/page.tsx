@@ -274,7 +274,7 @@ export default function MainPage() {
                 price: "Preço",
                 prevPrice: "Preço anterior",
                 stock: "Estoque",
-                stripeId: "Stripe ID",
+                stripeId: "Produto no Stripe",
                 description: "Descrição",
                 pages: "Páginas",
                 publicationDate: "Data de Publicação",
@@ -295,6 +295,14 @@ export default function MainPage() {
                 weightGrams: "Peso (g)",
             }}
             tableValuesMap={{
+                stripeId: (value: string) => (
+                    <a
+                        className="hover:underline"
+                        href={`https://dashboard.stripe.com/test/products/${value}`}
+                    >
+                        Ver no Stripe
+                    </a>
+                ),
                 language: (value: string) => <span className="text-nowrap">{langsMap[value] ?? value}</span>,
                 prevPrice: (value: number) => <span className="text-nowrap">R$ {value.toFixed(2)}</span>,
                 price: (value: number, id: string, revalidateCache) => (
