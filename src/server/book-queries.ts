@@ -5,7 +5,7 @@ import { db } from "~/server/db"
 import { errorHandler } from "./generic-queries"
 
 import { type BookGetManyOneRowOutput, type CommonDBReturn, type GetManyInput, type GetManyOutput } from "../lib/types"
-import { archiveProduct, createProduct, restoreProduct } from "./stripe-api"
+import { archiveProduct, createProduct, restoreProduct, updateProduct } from "./stripe-api"
 
 import { type BookSchemaType } from "~/lib/validation"
 
@@ -65,24 +65,19 @@ const transformBookInput = (data: BookSchemaType) => {
     }
 }
 
-const createStripeProduct = async (data: BookSchemaType) => {
-    const stripeResponse = await createProduct({
-        name: data.title,
-        price: data.price,
-        mainImg: data.mainImgUrl,
-    })
-
-    if (!stripeResponse.success) {
-        throw new Error(stripeResponse.message)
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return stripeResponse.productId
-}
-
 export const bookCreateOne = async (data: BookSchemaType) =>
     errorHandler(async () => {
-        const stripeId = await createStripeProduct(data)
+        const stripeResponse = await createProduct({
+            name: data.title,
+            price: data.price,
+            mainImg: data.mainImgUrl,
+        })
+
+        if (!stripeResponse.success) {
+            throw new Error(stripeResponse.message)
+        }
+
+        const stripeId = stripeResponse.productId
 
         const dataForDB = transformBookInput(data)
 
@@ -163,16 +158,16 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
             throw new Error("Book not found")
         }
 
-        let stripeId = bookDBData.stripeId
-
         if (data.title !== bookDBData.title || data.mainImgUrl !== bookDBData.DisplayImage[0]?.url || data.price !== bookDBData.price.toNumber()) {
-            const archiveProductResponse = await archiveProduct(bookDBData.stripeId)
+            const stripeResponse = await updateProduct(bookDBData.stripeId, {
+                name: data.title,
+                price: data.price,
+                mainImg: data.mainImgUrl,
+            })
 
-            if (!archiveProductResponse.success && !archiveProductResponse.message.includes("No such product")) {
-                throw new Error(archiveProductResponse.message)
+            if (!stripeResponse.success) {
+                throw new Error(stripeResponse.message)
             }
-
-            stripeId = await createStripeProduct(data)
         }
 
         const deleteAuthorOnBook = bookDBData?.AuthorOnBook.map((author) => ({
@@ -192,93 +187,85 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
 
         const dataForDB = transformBookInput(data)
 
-        await db.book
-            .update({
-                where: {
-                    id,
-                },
-                data: {
-                    ...dataForDB,
-                    stripeId,
-                    Series: data.seriesId
-                        ? dataForDB.Series
-                        : {
-                              disconnect: {
-                                  id: bookDBData.seriesId ?? "",
-                              },
+        await db.book.update({
+            where: {
+                id,
+            },
+            data: {
+                ...dataForDB,
+                Series: data.seriesId
+                    ? dataForDB.Series
+                    : {
+                          disconnect: {
+                              id: bookDBData.seriesId ?? "",
                           },
-                    DisplayImage: {
-                        updateMany: dataForDB.DisplayImage.createMany.data.map((image) => ({
-                            where: {
-                                order: image.order,
-                            },
-                            data: {
-                                url: image.url,
-                            },
-                        })),
-                    },
-                    AuthorOnBook: {
-                        deleteMany: deleteAuthorOnBook.length > 0 ? deleteAuthorOnBook : undefined,
-                        connectOrCreate:
-                            allAuthorIds.length > 0
-                                ? allAuthorIds.map((authorId) => ({
-                                      where: {
-                                          bookId_authorId: {
-                                              bookId: id,
-                                              authorId,
-                                          },
-                                      },
-                                      create: {
-                                          authorId,
-                                          main: true,
-                                      },
-                                  }))
-                                : undefined,
-                    },
-                    TranslatorOnBook: {
-                        deleteMany: deleteTranslatorOnBook.length > 0 ? deleteTranslatorOnBook : undefined,
-                        connectOrCreate:
-                            allTranslatorIds.length > 0
-                                ? allTranslatorIds.map((translatorId) => ({
-                                      where: {
-                                          bookId_translatorId: {
-                                              bookId: id,
-                                              translatorId,
-                                          },
-                                      },
-                                      create: {
-                                          translatorId,
-                                          main: true,
-                                      },
-                                  }))
-                                : undefined,
-                    },
-                    CategoryOnBook: {
-                        deleteMany: deleteCategoryOnBook.length > 0 ? deleteCategoryOnBook : undefined,
-                        connectOrCreate:
-                            allCategoryIds.length > 0
-                                ? allCategoryIds.map((categoryId) => ({
-                                      where: {
-                                          bookId_categoryId: {
-                                              bookId: id,
-                                              categoryId,
-                                          },
-                                      },
-                                      create: {
-                                          categoryId,
-                                          main: true,
-                                      },
-                                  }))
-                                : undefined,
-                    },
+                      },
+                DisplayImage: {
+                    updateMany: dataForDB.DisplayImage.createMany.data.map((image) => ({
+                        where: {
+                            order: image.order,
+                        },
+                        data: {
+                            url: image.url,
+                        },
+                    })),
                 },
-            })
-            .catch((error) => {
-                if (bookDBData.stripeId !== stripeId) {
-                    archiveProduct(stripeId).catch((e) => console.error("Error archiving product", e))
-                }
-                throw error
-            })
+                AuthorOnBook: {
+                    deleteMany: deleteAuthorOnBook.length > 0 ? deleteAuthorOnBook : undefined,
+                    connectOrCreate:
+                        allAuthorIds.length > 0
+                            ? allAuthorIds.map((authorId) => ({
+                                  where: {
+                                      bookId_authorId: {
+                                          bookId: id,
+                                          authorId,
+                                      },
+                                  },
+                                  create: {
+                                      authorId,
+                                      main: true,
+                                  },
+                              }))
+                            : undefined,
+                },
+                TranslatorOnBook: {
+                    deleteMany: deleteTranslatorOnBook.length > 0 ? deleteTranslatorOnBook : undefined,
+                    connectOrCreate:
+                        allTranslatorIds.length > 0
+                            ? allTranslatorIds.map((translatorId) => ({
+                                  where: {
+                                      bookId_translatorId: {
+                                          bookId: id,
+                                          translatorId,
+                                      },
+                                  },
+                                  create: {
+                                      translatorId,
+                                      main: true,
+                                  },
+                              }))
+                            : undefined,
+                },
+                CategoryOnBook: {
+                    deleteMany: deleteCategoryOnBook.length > 0 ? deleteCategoryOnBook : undefined,
+                    connectOrCreate:
+                        allCategoryIds.length > 0
+                            ? allCategoryIds.map((categoryId) => ({
+                                  where: {
+                                      bookId_categoryId: {
+                                          bookId: id,
+                                          categoryId,
+                                      },
+                                  },
+                                  create: {
+                                      categoryId,
+                                      main: true,
+                                  },
+                              }))
+                            : undefined,
+                },
+            },
+        })
 
         return undefined
     })

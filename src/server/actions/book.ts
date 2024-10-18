@@ -1,6 +1,7 @@
 "use server"
 
 import { db } from "../db"
+import { updateProduct } from "../stripe-api"
 
 export const updateStock = async (id: unknown, newStock: unknown) => {
     if (typeof id !== "string") {
@@ -51,10 +52,42 @@ export const updatePrice = async (id: unknown, newPrice: unknown) => {
         }
     }
 
-    if (Number.isNaN(newPrice) || typeof newPrice !== "number" || (typeof newPrice === "number" && newPrice <= 0)) {
+    if (Number.isNaN(newPrice) || typeof newPrice !== "number" || (typeof newPrice === "number" && newPrice <= 10)) {
         return {
             success: false,
-            errorMessage: "O valor do preço deve ser um número positivo.",
+            errorMessage: "O valor do preço deve ser um número positivo, maior que 10.",
+        }
+    }
+
+    const bookDBData = await db.book
+        .findUnique({
+            where: {
+                id,
+            },
+            select: {
+                stripeId: true,
+            },
+        })
+        .catch((error) => {
+            console.error("FIND_BOOK_ON_PRICE_UPDATE_ERROR", error)
+            return undefined
+        })
+
+    if (!bookDBData) {
+        return {
+            success: false,
+            errorMessage: "Erro ao tentar buscar dados do livro.",
+        }
+    }
+
+    const stripeResponse = await updateProduct(bookDBData.stripeId, {
+        price: newPrice,
+    })
+
+    if (!stripeResponse.success) {
+        return {
+            success: false,
+            errorMessage: stripeResponse.message,
         }
     }
 

@@ -23,7 +23,7 @@ export default function BookStockUpdate({ id, DBValue }: { id: string; DBValue: 
                 toast.dismiss("book-stock-update")
                 toastError(error)
             })
-    }, 1000)
+    }, 2000)
 
     return (
         <Input

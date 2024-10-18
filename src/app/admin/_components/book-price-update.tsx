@@ -23,13 +23,13 @@ export default function BookPriceUpdate({ id, DBValue }: { id: string; DBValue: 
                 toast.dismiss("book-price-update")
                 toastError(error)
             })
-    }, 1000)
+    }, 2000)
 
     return (
         <div className="flex flex-row flex-nowrap gap-2 items-center justify-center">
             <span>R$</span>
             <Input
-                className="min-w-[65px]"
+                className="min-w-[75px]"
                 defaultValue={DBValue}
                 onInput={handleInput}
             ></Input>

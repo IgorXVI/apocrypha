@@ -18,6 +18,12 @@ type ProductData = {
     mainImg: string
 }
 
+type ProductDataUpdate = {
+    name?: string
+    price?: number
+    mainImg?: string
+}
+
 export type ShippingPackageData = {
     id: string
     packages: CalcShippingFeePackage[]
@@ -30,7 +36,7 @@ export const createProduct = async (productData: ProductData) => {
             images: [productData.mainImg],
             default_price_data: {
                 currency: "brl",
-                unit_amount: productData.price * 100,
+                unit_amount: Math.ceil(productData.price * 100),
             },
             shippable: true,
         }),
@@ -48,6 +54,48 @@ export const createProduct = async (productData: ProductData) => {
         success: true,
         message: "Product created successfully",
         productId: product.value.id,
+    }
+}
+
+export const updateProduct = async (stripeId: string, productData: ProductDataUpdate) => {
+    let newPriceId: string | undefined
+    if (productData.price) {
+        const [priceResult] = await Promise.allSettled([
+            stripe.prices.create({
+                currency: "brl",
+                unit_amount: Math.ceil(productData.price * 100),
+                product: stripeId,
+            }),
+        ])
+
+        if (priceResult.status === "rejected") {
+            return {
+                success: false,
+                message: `Failed to update price: ${priceResult.reason}`,
+            }
+        }
+
+        newPriceId = priceResult.value.id
+    }
+
+    const [product] = await Promise.allSettled([
+        stripe.products.update(stripeId, {
+            name: productData.name ? productData.name : undefined,
+            images: productData.mainImg ? [productData.mainImg] : undefined,
+            default_price: newPriceId,
+        }),
+    ])
+
+    if (product.status === "rejected") {
+        return {
+            success: false,
+            message: `Failed to update product: ${product.reason}`,
+        }
+    }
+
+    return {
+        success: true,
+        message: "Product updated successfully",
     }
 }
 
