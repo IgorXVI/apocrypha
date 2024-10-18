@@ -445,8 +445,11 @@ export const simulateStripeConfirmation = async (id: unknown) => {
 
     revalidatePath("/admin")
 
-    if (!confrimationResult?.success) {
-        return confrimationResult
+    if (!confrimationResult) {
+        return {
+            success: false,
+            errorMessage: "Aconteceu um erro ao tentar simular a confirmação.",
+        }
     }
 
     return {
