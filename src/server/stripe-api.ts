@@ -556,6 +556,7 @@ export const handleChekoutConfirmation = async (session: Stripe.Checkout.Session
                     id: globalOrderId,
                 },
                 data: {
+                    paymentId: globalPaymentId,
                     updatedAt: new Date(),
                     status: "CANCELED",
                     cancelReason: "EXCEPTION",
