@@ -181,15 +181,15 @@ enum OrderCancelReason {
 model Order {
     id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     sessionId           String      @unique
-    paymentId           String      @unique
+    paymentId           String?     @unique
     userId              String
-    ticketId            String
-    totalPrice          Decimal
-    shippingPrice       Decimal
-    shippingDaysMin     Int
-    shippingDaysMax     Int
-    shippingServiceId   String
-    shippingServiceName String
+    ticketId            String?
+    totalPrice          Decimal?
+    shippingPrice       Decimal?
+    shippingDaysMin     Int?
+    shippingDaysMax     Int?
+    shippingServiceId   String?
+    shippingServiceName String?
     status              OrderStatus @default(AWAITING_CONFIRMATION)
 
     cancelReason  OrderCancelReason?

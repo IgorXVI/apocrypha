@@ -53,26 +53,16 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
         return <p>Pedido não foi encontrado.</p>
     }
 
-    const ticketInfo = await getProductInfo(order.ticketId).catch((error) => {
-        console.error("TICKET_INFO_ERROR_USER_ORDER_DETAILS", error)
-        return undefined
-    })
+    const ticketInfo = order.ticketId
+        ? await getProductInfo(order.ticketId).catch((error) => {
+              console.error("TICKET_INFO_ERROR_USER_ORDER_DETAILS", error)
+              return undefined
+          })
+        : undefined
 
-    if (!ticketInfo) {
-        return <p>Não foi possível encontrar as informações do endereço de entrega.</p>
-    }
+    const stripePaymentInfo = order.paymentId ? await stripe.paymentIntents.retrieve(order.paymentId) : undefined
 
-    const stripePaymentInfo = await stripe.paymentIntents.retrieve(order.paymentId)
-
-    if (!stripePaymentInfo) {
-        return <p>Não foi possível encontrar as informações do pagamento.</p>
-    }
-
-    const paymentMethod = await stripe.paymentMethods.retrieve(stripePaymentInfo.payment_method?.toString() ?? "")
-
-    if (!paymentMethod) {
-        return <p>Não foi possível encontrar as informações do método de pagamento.</p>
-    }
+    const paymentMethod = stripePaymentInfo ? await stripe.paymentMethods.retrieve(stripePaymentInfo.payment_method?.toString() ?? "") : undefined
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -152,7 +142,10 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                         Subtotal
                                     </TableCell>
                                     <TableCell className="text-right text-nowrap ">
-                                        R$ {(order.totalPrice.toNumber() - order.shippingPrice.toNumber()).toFixed(2)}
+                                        R${" "}
+                                        {order.totalPrice && order.shippingPrice
+                                            ? (order.totalPrice.toNumber() - order.shippingPrice?.toNumber()).toFixed(2)
+                                            : "N/A"}
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -162,7 +155,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                     >
                                         Entrega
                                     </TableCell>
-                                    <TableCell className="text-right text-nowrap">R$ {order.shippingPrice.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right text-nowrap">R$ {order.shippingPrice?.toFixed(2) ?? "N/A"}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell
@@ -172,7 +165,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                         Total
                                     </TableCell>
                                     <TableCell className="text-nowrap text-right font-bold text-lg md:text-2xl text-green-500">
-                                        R$ {order.totalPrice.toFixed(2)}
+                                        R$ {order.totalPrice?.toFixed(2) ?? "N/A"}
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -181,26 +174,28 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                 </Card>
 
                 <div className="space-y-8">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Truck className="h-5 w-5" />
-                                Informação da entrega
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="font-medium">{order.shippingServiceName}</p>
-                            <p className="text-muted-foreground mt-2">Entregar para {ticketInfo.to.name}</p>
-                            <p className="text-muted-foreground mt-2">
-                                {ticketInfo.to.city}/{ticketInfo.to.state_abbr}, {ticketInfo.to.postal_code}
-                            </p>
-                            <p className="text-muted-foreground mt-2">
-                                {ticketInfo.to.address}, {ticketInfo.to.district}
-                            </p>
-                        </CardContent>
-                    </Card>
+                    {ticketInfo && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Truck className="h-5 w-5" />
+                                    Informação da entrega
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="font-medium">{order.shippingServiceName}</p>
+                                <p className="text-muted-foreground mt-2">Entregar para {ticketInfo.to.name}</p>
+                                <p className="text-muted-foreground mt-2">
+                                    {ticketInfo.to.city}/{ticketInfo.to.state_abbr}, {ticketInfo.to.postal_code}
+                                </p>
+                                <p className="text-muted-foreground mt-2">
+                                    {ticketInfo.to.address}, {ticketInfo.to.district}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
 
-                    {paymentMethod.type === "card" && (
+                    {paymentMethod && paymentMethod.type === "card" && (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">

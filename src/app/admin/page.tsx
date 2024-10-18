@@ -7,7 +7,7 @@ import OrderStatus from "~/components/order/order-status"
 import OrderSearch from "./_components/order-search"
 import { type $Enums } from "prisma/prisma-client"
 import { z } from "zod"
-import { cancelOrder, emitOrderTicket, inferNewOrderStatus, simulateOrderDone } from "~/server/actions/order"
+import { cancelOrder, emitOrderTicket, inferNewOrderStatus, simulateOrderDone, simulateStripeConfirmation } from "~/server/actions/order"
 
 const orderStatusSearch = new Map<string, $Enums.OrderStatus>([
     ["entregue", "DELIVERED"],
@@ -107,7 +107,7 @@ export default async function Admin({
         ),
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
-        price: `R$ ${order.totalPrice.toFixed(2)}`,
+        price: order.totalPrice ? `R$ ${order.totalPrice.toFixed(2)}` : undefined,
         stripeLink: order.paymentId && (
             <a
                 className="hover:underline text-nowrap"
@@ -129,6 +129,8 @@ export default async function Admin({
             </a>
         ),
         tracking: order.tracking,
+        cancelReason: order.cancelReason,
+        cancelMessage: order.cancelMessage,
     }))
 
     return (
@@ -154,6 +156,8 @@ export default async function Admin({
                     shippingMethod: "Serviço de entrega",
                     userName: "Nome do usuário",
                     userEmail: "Email do usuário",
+                    cancelReason: "Motivo do cancelamento",
+                    cancelMessage: "Mensagem de cancelamento",
                 }}
                 rows={odersForView}
                 isError={false}
@@ -179,6 +183,10 @@ export default async function Admin({
                         {
                             label: "Simular Entrega",
                             serverAction: simulateOrderDone,
+                        },
+                        {
+                            label: "Simular Webhook do Stripe",
+                            serverAction: simulateStripeConfirmation,
                         },
                         {
                             label: "Cancelar",

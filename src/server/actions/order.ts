@@ -3,7 +3,28 @@
 import { revalidatePath } from "next/cache"
 import { db } from "../db"
 import { cancelTicket, emitTicket, getProductInfo } from "../shipping-api"
-import { stripe } from "../stripe-api"
+import { handleChekoutConfirmation, stripe } from "../stripe-api"
+import { type Prisma } from "prisma/prisma-client"
+
+const validateOrderStatus = (order: Prisma.OrderGetPayload<Prisma.OrderDefaultArgs>) => {
+    if (order.status === "AWAITING_CONFIRMATION") {
+        return {
+            success: false,
+            errorMessage: "Pagamento do pedido ainda não foi confirmado pelo Stripe.",
+        }
+    }
+
+    if (order.status === "CANCELED") {
+        return {
+            success: false,
+            errorMessage: "Pedido está cancelado.",
+        }
+    }
+
+    return {
+        success: true,
+    }
+}
 
 export const emitOrderTicket = async (id: unknown) => {
     if (typeof id !== "string") {
@@ -26,10 +47,15 @@ export const emitOrderTicket = async (id: unknown) => {
         }
     }
 
-    if (order.status === "CANCELED") {
+    const validResult = validateOrderStatus(order)
+    if (!validResult.success) {
+        return validResult
+    }
+
+    if (!order.ticketId) {
         return {
             success: false,
-            errorMessage: "Pedido está cancelado.",
+            errorMessage: "Pedido não possui ticket.",
         }
     }
 
@@ -102,10 +128,15 @@ export const inferNewOrderStatus = async (id: unknown) => {
         }
     }
 
-    if (order.status === "CANCELED") {
+    const validResult = validateOrderStatus(order)
+    if (!validResult.success) {
+        return validResult
+    }
+
+    if (!order.ticketId) {
         return {
             success: false,
-            errorMessage: "Pedido está cancelado.",
+            errorMessage: "Pedido não possui ticket.",
         }
     }
 
@@ -172,10 +203,15 @@ export const cancelOrder = async (id: unknown) => {
         }
     }
 
-    if (order.status === "CANCELED") {
+    const validResult = validateOrderStatus(order)
+    if (!validResult.success) {
+        return validResult
+    }
+
+    if (!order.paymentId) {
         return {
             success: false,
-            errorMessage: "Pedido está cancelado.",
+            errorMessage: "Pedido não possui ID de pagamento.",
         }
     }
 
@@ -207,6 +243,13 @@ export const cancelOrder = async (id: unknown) => {
         return {
             success: false,
             errorMessage: `Erro ao tentar criar o reembolso no stripe, status retornado: ${stripeRefundResult.status}`,
+        }
+    }
+
+    if (!order.ticketId) {
+        return {
+            success: false,
+            errorMessage: "Pedido não possui ticket.",
         }
     }
 
@@ -314,11 +357,9 @@ export const simulateOrderDone = async (id: unknown) => {
         }
     }
 
-    if (order.status === "CANCELED") {
-        return {
-            success: false,
-            errorMessage: "Pedido está cancelado.",
-        }
+    const validResult = validateOrderStatus(order)
+    if (!validResult.success) {
+        return validResult
     }
 
     const updateResult = await db.order
@@ -340,6 +381,72 @@ export const simulateOrderDone = async (id: unknown) => {
         return {
             success: false,
             errorMessage: "Aconteceu um erro ao atualizar o pedido.",
+        }
+    }
+
+    revalidatePath("/admin")
+
+    return {
+        success: true,
+    }
+}
+
+export const simulateStripeConfirmation = async (id: unknown) => {
+    if (typeof id !== "string") {
+        return {
+            success: false,
+            errorMessage: "ID deve ser uma string.",
+        }
+    }
+
+    const order = await db.order.findUnique({
+        where: {
+            id,
+        },
+    })
+
+    if (!order) {
+        return {
+            success: false,
+            errorMessage: "Pedido não foi encontrado.",
+        }
+    }
+
+    if (order.status === "CANCELED") {
+        return {
+            success: false,
+            errorMessage: "Pedido já foi cancelado.",
+        }
+    }
+
+    if (order.status !== "AWAITING_CONFIRMATION") {
+        return {
+            success: false,
+            errorMessage: "Pedido já foi confirmado pelo Stripe.",
+        }
+    }
+
+    const stripeSession = await stripe.checkout.sessions.retrieve(order.sessionId).catch((error) => {
+        console.error("RETRIEVE_STRIPE_SESSION_ON_ADMIN_ERROR", error)
+        return undefined
+    })
+
+    if (!stripeSession) {
+        return {
+            success: false,
+            errorMessage: "Aconteceu um erro ao tentar buscar a stripe session.",
+        }
+    }
+
+    const confrimationResult = await handleChekoutConfirmation(stripeSession).catch((error) => {
+        console.error("CHECKOUT_CONFIRMATION_ON_ADMIN_ERROR", error)
+        return undefined
+    })
+
+    if (!confrimationResult) {
+        return {
+            success: false,
+            errorMessage: "Aconteceu um erro ao tentar simular a confirmação.",
         }
     }
 
