@@ -125,14 +125,19 @@ export default async function UserOrders({
                                     {orders.map((order) => (
                                         <TableRow key={order.id}>
                                             <TableCell>
-                                                <Link href={`/commerce/user/order/${order.id}`}>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
+                                                <Button
+                                                    disabled={order.status === "AWAITING_CONFIRMATION"}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="px-0"
+                                                >
+                                                    <Link
+                                                        href={`/commerce/user/order/${order.id}`}
+                                                        className="h-full w-full grid place-content-center px-3"
                                                     >
-                                                        Ver detalhes
-                                                    </Button>
-                                                </Link>
+                                                        <span>Ver detalhes</span>
+                                                    </Link>
+                                                </Button>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="max-w-[150px]">
@@ -152,7 +157,7 @@ export default async function UserOrders({
                                             <TableCell className="text-right text-nowrap">{order.updatedAt.toLocaleString()}</TableCell>
                                             <TableCell className="text-right text-nowrap">{order.createdAt.toLocaleString()}</TableCell>
                                             <TableCell className="text-right text-nowrap font-bold text-green-500">
-                                                R$ {order.totalPrice?.toFixed(2) ?? "N/A"}
+                                                {order.totalPrice && <span>R$ {order.totalPrice.toFixed(2)}</span>}
                                             </TableCell>
                                         </TableRow>
                                     ))}
