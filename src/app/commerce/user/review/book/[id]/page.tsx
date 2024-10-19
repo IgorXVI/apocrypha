@@ -5,8 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { db } from "~/server/db"
 import ReviewForm from "../_components/review-form"
 import Link from "next/link"
+import { auth } from "@clerk/nextjs/server"
 
 export default async function BookReviewPage({ params: { id } }: { params: { id: string } }) {
+    const user = auth()
+    if (!user.userId) {
+        return <p>Não autorizado</p>
+    }
+
     const book = await db.book.findUnique({
         where: {
             id,
@@ -26,6 +32,12 @@ export default async function BookReviewPage({ params: { id } }: { params: { id:
                 include: {
                     Author: true,
                 },
+            },
+            Review: {
+                where: {
+                    userId: user.userId,
+                },
+                take: 1,
             },
         },
     })
@@ -70,7 +82,10 @@ export default async function BookReviewPage({ params: { id } }: { params: { id:
                         <CardDescription>Escreva uma avaliação do livro {book.title}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ReviewForm bookId={book.id}></ReviewForm>
+                        <ReviewForm
+                            bookId={book.id}
+                            existingValues={book.Review[0]}
+                        ></ReviewForm>
                     </CardContent>
                 </Card>
             </div>

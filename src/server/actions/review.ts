@@ -39,6 +39,27 @@ export const upsertReview = async (data: unknown) => {
 
     const validData = validationResult.data
 
+    const orderData = await db.order.findFirst({
+        where: {
+            status: "DELIVERED",
+            BookOnOrder: {
+                some: {
+                    bookId: validData.bookId,
+                },
+            },
+        },
+        select: {
+            id: true,
+        },
+    })
+
+    if (!orderData) {
+        return {
+            success: false,
+            errorMessage: "Nenhum pedido concluido encontrado que possui esse livro.",
+        }
+    }
+
     const upsertResult = await db.review
         .upsert({
             where: {

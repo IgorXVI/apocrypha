@@ -16,16 +16,20 @@ import { Textarea } from "~/components/ui/textarea"
 import { reviewValidationSchema, type ReviewSchemaType } from "~/lib/validation"
 import { upsertReview } from "~/server/actions/review"
 
-export default function ReviewForm({ bookId }: { bookId: string }) {
-    const [rating, setRating] = useState(1)
+export default function ReviewForm({ bookId, existingValues }: { bookId: string; existingValues?: ReviewSchemaType }) {
+    const defaultValues = existingValues
+        ? existingValues
+        : {
+              rating: 0,
+              bookId,
+          }
 
     const form = useForm<ReviewSchemaType>({
         resolver: zodResolver(reviewValidationSchema),
-        defaultValues: {
-            rating: 1,
-            bookId,
-        },
+        defaultValues,
     })
+
+    const [rating, setRating] = useState(defaultValues.rating)
 
     const onSubmit = async (values: ReviewSchemaType) => {
         toastLoading("Enviando...", "review-create")
