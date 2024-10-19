@@ -27,7 +27,7 @@
 -   [ ] Fazer página de contato
 -   [x] Fazer página de entrega
 -   [x] Fazer página de histórico de compras
--   [ ] Adicionar reviews
+-   [x] Adicionar reviews
 -   [ ] Adicionar paginação das reviews
 -   [x] Melhorar atualização de favoritos
 -   [x] Arrumar Bugs que só existiam no preview da vercel
