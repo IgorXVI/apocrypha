@@ -23,7 +23,7 @@ export default function WishListPage() {
             </div>
 
             {favs.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-5 mb-8">
+                <div className="commerce-book-list mb-8">
                     {favs.map((book) => (
                         <BookCard
                             key={book.id}

@@ -101,15 +101,6 @@ export default async function MainCommercePage() {
                     },
                     take: 1,
                 },
-                Favorite: {
-                    where: {
-                        userId: user.userId,
-                    },
-                    select: {
-                        id: true,
-                    },
-                    take: 1,
-                },
             },
             orderBy: {
                 price: "asc",
@@ -149,7 +140,6 @@ export default async function MainCommercePage() {
                         authorId: book.AuthorOnBook[0]?.authorId ?? "",
                         stripeId: book.stripeId,
                         description: book.description,
-                        isFav: book.Favorite[0]?.id !== undefined,
                         stock: book.stock,
                         amount: 1,
                         prevPrice: book.prevPrice.toNumber(),
@@ -167,7 +157,6 @@ export default async function MainCommercePage() {
                         authorId: book.AuthorOnBook[0]?.authorId ?? "",
                         stripeId: book.stripeId,
                         description: book.description,
-                        isFav: book.Favorite[0]?.id !== undefined,
                         stock: book.stock,
                         amount: 1,
                         prevPrice: book.prevPrice.toNumber(),

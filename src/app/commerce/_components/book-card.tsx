@@ -6,11 +6,11 @@ import FavoriteButton from "./add-to-favorite-button"
 import { type BookClientSideState } from "~/lib/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 
-export default function BookCard({ book }: { book: BookClientSideState }) {
+export default function BookCard({ book, hideAuthor }: { book: BookClientSideState; hideAuthor?: boolean }) {
     const priceDiff = book.price < book.prevPrice ? Math.ceil(100 * (1 - book.price / book.prevPrice)) : 0
 
     return (
-        <Card>
+        <Card className="min-w-[275px] max-w-[275px]">
             <div className="aspect-[3/4] relative">
                 <Link
                     href={`/commerce/book/${book.id}`}
@@ -49,7 +49,10 @@ export default function BookCard({ book }: { book: BookClientSideState }) {
                         </Tooltip>
                     </TooltipProvider>
 
-                    <Link href={`/commerce/author/${book.authorId}`}>
+                    <Link
+                        href={`/commerce/author/${book.authorId}`}
+                        className={`${hideAuthor ? "hidden" : ""}`}
+                    >
                         <p className="text-sm text-muted-foreground hover:underline">{book.author}</p>
                     </Link>
 

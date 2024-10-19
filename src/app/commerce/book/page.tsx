@@ -315,14 +315,12 @@ export default async function BooksPage({
             </div>
 
             {books.length > 0 && (
-                <div className="flex flex-row flex-wrap justify-around items-center gap-4 md:col-span-8 col-span-full">
+                <div className="commerce-book-list md:col-span-8 col-span-full">
                     {books.map((book) => (
-                        <div
+                        <BookCard
                             key={book.id}
-                            className="min-w-[275px] max-w-[275px]"
-                        >
-                            <BookCard book={book}></BookCard>
-                        </div>
+                            book={book}
+                        ></BookCard>
                     ))}
                 </div>
             )}

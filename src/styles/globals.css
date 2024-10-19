@@ -80,6 +80,10 @@
     @apply overflow-y-scroll max-h-full scrollbar-none md:max-w-[60vw];
 }
 
+.commerce-book-list {
+    @apply flex flex-row flex-wrap justify-center md:justify-start items-center gap-4;
+}
+
 .zoomed-image-container {
     position: fixed;
     top: 0;

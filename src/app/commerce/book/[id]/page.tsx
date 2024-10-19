@@ -352,16 +352,13 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Sobre o Autor</h3>
                         <div className="flex flex-row gap-4">
-                            <Link
-                                href={`/commerce/author/${book.authorInfo.id}`}
-                                className="min-w-[75px] max-w-[75px] min-h-[75px] max-h-[75px]"
-                            >
+                            <Link href={`/commerce/author/${book.authorInfo.id}`}>
                                 <Image
                                     src={book.authorInfo.image}
                                     alt={book.authorInfo.name}
                                     width={75}
                                     height={75}
-                                    className="rounded-full"
+                                    className="rounded-lg shadow-lg min-w-[75px] max-w-[75px] min-h-[75px] max-h-[75px]"
                                 ></Image>
                             </Link>
                             <div className="flex flex-col">
