@@ -62,7 +62,7 @@ model Book {
 
 model Series {
     id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name String
+    name String @unique
     Book Book[]
 }
 
@@ -76,7 +76,7 @@ model DisplayImage {
 
 model Publisher {
     id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name String
+    name String @unique
     Book Book[]
 }
 
@@ -92,7 +92,7 @@ model AuthorOnBook {
 
 model Author {
     id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name         String
+    name         String         @unique
     about        String
     imgUrl       String
     AuthorOnBook AuthorOnBook[]
@@ -110,13 +110,13 @@ model TranslatorOnBook {
 
 model Translator {
     id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name             String
+    name             String             @unique
     TranslatorOnBook TranslatorOnBook[]
 }
 
 model SuperCategory {
     id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name     String
+    name     String     @unique
     iconSvg  String?
     Category Category[]
 }
@@ -137,6 +137,8 @@ model Category {
     CategoryOnBook  CategoryOnBook[]
     SuperCategory   SuperCategory?   @relation(fields: [superCategoryId], references: [id])
     superCategoryId String?          @db.Uuid
+
+    @@unique([superCategoryId, name])
 }
 
 model Address {
