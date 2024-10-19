@@ -1,6 +1,6 @@
 import * as _ from "lodash"
 
-import { BookOpenIcon, BoxesIcon, CalendarIcon, CreditCard, Package, TagIcon, TagsIcon, Truck } from "lucide-react"
+import { BookOpenIcon, BoxesIcon, CalendarIcon, CreditCard, Package, StarsIcon, TagIcon, TagsIcon, Truck } from "lucide-react"
 import OrderStatus from "~/components/order/order-status"
 
 import { Button } from "~/components/ui/button"
@@ -116,18 +116,28 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                 {order.BookOnOrder.map((bo) => (
                                     <TableRow key={bo.Book.id}>
                                         <TableCell>
-                                            <Link
-                                                href={`/commerce/book/${bo.Book.id}`}
-                                                className="max-w-[50px]"
-                                            >
-                                                <Image
-                                                    src={bo.Book.DisplayImage[0]?.url ?? ""}
-                                                    alt={bo.Book.title}
-                                                    className="min-h-[50px] min-w-[50px] rounded-md object-cover"
-                                                    width={100}
-                                                    height={100}
-                                                ></Image>
-                                            </Link>
+                                            <div className="flex flex-col gap-3 justify-center items-center md:items-start">
+                                                <Link href={`/commerce/book/${bo.Book.id}`}>
+                                                    <Image
+                                                        src={bo.Book.DisplayImage[0]?.url ?? ""}
+                                                        alt={bo.Book.title}
+                                                        className="min-h-[150px] min-w-[100px] max-h-[150px] max-w-[100px] rounded-lg object-cover"
+                                                        width={100}
+                                                        height={150}
+                                                    ></Image>
+                                                </Link>
+                                                <div className={`${order.status === "DELIVERED" ? "block" : "hidden"}`}>
+                                                    <Link href={`/commerce/user/review/book/${bo.Book.id}`}>
+                                                        <div
+                                                            className="flex flex-row gap-2 bg-yellow-500 hover:bg-yellow-400 transition-all duration-300 
+                                                                    text-white py-1 px-3 rounded-lg items-center justify-center"
+                                                        >
+                                                            <StarsIcon></StarsIcon>
+                                                            <span className="tex-sm md:text-base">Avalie</span>
+                                                        </div>
+                                                    </Link>
+                                                </div>
+                                            </div>
                                         </TableCell>
                                         <TableCell className="text-right">{bo.amount}</TableCell>
                                         <TableCell className="text-right text-nowrap">R$ {bo.price.toFixed(2)}</TableCell>

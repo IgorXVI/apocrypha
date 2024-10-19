@@ -57,6 +57,7 @@ model Book {
     RelatedBooks     Book[]             @relation("BookToBook")
     BookOnOrder      BookOnOrder[]
     Favorite         Favorite[]
+    Review           Review[]
 }
 
 model Series {
@@ -229,4 +230,17 @@ model UserState {
     userId   String @unique
     bookFavs Json[]
     bookCart Json[]
+}
+
+model Review {
+    id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId   String
+    userName String
+    title    String
+    body     String
+    rating   Int
+    Book     Book   @relation(fields: [bookId], references: [id])
+    bookId   String @db.Uuid
+
+    @@unique([userId, bookId])
 }
