@@ -148,9 +148,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                                                     text-white py-1 px-3 rounded-lg items-center justify-center"
                                                         >
                                                             <StarsIcon></StarsIcon>
-                                                            <span className="tex-sm md:text-base">
-                                                                {bo.Book.Review[0] ? "Edite sua avaliação" : "Avalie"}
-                                                            </span>
+                                                            <span className="tex-sm md:text-base">{bo.Book.Review[0] ? "Reavaliar" : "Avaliar"}</span>
                                                         </div>
                                                     </Link>
                                                 </div>
@@ -263,12 +261,9 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                             </div>
                         </CardContent>
                         {order.tracking && (
-                            <CardFooter>
-                                <a
-                                    href={`https://www.linkcorreios.com.br/?id=${order.tracking}`}
-                                    className="w-full"
-                                >
-                                    <Button className="w-full">Rastrear envio</Button>
+                            <CardFooter className="grid place-content-center">
+                                <a href={`https://www.linkcorreios.com.br/?id=${order.tracking}`}>
+                                    <Button className="text-nowrap">Rastrear envio</Button>
                                 </a>
                             </CardFooter>
                         )}
