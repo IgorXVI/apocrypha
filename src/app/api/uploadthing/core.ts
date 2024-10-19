@@ -3,7 +3,6 @@ import { createUploadthing, type FileRouter } from "uploadthing/next"
 import { UploadThingError } from "uploadthing/server"
 import { auth } from "@clerk/nextjs/server"
 import { type UserMetadata } from "~/lib/types"
-import { authClient } from "~/server/auth-api"
 
 const f = createUploadthing()
 
@@ -12,12 +11,11 @@ export const ourFileRouter = {
         .middleware(async () => {
             const user = auth()
 
-            if (!user.userId) throw new UploadThingError("Unauthorized")
+            const userMetadata = user.sessionClaims?.metadata as UserMetadata | undefined
 
-            const fullUserData = await authClient.users.getUser(user.userId)
-            const userMetadata = fullUserData?.privateMetadata as UserMetadata | undefined
+            const isAdmin = userMetadata?.isAdmin ?? false
 
-            if (!userMetadata?.isAdmin) {
+            if (!isAdmin) {
                 throw new UploadThingError("User has no upload permissions")
             }
 
