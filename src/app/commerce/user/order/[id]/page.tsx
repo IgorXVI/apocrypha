@@ -11,6 +11,7 @@ import { getProductInfo } from "~/server/shipping-api"
 import { stripe } from "~/server/stripe-api"
 import Link from "next/link"
 import Image from "next/image"
+import { auth } from "@clerk/nextjs/server"
 
 const formatStripeName = (name: string) =>
     name
@@ -24,6 +25,12 @@ const cardType = new Map<string, string>([
 ])
 
 export default async function OrderDetails({ params: { id } }: { params: { id: string } }) {
+    const user = auth()
+
+    if (!user.userId) {
+        return <p>Não autorizado</p>
+    }
+
     const order = await db.order.findUnique({
         where: {
             id,
@@ -41,6 +48,14 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                     order: "asc",
                                 },
                                 take: 1,
+                            },
+                            Review: {
+                                where: {
+                                    userId: user.userId,
+                                },
+                                select: {
+                                    id: true,
+                                },
                             },
                         },
                     },
@@ -133,7 +148,9 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                                                     text-white py-1 px-3 rounded-lg items-center justify-center"
                                                         >
                                                             <StarsIcon></StarsIcon>
-                                                            <span className="tex-sm md:text-base">Avalie</span>
+                                                            <span className="tex-sm md:text-base">
+                                                                {bo.Book.Review[0] ? "Edite sua avaliação" : "Avalie"}
+                                                            </span>
                                                         </div>
                                                     </Link>
                                                 </div>
