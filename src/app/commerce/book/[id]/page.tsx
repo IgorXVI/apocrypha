@@ -84,148 +84,144 @@ function RelatedBooks({ relatedBooks }: { relatedBooks: { id: string; title: str
     )
 }
 export default async function BookDetails({ params: { id } }: { params: { id: string } }) {
-    const reviews = [
-        {
-            id: "1",
-            author: "John Doe",
-            rating: 5,
-            content: "A classic that never gets old. Fitzgerald's prose is as beautiful as ever, painting a vivid picture of the Roaring Twenties.",
-        },
-        {
-            id: "2",
-            author: "Jane Smith",
-            rating: 4,
-            content: "Beautifully written, captures the essence of the era. The characters are complex and the story is both tragic and compelling.",
-        },
-    ]
-
-    const DBBook = await db.book.findUniqueOrThrow({
-        where: {
-            id,
-        },
-        include: {
-            DisplayImage: {
-                select: {
-                    url: true,
-                },
-                orderBy: {
-                    order: "asc",
-                },
+    const [DBBook, reviewStats] = await Promise.all([
+        db.book.findUniqueOrThrow({
+            where: {
+                id,
             },
-            RelatedBook: {
-                include: {
-                    DisplayImage: {
-                        select: {
-                            url: true,
-                        },
-                        orderBy: {
-                            order: "asc",
-                        },
-                        take: 1,
+            include: {
+                DisplayImage: {
+                    select: {
+                        url: true,
                     },
-                    AuthorOnBook: {
-                        orderBy: {
-                            main: "asc",
+                    orderBy: {
+                        order: "asc",
+                    },
+                },
+                RelatedBook: {
+                    include: {
+                        DisplayImage: {
+                            select: {
+                                url: true,
+                            },
+                            orderBy: {
+                                order: "asc",
+                            },
+                            take: 1,
                         },
-                        take: 1,
-                        include: {
-                            Author: {
-                                select: {
-                                    id: true,
-                                    name: true,
+                        AuthorOnBook: {
+                            orderBy: {
+                                main: "asc",
+                            },
+                            take: 1,
+                            include: {
+                                Author: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                    },
                                 },
                             },
                         },
                     },
                 },
-            },
-            RelatedBooks: {
-                include: {
-                    DisplayImage: {
-                        select: {
-                            url: true,
+                RelatedBooks: {
+                    include: {
+                        DisplayImage: {
+                            select: {
+                                url: true,
+                            },
+                            orderBy: {
+                                order: "asc",
+                            },
+                            take: 1,
                         },
-                        orderBy: {
-                            order: "asc",
-                        },
-                        take: 1,
-                    },
-                    AuthorOnBook: {
-                        orderBy: {
-                            main: "asc",
-                        },
-                        take: 1,
-                        include: {
-                            Author: {
-                                select: {
-                                    id: true,
-                                    name: true,
+                        AuthorOnBook: {
+                            orderBy: {
+                                main: "asc",
+                            },
+                            take: 1,
+                            include: {
+                                Author: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                    },
                                 },
                             },
                         },
                     },
                 },
-            },
-            AuthorOnBook: {
-                orderBy: {
-                    main: "asc",
+                AuthorOnBook: {
+                    orderBy: {
+                        main: "asc",
+                    },
+                    include: {
+                        Author: true,
+                    },
                 },
-                include: {
-                    Author: true,
-                },
-            },
-            TranslatorOnBook: {
-                orderBy: {
-                    main: "asc",
-                },
-                include: {
-                    Translator: {
-                        select: {
-                            id: true,
-                            name: true,
+                TranslatorOnBook: {
+                    orderBy: {
+                        main: "asc",
+                    },
+                    include: {
+                        Translator: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
                         },
                     },
                 },
-            },
-            Series: {
-                include: {
-                    Book: {
-                        select: {
-                            id: true,
-                            title: true,
-                            placeInSeries: true,
-                        },
-                        orderBy: {
-                            placeInSeries: "asc",
+                Series: {
+                    include: {
+                        Book: {
+                            select: {
+                                id: true,
+                                title: true,
+                                placeInSeries: true,
+                            },
+                            orderBy: {
+                                placeInSeries: "asc",
+                            },
                         },
                     },
                 },
-            },
-            Publisher: {
-                select: {
-                    name: true,
+                Publisher: {
+                    select: {
+                        name: true,
+                    },
                 },
-            },
-            CategoryOnBook: {
-                orderBy: {
-                    main: "asc",
-                },
-                take: 1,
-                include: {
-                    Category: {
-                        include: {
-                            SuperCategory: {
-                                select: {
-                                    id: true,
-                                    name: true,
+                CategoryOnBook: {
+                    orderBy: {
+                        main: "asc",
+                    },
+                    take: 1,
+                    include: {
+                        Category: {
+                            include: {
+                                SuperCategory: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                    },
                                 },
                             },
                         },
                     },
                 },
+                Review: true,
             },
-        },
-    })
+        }),
+        db.review.aggregate({
+            where: {
+                bookId: id,
+            },
+            _avg: {
+                rating: true,
+            },
+        }),
+    ])
 
     if (DBBook.RelatedBook && !DBBook.RelatedBooks.some((relatedBook) => relatedBook.id === (DBBook.RelatedBook?.id ?? "N/A"))) {
         DBBook.RelatedBooks.unshift(DBBook.RelatedBook)
@@ -279,6 +275,17 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         prevPrice: DBBook.prevPrice.toNumber(),
     }
 
+    const getStars = (rating: number) => (
+        <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+                <Star
+                    key={i}
+                    className={`w-5 h-5 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                />
+            ))}
+        </div>
+    )
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-5 gap-8">
@@ -294,17 +301,12 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         ></AddToFavoriteButton>
                     </div>
 
-                    <div className="flex items-center mt-4 space-x-4">
-                        <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                                <Star
-                                    key={i}
-                                    className={`w-5 h-5 ${i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
-                                />
-                            ))}
+                    {DBBook.Review.length > 0 && (
+                        <div className="flex items-center mt-4 space-x-4">
+                            {getStars(reviewStats._avg.rating ?? 0)}
+                            <span className="text-sm text-muted-foreground">(Baseado em {DBBook.Review.length} avaliações)</span>
                         </div>
-                        <span className="text-sm text-muted-foreground">(Baseado em {reviews.length} avaliações)</span>
-                    </div>
+                    )}
 
                     <div className="grid place-content-center">
                         <BookDetailsImages
@@ -352,16 +354,13 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Sobre o Autor</h3>
                         <div className="flex flex-row gap-4">
-                            <Link
-                                href={`/commerce/author/${book.authorInfo.id}`}
-                                className="min-w-[75px] max-w-[75px] min-h-[75px] max-h-[75px]"
-                            >
+                            <Link href={`/commerce/author/${book.authorInfo.id}`}>
                                 <Image
                                     src={book.authorInfo.image}
                                     alt={book.authorInfo.name}
                                     width={75}
                                     height={75}
-                                    className="rounded-full"
+                                    className="rounded-lg shadow-lg min-w-[75px] max-w-[75px] min-h-[75px] max-h-[75px]"
                                 ></Image>
                             </Link>
                             <div className="flex flex-col">
@@ -426,37 +425,37 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
 
                     <Separator className="my-6" />
 
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">Avaliações</h3>
-                        {reviews.map((review) => (
-                            <Card
-                                key={review.id}
-                                className="mb-4"
-                            >
-                                <CardContent className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center">
+                    {DBBook.Review.length > 0 && (
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4">Avaliações</h3>
+                            {DBBook.Review.map((review) => (
+                                <Card
+                                    key={review.id}
+                                    className="mb-4"
+                                >
+                                    <CardContent className="p-4 flex flex-col gap-1">
+                                        <div className="flex items-center justify-start gap-3 mb-3">
                                             <Avatar className="h-10 w-10">
-                                                <AvatarFallback>{review.author[0]}</AvatarFallback>
+                                                <AvatarFallback>
+                                                    {review.userName
+                                                        .split(" ")
+                                                        .filter((_, i, arr) => i === 0 || i === arr.length - 1)
+                                                        .map((s) => s.charAt(0))
+                                                        .join("")}
+                                                </AvatarFallback>
                                             </Avatar>
                                             <div className="ml-4">
-                                                <p className="text-sm font-medium">{review.author}</p>
-                                                <div className="flex items-center">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <Star
-                                                            key={i}
-                                                            className={`w-4 h-4 ${i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
-                                                        />
-                                                    ))}
-                                                </div>
+                                                <p className="text-sm font-medium">{review.userName}</p>
+                                                <p className="text-lg font-bold">{review.title}</p>
+                                                {getStars(review.rating)}
                                             </div>
                                         </div>
-                                    </div>
-                                    <p className="mt-2 text-sm text-muted-foreground">{review.content}</p>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
+                                        <p className="text-sm text-muted-foreground">{review.body}</p>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <div className="hidden md:flex flex-col col-span-2">
                     <BookPriceCard {...bookForCart} />

@@ -136,3 +136,22 @@ export const authorValidationSchema = z.object({
 })
 
 export type AuthorSchemaType = z.infer<typeof authorValidationSchema>
+
+export const reviewValidationSchema = z.object({
+    title: z
+        .string({ message: "Título deve ser uma string." })
+        .min(2, { message: "Título deve ter ao menos 2 caracteres." })
+        .max(100, { message: "Título deve ter no máximo 100 caracteres." }),
+    body: z
+        .string({ message: "Texto da avaliação deve ser uma string." })
+        .min(2, { message: "Texto da avaliação deve ter ao menos 2 caracteres." })
+        .max(500, { message: "Texto da avaliação deve ter no máximo 500 caracteres." }),
+    rating: z
+        .number({ message: "Quantidade de estrelas deve ser um número." })
+        .int({ message: "Quantidade de estrelas deve ser um número inteiro." })
+        .gte(1, { message: "Quantidade de estrelas deve ser um número maior ou igual a 1." })
+        .lte(5, { message: "Quantidade de estrelas deve ser um número menor ou igual a 5." }),
+    bookId: z.string({ message: "ID do livro deve ser uma string." }).uuid({ message: "ID do livro deve ser um UUID." }),
+})
+
+export type ReviewSchemaType = z.infer<typeof reviewValidationSchema>
