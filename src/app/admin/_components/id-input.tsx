@@ -6,6 +6,9 @@ import { toastError, toastLoading } from "~/components/toast/toasting"
 import { useCallback, useMemo, useRef } from "react"
 import MultipleSelector, { type Option } from "~/components/ui/multiple-select"
 import { mainApi } from "~/lib/redux/apis/main-api/main"
+import Link from "next/link"
+import { PlusCircleIcon } from "lucide-react"
+
 export default function IdInput(props: {
     slug: string
     onChange: (value?: string[] | string) => void
@@ -62,7 +65,7 @@ export default function IdInput(props: {
     )
 
     return (
-        <div className="w-full">
+        <div className="flex flex-row gap-3 items-center">
             <MultipleSelector
                 value={value}
                 options={suggestions}
@@ -83,6 +86,13 @@ export default function IdInput(props: {
                 placeholder={`Pesquise ${props.label}...`}
                 emptyIndicator={<p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">Nenhum resultado encontrado.</p>}
             />
+            <Link
+                href={`/admin/${props.slug}?is_creating=true`}
+                className="p-2 bg-green-500 text-white rounded-lg text-nowrap min-w-[50px] hover:bg-green-400 transition-all duration-300 
+                grid place-content-center"
+            >
+                <PlusCircleIcon></PlusCircleIcon>
+            </Link>
         </div>
     )
 }

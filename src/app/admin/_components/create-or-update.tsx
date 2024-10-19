@@ -116,7 +116,7 @@ export default function CreateOrUpdate<I>(props: {
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-6"
+                className={`flex flex-col gap-3 md:grid ${fieldNames.length > 1 ? "md:grid-cols-2" : "md:grid-cols-1"} md:gap-6`}
             >
                 {fieldNames.map((key, index) => (
                     <FormField
