@@ -75,10 +75,10 @@ const main = async () => {
                 isbn13Code: book.items[0].ean,
                 edition: Number(book["Edição"][0]),
 
-                heightCm: json2.skus[0].measures.height,
-                widthCm: json2.skus[0].measures.width,
-                thicknessCm: json2.skus[0].measures.length,
-                weightGrams: json2.skus[0].measures.weight,
+                heightCm: json2.skus[0].measures.height || 20,
+                widthCm: json2.skus[0].measures.width || 20,
+                thicknessCm: json2.skus[0].measures.length || 5,
+                weightGrams: json2.skus[0].measures.weight || 200,
 
                 language: langsMap[book.Idioma[0].toLowerCase()],
                 mainImgUrl: book.items[0].images[0].imageUrl,
@@ -123,13 +123,6 @@ const main = async () => {
                     .join(" ")
                     .trim()
                     .replaceAll("  ", " "),
-
-                mainCategoryId: book.categories[0]
-                    .replace("/Livros/", "")
-                    .split("/")
-                    .filter((s) => s.length > 0)
-                    .join("->")
-                    .trim(),
             }
 
             booksContents.push(bookContent)
