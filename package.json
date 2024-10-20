@@ -14,7 +14,8 @@
         "lint": "next lint",
         "start": "next start",
         "stripe": "stripe listen --forward-to http://localhost:3000/api/webhooks/stripe",
-        "scrplc": "node ./node-scripts/livraria-cultura/scrape-data.js"
+        "scrplc": "node ./node-scripts/livraria-cultura/scrape-data.js",
+        "gencatlc": "node ./node-scripts/livraria-cultura/generate-category-config.js"
     },
     "dependencies": {
         "@clerk/localizations": "^3.0.1",
