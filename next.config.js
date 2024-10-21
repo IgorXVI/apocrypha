@@ -13,6 +13,11 @@ const config = {
                 hostname: "utfs.io",
                 pathname: "/f/**",
             },
+            {
+                protocol: "https",
+                hostname: "apocrypha-bucket-book-imgs-5bfe43ee-e15a-4c6d-be9d-bc6556535ac8.s3.amazonaws.com",
+                pathname: "/**",
+            },
         ],
     },
 }
