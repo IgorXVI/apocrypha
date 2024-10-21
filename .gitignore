@@ -44,3 +44,7 @@ yarn-error.log*
 
 # idea files
 .idea
+
+node-scripts/livraria-cultura/dump
+node-scripts/livraria-cultura/examples
+node-scripts/livraria-cultura/main-dump

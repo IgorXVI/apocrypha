@@ -361,7 +361,7 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
 
         const [rowsResult, totalResult] = await Promise.allSettled([
             db.book.findMany({
-                take: input.take,
+                take: input.take ?? 10,
                 skip: input.skip,
                 where,
                 include: {

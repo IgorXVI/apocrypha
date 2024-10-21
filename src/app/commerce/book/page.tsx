@@ -241,6 +241,7 @@ export default async function BooksPage({
                     take: 1,
                 },
             },
+            take: 100,
         })
 
         const fakeSuperCategory = {
