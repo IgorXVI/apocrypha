@@ -17,37 +17,27 @@ const main = async () => {
     const fileJSON = JSON.parse(fileContent.toString())
 
     /** @type {Stripe.Product[]} */
-    let products = []
+    let existingProducts = []
 
-    /** @type {Promise<Stripe.Product>[]} */
-    let promises = []
+    while (true) {
+        const newProducts = await stripe.products.list({
+            limit: 100,
+            starting_after: existingProducts.pop()?.id,
+        })
 
-    for (const book of fileJSON) {
-        if (promises.length > 10) {
-            console.log("resolving stripe promises chunk")
-            products = products.concat(await Promise.all(promises))
-            promises = []
-            await new Promise((resolve) => setTimeout(resolve, 5000))
+        if (!newProducts.has_more) {
+            break
         }
 
-        promises.push(
-            stripe.products.create({
-                name: book.title,
-                images: [book.mainImgUrl],
-                default_price_data: {
-                    currency: "brl",
-                    unit_amount: Math.ceil(book.price * 100),
-                },
-                shippable: true,
-            }),
-        )
+        existingProducts = existingProducts.concat(newProducts.data)
     }
 
-    fileJSON.forEach((book, i) => {
-        book.stripeId = products[i]?.id
+    fileJSON.forEach((book) => {
+        book.stripeId = existingProducts.find((p) => p.name === book.title)?.id
     })
 
     console.log(fileJSON[0])
+    console.log(fileJSON[fileJSON.length - 1])
 
     fs.writeFileSync(path.resolve("./node-scripts/livraria-cultura/main-dump/new-books-stripe.json"), JSON.stringify(fileJSON))
 }

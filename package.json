@@ -18,7 +18,8 @@
         "scrplc": "node ./node-scripts/livraria-cultura/scrape-data.js",
         "preseedlc": "node ./node-scripts/livraria-cultura/pre-seed-db.js",
         "seedcloudlc": "node ./node-scripts/livraria-cultura/seed-cloud-imgs.js",
-        "seedstripelc": "node ./node-scripts/livraria-cultura/seed-stripe.js"
+        "seedstripelc": "node ./node-scripts/livraria-cultura/seed-stripe.js",
+        "seedbooklc": "node ./node-scripts/livraria-cultura/seed-books.js"
     },
     "dependencies": {
         "@clerk/localizations": "^3.0.1",
