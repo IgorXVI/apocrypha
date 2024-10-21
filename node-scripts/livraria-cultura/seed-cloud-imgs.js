@@ -58,6 +58,7 @@ const main = async () => {
                 Bucket: s3Bucket,
                 Key: getUniqueKey(filtredImgPaths[i] ?? ""),
                 Body: buff,
+                ContentType: `image/${filtredImgPaths[i]?.split(".").pop()}`.replace("/jpg", "/jpeg"),
             }),
     )
 
