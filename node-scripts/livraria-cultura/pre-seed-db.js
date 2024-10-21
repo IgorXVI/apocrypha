@@ -267,15 +267,15 @@ const main = async () => {
     /**
      * @type {Record<string, boolean>}
      */
-    const passedImages = {}
+    const passedBook = {}
 
     /**
      * @type {{ mainCategoryId: string; publisherId: string; mainAuthorId: string; pages: number; price: number; stock: number; title: string; description: string; publicationDate: Date; edition: number; heightCm: number; widthCm: number; thicknessCm: number; weightGrams: number; imgUrls: string[]; mainImgUrl: string; placeInSeries: number; authorIds: string[]; translatorIds: string[]; categoryIds: string[]; mainTranslatorId?: string | undefined; isbn13Code?: string | undefined; isbn10Code?: string | undefined; language?: "PORTUGUESE" | "ENGLISH" | "SPANISH" | "FRENCH" | "ITALIAN" | "GERMAN" | "TURKISH" | "RUSSIAN" | "ARABIC" | "PORTUGUESE_BRAZILIAN" | undefined; seriesId?: string | undefined; relatedBookId?: string | undefined; }[]}
      */
     const uniqueBooks = []
     newBooks.forEach((book) => {
-        if (!passedImages[book.mainImgUrl]) {
-            passedImages[book.mainImgUrl] = true
+        if (!passedBook[book.title]) {
+            passedBook[book.title] = true
             uniqueBooks.push(book)
         }
     })
@@ -320,7 +320,8 @@ const main = async () => {
         book.mainImgUrl = path.resolve(`./node-scripts/livraria-cultura/dump/${fileName}`)
     })
 
-    console.log(uniqueBooks[0])
+    fs.writeFileSync(path.resolve("./node-scripts/livraria-cultura/dump/new-books-local-imgs.json"), JSON.stringify(uniqueBooks))
+    console.log("DONE")
 }
 
 main().catch((error) => console.error(error))

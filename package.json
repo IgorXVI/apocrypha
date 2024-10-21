@@ -16,7 +16,7 @@
         "stripe": "stripe listen --forward-to http://localhost:3000/api/webhooks/stripe",
         "scrplc": "node ./node-scripts/livraria-cultura/scrape-data.js",
         "gencatlc": "node ./node-scripts/livraria-cultura/generate-category-config.js",
-        "seedlc": "node ./node-scripts/livraria-cultura/seed-db.js"
+        "preseedlc": "node ./node-scripts/livraria-cultura/pre-seed-db.js"
     },
     "dependencies": {
         "@clerk/localizations": "^3.0.1",
