@@ -17,12 +17,12 @@ const s3Client = new S3Client({
 const s3Bucket = "apocrypha-bucket-book-imgs-5bfe43ee-e15a-4c6d-be9d-bc6556535ac8"
 
 const main = async () => {
-    const fileContent = fs.readFileSync(path.resolve("./node-scripts/livraria-cultura/dump/new-books-local-imgs.json"))
+    const outputPath = path.resolve("./node-scripts/resize-imgs/resized-imgs")
 
-    /** @type {{ mainImgUrl: string; }[]} */
-    const fileJSON = JSON.parse(fileContent.toString())
-
-    const localImgPaths = fileJSON.map((book) => book.mainImgUrl)
+    const localImgPaths = fs
+        .readdirSync(outputPath)
+        .filter((f) => f.startsWith("book-img"))
+        .map((f) => `${outputPath}\\${f}`)
 
     const getUniqueKey = (/** @type {string} */ s) => s?.split("\\").pop()
 
@@ -41,17 +41,6 @@ const main = async () => {
     console.log("SAVING FILES ON S3...")
     await Promise.all(s3Commands.map((c) => s3Client.send(c)))
     console.log("SAVED FILES ON S3")
-
-    fileJSON.forEach((book) => {
-        const imgUrlKey = getUniqueKey(book.mainImgUrl)
-        book.mainImgUrl = `https://${s3Bucket}.s3.amazonaws.com/${imgUrlKey}`
-    })
-
-    console.log(fileJSON[0])
-
-    fs.writeFileSync(path.resolve("./node-scripts/livraria-cultura/main-dump/new-books-cloud-imgs.json"), JSON.stringify(fileJSON))
-
-    console.log("DONE")
 }
 
 main().catch((error) => console.error(error))
