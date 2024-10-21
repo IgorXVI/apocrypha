@@ -37,6 +37,7 @@ export default async function CommerceLayout({ children }: Readonly<{ children: 
                 price: true,
                 prevPrice: true,
             },
+            take: 200,
         })
 
         books.forEach((book) => {

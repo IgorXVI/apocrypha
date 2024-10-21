@@ -180,6 +180,7 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             thicknessCm: true,
             stock: true,
         },
+        take: 300,
     })
 
     const booksMap = new Map<
