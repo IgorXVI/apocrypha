@@ -444,6 +444,9 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                         },
                     },
                 },
+                orderBy: {
+                    title: "asc",
+                },
             }),
 
             db.book.count({

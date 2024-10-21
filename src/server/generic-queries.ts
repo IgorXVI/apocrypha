@@ -114,6 +114,9 @@ export const getMany =
                         },
                     },
                     include: include as Prisma.AuthorInclude,
+                    orderBy: {
+                        name: "asc",
+                    },
                 }),
                 (model as PrivateAnyModel).count({
                     where: {
