@@ -19,7 +19,9 @@ const main = async () => {
             sharp(file)
                 .resize(250, 250, {
                     fit: "inside",
+                    kernel: "nearest",
                     withoutReduction: true,
+                    background: { alpha: 1, r: 255, g: 255, b: 255 },
                 })
                 .toBuffer()
                 .then((buff) => fs.promises.writeFile(file.replace(imgFolderPath, outputPath), buff))
