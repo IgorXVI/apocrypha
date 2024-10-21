@@ -7,7 +7,7 @@ const main = async () => {
     const imgFolderPath = path.resolve("./node-scripts/livraria-cultura/dump")
     const outputPath = path.resolve("./node-scripts/resize-imgs/resized-imgs")
 
-    const defaultBuff = fs.readFileSync(`${outputPath}\\default-cover.jpg`)
+    const defaultBuff = fs.readFileSync(`${outputPath}\\default-cover.png`)
 
     const files = fs
         .readdirSync(imgFolderPath)
