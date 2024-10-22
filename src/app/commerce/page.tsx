@@ -49,16 +49,26 @@ function SuperCategoriesSection(props: {
                             </AccordionTrigger>
                             <AccordionContent>
                                 <ul className="space-y-2">
-                                    {superCategory.categories.map((category) => (
-                                        <li key={category.id}>
-                                            <Link
-                                                href={`/commerce/book?superCategoryId=${superCategory.id}&categoryId=${category.id}&sortBy=title`}
-                                                className="text-sm text-muted-foreground hover:text-foreground"
-                                            >
-                                                {category.name}
-                                            </Link>
-                                        </li>
-                                    ))}
+                                    <li key="all">
+                                        <Link
+                                            href={`/commerce/book?superCategoryId=${superCategory.id}&categoryId=all&sortBy=title`}
+                                            className="text-sm text-muted-foreground hover:text-foreground"
+                                        >
+                                            Todos
+                                        </Link>
+                                    </li>
+                                    {superCategory.categories
+                                        .filter((category) => category.name !== superCategory.name)
+                                        .map((category) => (
+                                            <li key={category.id}>
+                                                <Link
+                                                    href={`/commerce/book?superCategoryId=${superCategory.id}&categoryId=${category.id}&sortBy=title`}
+                                                    className="text-sm text-muted-foreground hover:text-foreground"
+                                                >
+                                                    {category.name}
+                                                </Link>
+                                            </li>
+                                        ))}
                                 </ul>
                             </AccordionContent>
                         </AccordionItem>
@@ -131,23 +141,6 @@ export default async function MainCommercePage() {
             <div className="container mx-auto px-4 py-12 flex flex-col gap-10">
                 <HorizontalList
                     title="Lançamentos"
-                    books={books.map((book) => ({
-                        id: book.id,
-                        title: book.title,
-                        mainImg: book.DisplayImage[0]?.url ?? "",
-                        author: book.AuthorOnBook[0]?.Author.name ?? "",
-                        price: book.price.toNumber(),
-                        authorId: book.AuthorOnBook[0]?.authorId ?? "",
-                        stripeId: book.stripeId,
-                        description: book.description,
-                        stock: book.stock,
-                        amount: 1,
-                        prevPrice: book.prevPrice.toNumber(),
-                    }))}
-                />
-
-                <HorizontalList
-                    title="Para os pequenos"
                     books={books.map((book) => ({
                         id: book.id,
                         title: book.title,

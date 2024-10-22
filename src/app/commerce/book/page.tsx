@@ -285,10 +285,12 @@ export default async function BooksPage({
         prevPrice: book.prevPrice.toNumber(),
     }))
 
-    const categories = superCategory.Category.map((category) => ({
-        id: category.id,
-        name: category.name,
-    }))
+    const categories = superCategory.Category.filter((category) => category.name === "Todos" || category.name !== superCategory.name).map(
+        (category) => ({
+            id: category.id,
+            name: category.name,
+        }),
+    )
 
     if (selectedSuperCategoryId !== "all") {
         categories.unshift({
