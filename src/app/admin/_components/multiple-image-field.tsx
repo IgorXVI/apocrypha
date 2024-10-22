@@ -1,26 +1,12 @@
 "use client"
 
-import { generateReactHelpers } from "@uploadthing/react"
-
-import { type OurFileRouter } from "~/app/api/uploadthing/core"
-import { Input } from "~/components/ui/input"
 import Image from "next/image"
-import { toast } from "sonner"
+import { Textarea } from "~/components/ui/textarea"
 
-export const { useUploadThing } = generateReactHelpers<OurFileRouter>()
-
-export default function MultipleImageField(props: { onChange: (value: string[]) => void; value: string[]; disabled?: boolean }) {
-    const uploadThing = useUploadThing("imageUploader", {
-        onUploadError(e) {
-            toast.error(<span className="text-lg text-red-500">Erro durante upload: {e.message}</span>, {
-                duration: 5000,
-            })
-        },
-    })
-
+export default function MultipleImageField(props: { onChange: (value: string[]) => void; value?: string[]; disabled?: boolean }) {
     return (
         <div className="flex flex-col gap-2 items-center justify-center">
-            {props.value && props.value.length > 0 && (
+            {props.value && props.value.length > 0 && !props.value.every((v) => v.length === 0) && (
                 <div className="flex flex-wrap gap-2 justify-center">
                     {props.value.map((url, index) => (
                         <Image
@@ -28,35 +14,19 @@ export default function MultipleImageField(props: { onChange: (value: string[]) 
                             src={url}
                             width={250}
                             height={250}
-                            className="aspect-square rounded-md object-cover"
+                            className="aspect-square rounded-md object-cover border"
                             alt="Imagem que foi salva no servidor."
                         />
                     ))}
                 </div>
             )}
-            <Input
-                type="file"
+            <Textarea
+                rows={4}
+                placeholder="Link1"
                 disabled={props.disabled}
-                multiple={true}
-                accept="image/*"
-                onChange={async (e) => {
-                    if (!e.target.files) {
-                        return
-                    }
-
-                    const selectFiles = Array.from(e.target.files)
-
-                    if (selectFiles.length === 0) {
-                        return
-                    }
-
-                    const result = await uploadThing.startUpload(selectFiles)
-
-                    if (result) {
-                        props.onChange(result.map((image) => image.url ?? ""))
-                    }
-                }}
-            ></Input>
+                defaultValue={props.value?.join("\n")}
+                onChange={async (e) => props.onChange(e.target.value.split("\n").filter((v) => v.length > 0))}
+            ></Textarea>
         </div>
     )
 }

@@ -44,13 +44,13 @@ const inputKeyMap: Record<
     mainImgUrl: {
         node: (field) => <SingleImageField {...field} />,
         label: "Imagem Principal",
-        description: "Selecione a imagem principal do livro.",
+        description: "Link da imagem principal do livro.",
         className: "admin-input-md-center",
     },
     imgUrls: {
         node: (field) => <MultipleImageField {...field}></MultipleImageField>,
         label: "Outras Imagens",
-        description: "Selecione as outras imagens do livro.",
+        description: "Link de cada imagem, separados por uma quebra de linha.",
         className: "admin-input-md-center",
     },
     title: {
