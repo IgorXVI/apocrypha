@@ -44,7 +44,7 @@ const main = async () => {
 
     fileJSON.forEach((book) => {
         const imgUrlKey = getUniqueKey(book.mainImgUrl)
-        book.mainImgUrl = `https://${s3Bucket}.s3.amazonaws.com/${imgUrlKey}`
+        book.mainImgUrl = `https://d32155ei7f8k3w.cloudfront.net/${imgUrlKey}`
     })
 
     console.log(fileJSON[0])

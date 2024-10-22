@@ -16,7 +16,7 @@ const config = {
             },
             {
                 protocol: "https",
-                hostname: "apocrypha-bucket-book-imgs-5bfe43ee-e15a-4c6d-be9d-bc6556535ac8.s3.amazonaws.com",
+                hostname: "d32155ei7f8k3w.cloudfront.net",
                 pathname: "/**",
             },
         ],
