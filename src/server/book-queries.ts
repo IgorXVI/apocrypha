@@ -344,26 +344,25 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaT
 
 export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<GetManyOutput<BookGetManyOneRowOutput>>> =>
     errorHandler(async () => {
-        const where = input.searchTerm.includes("IDS-->")
-            ? {
-                  id: {
-                      in: input.searchTerm
-                          .split("__AND__")
-                          .filter((s) => s.length > 0)
-                          .map((s) => s.replace("IDS-->", "")),
-                  },
-              }
-            : {
-                  title: {
-                      startsWith: input.searchTerm,
-                  },
-              }
-
         const [rowsResult, totalResult] = await Promise.allSettled([
             db.book.findMany({
                 take: input.take ?? 10,
                 skip: input.skip,
-                where,
+                where: input.searchTerm.includes("IDS-->")
+                    ? {
+                          id: {
+                              in: input.searchTerm
+                                  .split("__AND__")
+                                  .filter((s) => s.length > 0)
+                                  .map((s) => s.replace("IDS-->", "")),
+                          },
+                      }
+                    : {
+                          title: {
+                              contains: input.searchTerm,
+                              mode: "insensitive",
+                          },
+                      },
                 include: {
                     AuthorOnBook: {
                         where: {
@@ -523,6 +522,11 @@ export const bookDeleteOne = (id: string) =>
                     },
                 }),
                 db.translatorOnBook.deleteMany({
+                    where: {
+                        bookId: id,
+                    },
+                }),
+                db.categoryOnBook.deleteMany({
                     where: {
                         bookId: id,
                     },

@@ -49,3 +49,5 @@ node-scripts/livraria-cultura/dump
 node-scripts/livraria-cultura/examples
 node-scripts/livraria-cultura/main-dump
 node-scripts/resize-imgs/resized-imgs
+node-scripts/resize-imgs/empty-imgs.json
+node-scripts/resize-imgs/examples
