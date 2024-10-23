@@ -21,7 +21,7 @@
 -   [x] Adicionar relação entre lívros
 -   [x] Adicionar categorias secundárias para livros
 -   [ ] Adicionar imagens flutuantes no hero section
--   [ ] Adicionar páginação na listagem de livros
+-   [x] Adicionar páginação na listagem de livros
 -   [x] Adicionar simulação de envio da compra
 -   [x] Fazer página de autores
 -   [ ] Fazer página de contato
