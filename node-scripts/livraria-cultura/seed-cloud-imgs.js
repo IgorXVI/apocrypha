@@ -14,7 +14,7 @@ const s3Client = new S3Client({
     },
 })
 
-const s3Bucket = "apocrypha-bucket-book-imgs-5bfe43ee-e15a-4c6d-be9d-bc6556535ac8"
+const s3Bucket = process.env.S3_IMG_BUCKET
 
 const main = async () => {
     const fileContent = fs.readFileSync(path.resolve("./node-scripts/livraria-cultura/dump/new-books-local-imgs.json"))
