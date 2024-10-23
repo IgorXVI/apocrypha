@@ -1,20 +1,10 @@
 import fs from "fs"
 import path from "path"
-import dotenv from "dotenv"
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
+import { PutObjectCommand } from "@aws-sdk/client-s3"
+import { s3Bucket, createS3Client } from "node-scripts/s3"
 
-dotenv.config()
-
-const s3Client = new S3Client({
-    region: "us-east-1",
-    credentials: {
-        accessKeyId: process.env.AWS_ACESS_KEY_ID ?? "",
-        secretAccessKey: process.env.AWS_SECRET_ACCES_KEY ?? "",
-    },
-})
-
-const s3Bucket = process.env.S3_IMG_BUCKET
+const s3Client = createS3Client()
 
 const main = async () => {
     const outputPath = path.resolve("./node-scripts/resize-imgs/resized-imgs")

@@ -1,27 +1,7 @@
 import fs from "fs"
+import { db } from "node-scripts/db"
+import { stripe } from "node-scripts/stripe"
 import path from "path"
-
-import { Pool, neonConfig } from "@neondatabase/serverless"
-import { PrismaNeon } from "@prisma/adapter-neon"
-import ws from "ws"
-import { PrismaClient } from "@prisma/client"
-
-import Stripe from "stripe"
-import dotenv from "dotenv"
-
-neonConfig.webSocketConstructor = ws
-const connectionString = `${process.env.DATABASE_URL}`
-
-const pool = new Pool({ connectionString })
-const adapter = new PrismaNeon(pool)
-
-const db = new PrismaClient({ adapter })
-
-dotenv.config()
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-    apiVersion: "2024-06-20",
-})
 
 const main = async () => {
     const fileContent = fs.readFileSync(path.resolve("./node-scripts/livraria-cultura/main-dump/new-books-stripe.json"))

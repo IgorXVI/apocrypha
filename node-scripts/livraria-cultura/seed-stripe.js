@@ -1,14 +1,8 @@
 import fs from "fs"
+import { stripe } from "node-scripts/stripe"
 import path from "path"
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Stripe from "stripe"
-import dotenv from "dotenv"
-
-dotenv.config()
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-    apiVersion: "2024-06-20",
-})
 
 const main = async () => {
     const fileContent = fs.readFileSync(path.resolve("./node-scripts/livraria-cultura/main-dump/new-books-cloud-imgs.json"))

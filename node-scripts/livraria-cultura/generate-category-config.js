@@ -1,21 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import fs from "fs"
 import _ from "lodash"
+import { db } from "node-scripts/db"
 import path from "path"
-
-import { Pool, neonConfig } from "@neondatabase/serverless"
-import { PrismaNeon } from "@prisma/adapter-neon"
-import ws from "ws"
-import { PrismaClient } from "@prisma/client"
-
-neonConfig.webSocketConstructor = ws
-const connectionString = `${process.env.DATABASE_URL}`
-
-const pool = new Pool({ connectionString })
-const adapter = new PrismaNeon(pool)
-
-const db = new PrismaClient({ adapter })
 
 const main = async () => {
     const categories = await db.superCategory.findMany({
@@ -23,7 +9,9 @@ const main = async () => {
             Category: true,
         },
     })
-
+    /**
+     * @type {{fetchURL: string; category: string; subCategory: string; searchUrl: string}[]}
+     */
     let categoriesConfigFileContent = []
 
     try {
@@ -35,7 +23,7 @@ const main = async () => {
 
             console.log(`FETCHING MAIN "${mainFetchURL}"...`)
 
-            const getSubCategoryInfos = async (DBCategory) => {
+            const getSubCategoryInfos = async (/** @type {{ name: string; }} */ DBCategory) => {
                 const subCategory = DBCategory.name
                 const subCategoryUrlName = _.kebabCase(subCategory)
 
@@ -49,9 +37,10 @@ const main = async () => {
 
                 const fileContent = rawBody.split(`vtex.events.addData(`)[1]?.split(`);`)[0]
 
-                const productIds = JSON.parse(fileContent ?? "")
-                    .shelfProductIds.map((id) => `fq=productId:${id}`)
-                    .join("&")
+                /**@type {{shelfProductIds: string[]}} */
+                const productIdsRaw = JSON.parse(fileContent ?? "")
+
+                const productIds = productIdsRaw.shelfProductIds.map((id) => `fq=productId:${id}`).join("&")
 
                 const searchUrl = `https://www.livrariacultura.com.br/api/catalog_system/pub/products/search/?${productIds}`
 
