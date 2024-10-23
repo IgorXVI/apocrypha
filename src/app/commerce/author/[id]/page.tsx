@@ -53,20 +53,24 @@ export default async function AuthorDetailsPage({ params: { id } }: { params: { 
         <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col gap-8 mb-12 items-center justify-center">
                 <h1 className="text-4xl font-bold mb-4">{author.name}</h1>
-                <div className="flex flex-row gap-5 items-center justify-center">
-                    <Image
-                        src={author.imgUrl}
-                        alt={author.name}
-                        width={250}
-                        height={250}
-                        className="rounded-lg shadow-lg max-h-[250px] max-w-[250px] min-h-[250px] min-w-[250px]"
-                    />
-                    <p
-                        className="text-lg mb-6"
-                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(author.about) }}
-                    ></p>
-                </div>
-                <Separator className="my-6" />
+                {author.about !== "N/A" && (
+                    <>
+                        <div className="flex flex-row gap-5 items-center justify-center">
+                            <Image
+                                src={author.imgUrl}
+                                alt={author.name}
+                                width={250}
+                                height={250}
+                                className="rounded-lg shadow-lg max-h-[250px] max-w-[250px] min-h-[250px] min-w-[250px]"
+                            />
+                            <p
+                                className="text-lg mb-6"
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(author.about) }}
+                            ></p>
+                        </div>
+                        <Separator className="my-6" />
+                    </>
+                )}
                 <h2 className="text-2xl font-semibold mb-4">Livros escritos por {author.name}</h2>
                 <div className="commerce-book-list">
                     {author.AuthorOnBook.map(({ Book }) => (
