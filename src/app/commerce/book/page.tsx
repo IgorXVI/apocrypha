@@ -4,44 +4,8 @@ import { db } from "~/server/db"
 import { BooksFilters } from "../_components/books-filters"
 import BookCard from "../_components/book-card"
 import { type BookClientSideState } from "~/lib/types"
-
-type SuperCategory = {
-    id: string
-    name: string
-    Category: {
-        id: string
-        name: string
-        CategoryOnBook: {
-            Book: {
-                id: string
-                title: string
-                stripeId: string
-                description: string
-                price: Prisma.Decimal
-                prevPrice: Prisma.Decimal
-                stock: number
-                DisplayImage: {
-                    url: string
-                }[]
-                AuthorOnBook: {
-                    Author: {
-                        id: string
-                        name: string
-                    }
-                }[]
-            }
-        }[]
-    }[]
-}
-
-type SuperCategoryWithAll = {
-    id: string
-    name: string
-    Category: {
-        id: string
-        name: string
-    }[]
-}
+import { calcSkip } from "~/lib/utils"
+import PaginationNumbers from "~/components/pagination/pagination-numbers"
 
 export default async function BooksPage({
     searchParams,
@@ -53,16 +17,21 @@ export default async function BooksPage({
         priceRangeTo?: string
         sortBy?: string
         searchTerm?: string
+        page?: string
     }
 }) {
+    const currentPage = Number(searchParams.page) || 1
+    const currentTake = 20
+
     const priceRangeFrom = searchParams.priceRangeFrom ? Number(searchParams.priceRangeFrom) : 0
     const priceRangeTo = searchParams.priceRangeTo ? Number(searchParams.priceRangeTo) : 999
     const priceRange: [number, number] = [priceRangeFrom, priceRangeTo]
     const searchTerm = searchParams.searchTerm ?? ""
 
     const sortBy = searchParams.sortBy ?? "title"
+    const superCategoryId = searchParams.superCategoryId ?? "all"
 
-    const allSuperCategories: SuperCategoryWithAll[] = await db.superCategory.findMany({
+    const allSuperCategories = await db.superCategory.findMany({
         orderBy: {
             name: "asc",
         },
@@ -83,182 +52,22 @@ export default async function BooksPage({
         id: "all",
         name: "Todos",
         Category: [],
+        iconSvg: "",
     })
 
-    let superCategory: SuperCategory | null =
-        searchParams.superCategoryId && searchParams.superCategoryId !== "all"
-            ? await db.superCategory.findUnique({
-                  where: {
-                      id: searchParams.superCategoryId,
-                  },
-                  include: {
-                      Category: {
-                          orderBy: {
-                              name: "asc",
-                          },
-                          include: {
-                              CategoryOnBook: {
-                                  orderBy: {
-                                      Book:
-                                          sortBy === "title"
-                                              ? {
-                                                    title: "asc",
-                                                }
-                                              : sortBy === "price-asc"
-                                                ? {
-                                                      price: "asc",
-                                                  }
-                                                : {
-                                                      price: "desc",
-                                                  },
-                                  },
-                                  where: {
-                                      Book: {
-                                          OR: [
-                                              {
-                                                  title: {
-                                                      contains: searchTerm,
-                                                      mode: "insensitive",
-                                                  },
-                                              },
-                                              {
-                                                  AuthorOnBook: {
-                                                      some: {
-                                                          Author: {
-                                                              name: {
-                                                                  contains: searchTerm,
-                                                                  mode: "insensitive",
-                                                              },
-                                                          },
-                                                      },
-                                                  },
-                                              },
-                                          ],
-                                          price: {
-                                              gte: priceRange[0],
-                                              lte: priceRange[1],
-                                          },
-                                      },
-                                  },
-                                  include: {
-                                      Book: {
-                                          include: {
-                                              DisplayImage: {
-                                                  select: {
-                                                      url: true,
-                                                  },
-                                                  orderBy: {
-                                                      order: "asc",
-                                                  },
-                                                  take: 1,
-                                              },
-                                              AuthorOnBook: {
-                                                  include: {
-                                                      Author: {
-                                                          select: {
-                                                              name: true,
-                                                              id: true,
-                                                          },
-                                                      },
-                                                  },
-                                                  orderBy: {
-                                                      main: "asc",
-                                                  },
-                                                  take: 1,
-                                              },
-                                          },
-                                      },
-                                  },
-                              },
-                          },
-                      },
-                  },
-              })
-            : null
+    const superCategory:
+        | {
+              id: string
+              name: string
+              Category: {
+                  id: string
+                  name: string
+              }[]
+          }
+        | undefined = allSuperCategories.find((sc) => sc.id === superCategoryId)
 
     if (!superCategory) {
-        const allBooks = await db.book.findMany({
-            where: {
-                OR: [
-                    {
-                        title: {
-                            contains: searchTerm,
-                            mode: "insensitive",
-                        },
-                    },
-                    {
-                        AuthorOnBook: {
-                            some: {
-                                Author: {
-                                    name: {
-                                        contains: searchTerm,
-                                        mode: "insensitive",
-                                    },
-                                },
-                            },
-                        },
-                    },
-                ],
-                price: {
-                    gte: priceRange[0],
-                    lte: priceRange[1],
-                },
-            },
-            orderBy:
-                sortBy === "title"
-                    ? {
-                          title: "asc",
-                      }
-                    : sortBy === "price-asc"
-                      ? {
-                            price: "asc",
-                        }
-                      : {
-                            price: "desc",
-                        },
-            include: {
-                DisplayImage: {
-                    select: {
-                        url: true,
-                    },
-                    orderBy: {
-                        order: "asc",
-                    },
-                    take: 1,
-                },
-                AuthorOnBook: {
-                    include: {
-                        Author: {
-                            select: {
-                                name: true,
-                                id: true,
-                            },
-                        },
-                    },
-                    orderBy: {
-                        main: "asc",
-                    },
-                    take: 1,
-                },
-            },
-            take: 100,
-        })
-
-        const fakeSuperCategory = {
-            id: "all",
-            name: "Todos",
-            Category: [
-                {
-                    id: "all",
-                    name: "Todos",
-                    CategoryOnBook: allBooks.map((book) => ({
-                        Book: book,
-                    })),
-                },
-            ],
-        }
-
-        superCategory = fakeSuperCategory
+        return <p>Categoria não encontrada</p>
     }
 
     const selectedSuperCategoryId = superCategory.id
@@ -267,11 +76,97 @@ export default async function BooksPage({
 
     const selectedCategoryId = selectedCategory ? selectedCategory.id : "all"
 
-    const unformatedBooks = selectedCategory
-        ? selectedCategory.CategoryOnBook.map((categoryOnBook) => categoryOnBook.Book)
-        : superCategory?.Category.flatMap((category) => category.CategoryOnBook.map((categoryOnBook) => categoryOnBook.Book))
+    const whereBooks: Prisma.BookWhereInput = {
+        OR: [
+            {
+                title: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                },
+            },
+            {
+                AuthorOnBook: {
+                    some: {
+                        Author: {
+                            name: {
+                                contains: searchTerm,
+                                mode: "insensitive",
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        price: {
+            gte: priceRange[0],
+            lte: priceRange[1],
+        },
+    }
 
-    const books: BookClientSideState[] = unformatedBooks.map((book) => ({
+    if (selectedCategoryId !== "all") {
+        whereBooks.CategoryOnBook = {
+            every: {
+                categoryId: selectedCategoryId,
+            },
+        }
+    } else if (selectedSuperCategoryId !== "all") {
+        whereBooks.CategoryOnBook = {
+            every: {
+                Category: {
+                    superCategoryId,
+                },
+            },
+        }
+    }
+
+    const bookCount = await db.book.count({
+        where: whereBooks,
+    })
+
+    const DBBooks = await db.book.findMany({
+        where: whereBooks,
+        orderBy:
+            sortBy === "title"
+                ? {
+                      title: "asc",
+                  }
+                : sortBy === "price-asc"
+                  ? {
+                        price: "asc",
+                    }
+                  : {
+                        price: "desc",
+                    },
+        include: {
+            DisplayImage: {
+                select: {
+                    url: true,
+                },
+                orderBy: {
+                    order: "asc",
+                },
+                take: 1,
+            },
+            AuthorOnBook: {
+                include: {
+                    Author: {
+                        select: {
+                            name: true,
+                            id: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    main: "asc",
+                },
+                take: 1,
+            },
+        },
+        take: currentTake,
+        skip: calcSkip(currentPage, currentTake),
+    })
+
+    const books: BookClientSideState[] = DBBooks.map((book) => ({
         id: book.id,
         title: book.title,
         mainImg: book.DisplayImage[0]?.url ?? "",
@@ -292,12 +187,10 @@ export default async function BooksPage({
         }),
     )
 
-    if (selectedSuperCategoryId !== "all") {
-        categories.unshift({
-            id: "all",
-            name: "Todos",
-        })
-    }
+    categories.unshift({
+        id: "all",
+        name: "Todos",
+    })
 
     return (
         <main className="grid grid-cols-1 md:grid-cols-10 container mx-auto px-4 py-8 gap-7 md:place-content-start place-content-center">
@@ -318,13 +211,23 @@ export default async function BooksPage({
             </div>
 
             {books.length > 0 && (
-                <div className="commerce-book-list md:col-span-8 col-span-full">
-                    {books.map((book) => (
-                        <BookCard
-                            key={book.id}
-                            book={book}
-                        ></BookCard>
-                    ))}
+                <div className="flex flex-col md:col-span-8 col-span-full gap-10">
+                    <div className="commerce-book-list">
+                        {books.map((book) => (
+                            <BookCard
+                                key={book.id}
+                                book={book}
+                            ></BookCard>
+                        ))}
+                    </div>
+                    <div className="flex items-center justify-center">
+                        <PaginationNumbers
+                            page={currentPage}
+                            take={currentTake}
+                            urlPageParamName="page"
+                            total={bookCount}
+                        ></PaginationNumbers>
+                    </div>
                 </div>
             )}
 
