@@ -1,6 +1,6 @@
-import { db } from "node-scripts/db"
-import { s3Bucket } from "node-scripts/s3"
-import { stripe } from "node-scripts/stripe"
+import { db } from "../db"
+import { s3Bucket } from "../s3"
+import { stripe } from "../stripe"
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Stripe from "stripe"
 

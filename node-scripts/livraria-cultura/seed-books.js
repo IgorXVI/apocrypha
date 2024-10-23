@@ -1,6 +1,6 @@
 import fs from "fs"
-import { db } from "node-scripts/db"
-import { stripe } from "node-scripts/stripe"
+import { db } from "../db"
+import { stripe } from "../stripe"
 import path from "path"
 
 const main = async () => {

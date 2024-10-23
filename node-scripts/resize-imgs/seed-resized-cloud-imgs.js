@@ -2,7 +2,7 @@ import fs from "fs"
 import path from "path"
 
 import { PutObjectCommand } from "@aws-sdk/client-s3"
-import { s3Bucket, createS3Client } from "node-scripts/s3"
+import { s3Bucket, createS3Client } from "../s3.js"
 
 const s3Client = createS3Client()
 

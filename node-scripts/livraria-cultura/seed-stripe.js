@@ -1,5 +1,5 @@
 import fs from "fs"
-import { stripe } from "node-scripts/stripe"
+import { stripe } from "../stripe"
 import path from "path"
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Stripe from "stripe"

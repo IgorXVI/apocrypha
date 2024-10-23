@@ -1,6 +1,6 @@
 import fs from "fs"
 import _ from "lodash"
-import { db } from "node-scripts/db"
+import { db } from "../db"
 import path from "path"
 
 const main = async () => {

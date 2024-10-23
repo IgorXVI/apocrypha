@@ -1,5 +1,5 @@
 import fs from "fs"
-import { db } from "node-scripts/db"
+import { db } from "../db"
 import path from "path"
 import { Langs } from "prisma/prisma-client"
 import { z } from "zod"
