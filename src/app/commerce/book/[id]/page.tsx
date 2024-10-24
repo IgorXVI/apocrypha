@@ -1,10 +1,9 @@
 import Link from "next/link"
-import { Star, ChevronRight } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 import sanitizeHtml from "sanitize-html"
 
 import { Card, CardContent } from "~/components/ui/card"
 import { Separator } from "~/components/ui/separator"
-import { Avatar, AvatarFallback } from "~/components/ui/avatar"
 import Image from "next/image"
 import BookDetailsImages from "../../_components/book-details-images"
 import { db } from "~/server/db"
@@ -12,6 +11,8 @@ import AddToCartButton from "../../_components/add-to-cart-button"
 import AddToFavoriteButton from "../../_components/add-to-favorite-button"
 import { type BookClientSideState } from "~/lib/types"
 import { type Prisma } from "prisma/prisma-client"
+import ReviewStars from "../_components/review-stats"
+import BookReviews from "../_components/book-reviews"
 
 const langsMap: Record<string, string> = {
     PORTUGUESE: "Português",
@@ -84,7 +85,16 @@ function RelatedBooks({ relatedBooks }: { relatedBooks: { id: string; title: str
         </div>
     )
 }
-export default async function BookDetails({ params: { id } }: { params: { id: string } }) {
+
+export default async function BookDetails({
+    params: { id },
+    searchParams: { reviewsPage },
+}: {
+    params: { id: string }
+    searchParams: {
+        reviewsPage?: string
+    }
+}) {
     const bookInclude = {
         DisplayImage: {
             select: {
@@ -189,13 +199,13 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         },
                     },
                 },
-                Review: true,
             },
         }),
         db.review.aggregate({
             where: {
                 bookId: id,
             },
+            _count: true,
             _avg: {
                 rating: true,
             },
@@ -293,17 +303,6 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         prevPrice: DBBook.prevPrice.toNumber(),
     }
 
-    const getStars = (rating: number) => (
-        <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-                <Star
-                    key={i}
-                    className={`w-5 h-5 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
-                />
-            ))}
-        </div>
-    )
-
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-5 gap-8">
@@ -319,10 +318,10 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         ></AddToFavoriteButton>
                     </div>
 
-                    {DBBook.Review.length > 0 && (
+                    {reviewStats._count > 0 && (
                         <div className="flex items-center mt-4 space-x-4">
-                            {getStars(reviewStats._avg.rating ?? 0)}
-                            <span className="text-sm text-muted-foreground">(Baseado em {DBBook.Review.length} avaliações)</span>
+                            <ReviewStars rating={reviewStats._avg.rating ?? 0}></ReviewStars>
+                            <span className="text-sm text-muted-foreground">(Baseado em {reviewStats._count} avaliações)</span>
                         </div>
                     )}
 
@@ -452,38 +451,12 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         </dl>
                     </div>
 
-                    {DBBook.Review.length > 0 && (
-                        <>
-                            <Separator className="my-6" />
-                            <h3 className="text-lg font-semibold mb-4">Avaliações</h3>
-                            {DBBook.Review.map((review) => (
-                                <Card
-                                    key={review.id}
-                                    className="mb-4"
-                                >
-                                    <CardContent className="p-4 flex flex-col gap-1">
-                                        <div className="flex items-center justify-start gap-3 mb-3">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarFallback>
-                                                    {review.userName
-                                                        .split(" ")
-                                                        .filter((_, i, arr) => i === 0 || i === arr.length - 1)
-                                                        .map((s) => s.charAt(0))
-                                                        .join("")}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="ml-4">
-                                                <p className="text-sm font-medium">{review.userName}</p>
-                                                <p className="text-lg font-bold">{review.title}</p>
-                                                {getStars(review.rating)}
-                                            </div>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground">{review.body}</p>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </>
-                    )}
+                    <BookReviews
+                        bookId={id}
+                        reviewsCount={reviewStats._count}
+                        reviewsPage={reviewsPage}
+                        reviewsPageName="reviewsPage"
+                    ></BookReviews>
                 </div>
                 <div className="hidden md:flex flex-col col-span-2">
                     <BookPriceCard {...bookForCart} />
