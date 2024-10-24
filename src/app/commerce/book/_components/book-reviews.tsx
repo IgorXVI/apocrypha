@@ -24,6 +24,9 @@ export default async function BookReviews({
         where: {
             bookId,
         },
+        orderBy: {
+            createdAt: "desc",
+        },
         take: currentReviewsTake,
         skip: calcSkip(currentReviewsPage, currentReviewsTake),
     })
