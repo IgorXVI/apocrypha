@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
         const stripeEvent = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET)
 
-        if (stripeEvent.type !== "checkout.session.completed") {
+        if (stripeEvent.type !== "checkout.session.completed" && stripeEvent.type !== "checkout.session.async_payment_succeeded") {
             return Response.json(
                 {
                     success: false,
