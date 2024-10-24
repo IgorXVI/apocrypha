@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-
 import fs from "fs"
 import _ from "lodash"
 import path from "path"
@@ -21,6 +18,7 @@ const fetchJSON2 = async (url = "") => {
     return JSON.parse(cleanHTML ?? "")
 }
 
+/**@type {Record<string, string>} */
 const langsMap = {
     inglês: "ENGLISH",
     espanhol: "SPANISH",
@@ -46,11 +44,48 @@ const main = async () => {
             continue
         }
 
-        const readBookData = async (book) => {
+        const readBookData = async (
+            /**
+             * @type {{
+             * productName?: string;
+             * Edição?: string[];
+             * Páginas?: string[];
+             * Idioma?: string[];
+             * ISBN?: string[];
+             * Editora?: string[];
+             * Colaborador?: string[];
+             * link?: string;
+             * items?: {
+             *      ean?: string
+             *      images?: {
+             *          imageUrl?: string;
+             *      }[];
+             *      sellers?: {
+             *          commertialOffer?: {
+             *              ListPrice?: number
+             *          }
+             *      }[]
+             * }[];
+             * description?: string;
+             * releaseDate?: string;
+             * }}
+             * */ book,
+        ) => {
             try {
                 console.log(`READING "${book.productName}"...`)
 
-                if (!book["Páginas"] || !book.Idioma) {
+                if (
+                    !book.Páginas?.[0] ||
+                    !book.Edição?.[0] ||
+                    !book.Idioma?.[0] ||
+                    !book.items?.[0]?.sellers?.[0] ||
+                    !book.items[0].images?.[0] ||
+                    !book.Editora?.[0] ||
+                    !book.items[0].sellers[0].commertialOffer ||
+                    !book.productName ||
+                    !book.ISBN?.[0] ||
+                    !book.Colaborador?.[0]
+                ) {
                     console.log(`SKIPED BOOK ${book.productName}`)
                     return null
                 }
@@ -69,11 +104,11 @@ const main = async () => {
                         .replaceAll("  ", " "),
 
                     description: book.description,
-                    pages: Number(book["Páginas"][0]),
+                    pages: Number(book.Páginas[0][0]),
                     publicationDate: book.releaseDate,
                     isbn10Code: book.ISBN[0],
                     isbn13Code: book.items[0].ean,
-                    edition: Number(book["Edição"][0]),
+                    edition: Number(book.Edição[0]),
 
                     heightCm: json2.skus[0].measures.height || 20,
                     widthCm: json2.skus[0].measures.width || 20,
@@ -94,7 +129,7 @@ const main = async () => {
                     mainAuthorId: book.Colaborador[0]
                         .split("|")
                         .find((c) => c.startsWith("Autor:"))
-                        .replace("Autor:", "")
+                        ?.replace("Autor:", "")
                         .split(", ")
                         .reverse()
                         .map((s) =>

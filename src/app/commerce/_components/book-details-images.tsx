@@ -21,7 +21,7 @@ export default function BookDetailsImages({ images, title }: { images: string[];
                     src={images[0] ?? ""}
                     alt={`${title} -Imagem principal`}
                     width={400}
-                    height={200}
+                    height={400}
                     className="w-full rounded-md object-cover cursor-zoom-in col-span-3"
                     onClick={() => openZoomedImage(0)}
                 />

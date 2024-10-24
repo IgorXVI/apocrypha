@@ -1,19 +1,8 @@
-import { Pool, neonConfig } from "@neondatabase/serverless"
-import { PrismaNeon } from "@prisma/adapter-neon"
-import ws from "ws"
-import { PrismaClient, Langs } from "@prisma/client"
-
 import fs from "fs"
+import { db } from "../db"
 import path from "path"
+import { Langs } from "prisma/prisma-client"
 import { z } from "zod"
-
-neonConfig.webSocketConstructor = ws
-const connectionString = `${process.env.DATABASE_URL}`
-
-const pool = new Pool({ connectionString })
-const adapter = new PrismaNeon(pool)
-
-const db = new PrismaClient({ adapter })
 
 const bookValidationSchema = z.object({
     price: z.number().positive({ message: "O preço deve ser um número positivo." }).default(0),

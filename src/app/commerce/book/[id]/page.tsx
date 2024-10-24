@@ -349,35 +349,39 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         </div>
                     </div>
 
-                    <Separator className="my-6" />
+                    {book.authorInfo.bio !== "N/A" && (
+                        <>
+                            <Separator className="my-6" />
 
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">Sobre o Autor</h3>
-                        <div className="flex flex-row gap-4">
-                            <Link href={`/commerce/author/${book.authorInfo.id}`}>
-                                <Image
-                                    src={book.authorInfo.image}
-                                    alt={book.authorInfo.name}
-                                    width={75}
-                                    height={75}
-                                    className="rounded-lg shadow-lg min-w-[75px] max-w-[75px] min-h-[75px] max-h-[75px]"
-                                ></Image>
-                            </Link>
-                            <div className="flex flex-col">
-                                <h4 className="font-medium">
-                                    <Link
-                                        href={`/commerce/author/${book.authorInfo.id}`}
-                                        className="hover:underline"
-                                    >
-                                        {book.authorInfo.name}
+                            <div>
+                                <h3 className="text-lg font-semibold mb-4">Sobre o Autor</h3>
+                                <div className="flex flex-row gap-4">
+                                    <Link href={`/commerce/author/${book.authorInfo.id}`}>
+                                        <Image
+                                            src={book.authorInfo.image}
+                                            alt={book.authorInfo.name}
+                                            width={75}
+                                            height={75}
+                                            className="rounded-lg shadow-lg min-w-[75px] max-w-[75px] min-h-[75px] max-h-[75px]"
+                                        ></Image>
                                     </Link>
-                                </h4>
-                                <div className="text-sm text-muted-foreground mt-2">
-                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.authorInfo.bio) }}></div>
+                                    <div className="flex flex-col">
+                                        <h4 className="font-medium">
+                                            <Link
+                                                href={`/commerce/author/${book.authorInfo.id}`}
+                                                className="hover:underline"
+                                            >
+                                                {book.authorInfo.name}
+                                            </Link>
+                                        </h4>
+                                        <div className="text-sm text-muted-foreground mt-2">
+                                            <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.authorInfo.bio) }}></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </>
+                    )}
 
                     {book.series.name !== "" && (
                         <>
@@ -423,10 +427,9 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         </dl>
                     </div>
 
-                    <Separator className="my-6" />
-
                     {DBBook.Review.length > 0 && (
-                        <div>
+                        <>
+                            <Separator className="my-6" />
                             <h3 className="text-lg font-semibold mb-4">Avaliações</h3>
                             {DBBook.Review.map((review) => (
                                 <Card
@@ -454,7 +457,7 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                                     </CardContent>
                                 </Card>
                             ))}
-                        </div>
+                        </>
                     )}
                 </div>
                 <div className="hidden md:flex flex-col col-span-2">

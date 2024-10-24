@@ -1,25 +1,8 @@
-import { Pool, neonConfig } from "@neondatabase/serverless"
-import { PrismaNeon } from "@prisma/adapter-neon"
-import ws from "ws"
-import { PrismaClient } from "@prisma/client"
+import { db } from "../db"
+import { s3Bucket } from "../s3"
+import { stripe } from "../stripe"
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Stripe from "stripe"
-import dotenv from "dotenv"
-
-dotenv.config()
-
-neonConfig.webSocketConstructor = ws
-const connectionString = `${process.env.DATABASE_URL}`
-
-const pool = new Pool({ connectionString })
-const adapter = new PrismaNeon(pool)
-
-const db = new PrismaClient({ adapter })
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-    apiVersion: "2024-06-20",
-})
-
-const s3Bucket = process.env.S3_IMG_BUCKET
 
 const main = async () => {
     /**@type {Stripe.Product[]} */
