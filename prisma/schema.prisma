@@ -246,3 +246,20 @@ model Review {
 
     @@unique([userId, bookId])
 }
+
+enum FeedbackType {
+    BUG
+    ORDER
+    MISC
+}
+
+model Feedback {
+    id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    userId    String
+    userEmail String?
+    userName  String?
+    message   String
+    type      FeedbackType @default(MISC)
+
+    createdAt DateTime @default(now())
+}

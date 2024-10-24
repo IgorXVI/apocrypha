@@ -37,7 +37,7 @@ export default function ProductSearch() {
     )
 
     return (
-        <div className="self-center flex justify-center items-center flex-grow md:max-w-2xl order-1 md:order-none px-1 lg:mr-32 relative">
+        <div className="max-w-2xl flex justify-center items-center flex-grow order-1 sm:order-none px-1 lg:mr-5 relative">
             <Input
                 disabled={isPending}
                 type="text"

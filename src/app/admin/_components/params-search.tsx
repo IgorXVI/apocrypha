@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useState, useTransition } from "react"
 import { Input } from "~/components/ui/input"
 
-export default function OrderSearch({ paramName }: { paramName: string }) {
+export default function ParamsSearch({ paramName }: { paramName: string }) {
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -39,7 +39,7 @@ export default function OrderSearch({ paramName }: { paramName: string }) {
                 defaultValue={searchParams.get(paramName) ?? undefined}
                 disabled={isPending}
                 type="text"
-                placeholder="Procure pedidos..."
+                placeholder="Procure..."
                 className="w-full rounded-lg bg-background pl-8"
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => {

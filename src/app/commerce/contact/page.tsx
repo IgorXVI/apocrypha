@@ -1,117 +1,91 @@
 "use client"
 
-import { Clock, Mail, MapPin, Phone } from "lucide-react"
-import { useState } from "react"
+import { Clock, Mail, Phone } from "lucide-react"
+import { toast } from "sonner"
+import { toastError, toastLoading, toastSuccess } from "~/components/toast/toasting"
 
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
-import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group"
 import { Textarea } from "~/components/ui/textarea"
-import { toast } from "sonner"
+import { createFeedback } from "~/server/actions/feedback"
 
 export default function ContactUsPage() {
-    const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [message, setMessage] = useState("")
-    const [inquiryType, setInquiryType] = useState("general")
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        // In a real application, you would send this data to your server
-        console.log({ name, email, message, inquiryType })
-        toast("We've received your message and will get back to you soon!")
-        // Reset form
-        setName("")
-        setEmail("")
-        setMessage("")
-        setInquiryType("general")
-    }
-
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-4xl font-bold mb-8 text-center">Contact Apocrypha</h1>
+            <h1 className="text-4xl font-bold mb-8 text-center">Contate Apocrypha</h1>
 
             <div className="grid gap-8 md:grid-cols-2">
                 <div>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Get in Touch</CardTitle>
+                            <CardTitle>Entre em contato</CardTitle>
                             <CardDescription>
-                                Wed love to hear from you. Fill out the form and well get back to you as soon as possible.
+                                Gostaríamos muito de ouvir de você. Preencha o formulário e entraremos em contato com você o mais breve possível.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form
-                                onSubmit={handleSubmit}
-                                className="space-y-4"
+                                action={(formData) => {
+                                    toastLoading("Enviando...", "create-feedback")
+                                    createFeedback(formData)
+                                        .then((result) => {
+                                            toast.dismiss("create-feedback")
+                                            if (!result.success) {
+                                                toastError(result.errorMessage)
+                                            } else {
+                                                toastSuccess("Enviado")
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            toast.dismiss("create-feedback")
+                                            toastError(error)
+                                        })
+                                }}
+                                className="flex flex-col gap-4"
                             >
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input
-                                        id="name"
-                                        placeholder="Your name"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        placeholder="Your email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Inquiry Type</Label>
-                                    <RadioGroup
-                                        value={inquiryType}
-                                        onValueChange={setInquiryType}
-                                    >
+                                    <Label>Tipo de assunto</Label>
+                                    <RadioGroup name="type">
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem
-                                                value="general"
-                                                id="general"
+                                                value="BUG"
+                                                id="bug"
                                             />
-                                            <Label htmlFor="general">General Inquiry</Label>
+                                            <Label htmlFor="bug">Informar um bug</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem
-                                                value="order"
+                                                value="ORDER"
                                                 id="order"
                                             />
-                                            <Label htmlFor="order">Order Status</Label>
+                                            <Label htmlFor="order">Perguntar sobre um pedido</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem
-                                                value="event"
-                                                id="event"
+                                                value="MISC"
+                                                id="other"
                                             />
-                                            <Label htmlFor="event">Event Information</Label>
+                                            <Label htmlFor="other">Outro assunto</Label>
                                         </div>
                                     </RadioGroup>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="message">Message</Label>
+                                    <Label htmlFor="message">Mensagem</Label>
                                     <Textarea
+                                        name="message"
                                         id="message"
-                                        placeholder="Your message"
-                                        value={message}
-                                        onChange={(e) => setMessage(e.target.value)}
+                                        placeholder="Sua mensagem"
+                                        rows={2}
                                         required
                                     />
                                 </div>
                                 <Button
                                     type="submit"
-                                    className="w-full"
+                                    className="max-w-sm place-self-center"
                                 >
-                                    Send Message
+                                    Enviar
                                 </Button>
                             </form>
                         </CardContent>
@@ -122,26 +96,13 @@ export default function ContactUsPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <MapPin className="h-5 w-5" />
-                                Visit Us
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-lg">123 Bookworm Lane</p>
-                            <p className="text-lg">Literaryville, LT 12345</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
                                 <Clock className="h-5 w-5" />
-                                Store Hours
+                                Horário de atendimento
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-lg">Monday - Friday: 9 AM - 9 PM</p>
-                            <p className="text-lg">Saturday - Sunday: 10 AM - 8 PM</p>
+                            <p className="text-lg">Segunda a sexta: 8h - 18h</p>
+                            <p className="text-lg">Sábado e Domingo: 8h - 12h</p>
                         </CardContent>
                     </Card>
 
@@ -149,11 +110,11 @@ export default function ContactUsPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Phone className="h-5 w-5" />
-                                Phone
+                                WhatsApp
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-lg">(555) 123-4567</p>
+                            <p className="text-lg">+55 (54) 99985-6046</p>
                         </CardContent>
                     </Card>
 
@@ -165,7 +126,7 @@ export default function ContactUsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-lg">info@apocrypha.com</p>
+                            <p className="text-lg">jacirdealmeida83@gmail.com</p>
                         </CardContent>
                     </Card>
                 </div>

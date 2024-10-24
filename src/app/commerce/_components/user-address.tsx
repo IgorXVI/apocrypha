@@ -189,7 +189,7 @@ export default function UserAddress() {
                     <MapPin className="h-7 w-7"></MapPin>
                     {!addressData && <span className="font-bold text-sm ml-2">Olá Selecione o endereço</span>}
                     {addressData && (
-                        <div className="ml-2 flex gap-1 md:flex-col">
+                        <div className="ml-2 flex gap-1 xl:flex-col">
                             <span className="text-sm">Enviar para {userName}</span>
                             <span className="font-bold text-sm">
                                 {addressData.city} {addressData.cep}
