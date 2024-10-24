@@ -111,7 +111,7 @@ export default async function MainCommercePage() {
                 },
                 AuthorOnBook: {
                     orderBy: {
-                        main: "asc",
+                        order: "asc",
                     },
                     include: {
                         Author: {

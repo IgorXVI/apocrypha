@@ -26,7 +26,7 @@ export default async function BookReviewPage({ params: { id } }: { params: { id:
             },
             AuthorOnBook: {
                 orderBy: {
-                    main: "asc",
+                    order: "asc",
                 },
                 take: 1,
                 include: {

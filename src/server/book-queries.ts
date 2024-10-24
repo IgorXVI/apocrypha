@@ -27,16 +27,19 @@ const transformBookInput = (data: BookSchemaType) => {
     const authors = transformIdsWithMain(data.authorIds, data.mainAuthorId).map((authorId, index) => ({
         authorId,
         main: index === 0,
+        order: index,
     }))
 
     const translators = transformIdsWithMain(data.translatorIds, data.mainTranslatorId).map((translatorId, index) => ({
         translatorId,
         main: index === 0,
+        order: index,
     }))
 
     const categories = transformIdsWithMain(data.categoryIds, data.mainCategoryId).map((categoryId, index) => ({
         categoryId,
         main: index === 0,
+        order: index,
     }))
 
     return {
@@ -225,6 +228,7 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
                                   create: {
                                       authorId,
                                       main: true,
+                                      order: 0,
                                   },
                               }))
                             : undefined,
@@ -243,6 +247,7 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
                                   create: {
                                       translatorId,
                                       main: true,
+                                      order: 0,
                                   },
                               }))
                             : undefined,
@@ -261,6 +266,7 @@ export const bookUpdateOne = async (id: string, data: BookSchemaType) =>
                                   create: {
                                       categoryId,
                                       main: true,
+                                      order: 0,
                                   },
                               }))
                             : undefined,
@@ -283,7 +289,7 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaT
                         authorId: true,
                     },
                     orderBy: {
-                        main: "asc",
+                        order: "asc",
                     },
                 },
                 TranslatorOnBook: {
@@ -291,7 +297,7 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaT
                         translatorId: true,
                     },
                     orderBy: {
-                        main: "asc",
+                        order: "asc",
                     },
                 },
                 CategoryOnBook: {
@@ -299,7 +305,7 @@ export const bookGetOne = async (id: string): Promise<CommonDBReturn<BookSchemaT
                         categoryId: true,
                     },
                     orderBy: {
-                        main: "asc",
+                        order: "asc",
                     },
                 },
                 DisplayImage: {
@@ -365,9 +371,6 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                       },
                 include: {
                     AuthorOnBook: {
-                        where: {
-                            main: true,
-                        },
                         select: {
                             Author: {
                                 select: {
@@ -376,14 +379,11 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                             },
                         },
                         orderBy: {
-                            main: "asc",
+                            order: "asc",
                         },
                         take: 1,
                     },
                     TranslatorOnBook: {
-                        where: {
-                            main: true,
-                        },
                         select: {
                             Translator: {
                                 select: {
@@ -392,7 +392,7 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                             },
                         },
                         orderBy: {
-                            main: "asc",
+                            order: "asc",
                         },
                         take: 1,
                     },
@@ -420,7 +420,7 @@ export const bookGetMany = async (input: GetManyInput): Promise<CommonDBReturn<G
                             },
                         },
                         orderBy: {
-                            main: "asc",
+                            order: "asc",
                         },
                         take: 1,
                     },
