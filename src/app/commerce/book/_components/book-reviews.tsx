@@ -57,9 +57,16 @@ export default async function BookReviews({
                                 </AvatarFallback>
                             </Avatar>
                             <div className="ml-4">
-                                <p className="text-sm font-medium">{review.userName}</p>
-                                <p className="text-lg font-bold">{review.title}</p>
-                                <ReviewStars rating={review.rating}></ReviewStars>
+                                <div className="flex flex-row gap-2">
+                                    <p className="text-sm font-medium">{review.userName}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {review.createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                                    </p>
+                                </div>
+                                <div className="flex flex-row gap-2">
+                                    <ReviewStars rating={review.rating}></ReviewStars>
+                                    <p className="text-lg font-bold">{review.title}</p>
+                                </div>
                             </div>
                         </div>
                         <p className="text-sm text-muted-foreground">{review.body}</p>
