@@ -1,4 +1,5 @@
 import { env } from "~/env"
+import { db } from "~/server/db"
 import { handleChekoutConfirmation, stripe } from "~/server/stripe-api"
 
 export async function POST(req: Request) {
@@ -9,7 +10,12 @@ export async function POST(req: Request) {
 
         const stripeEvent = stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET)
 
-        if (stripeEvent.type !== "checkout.session.completed") {
+        if (
+            stripeEvent.type !== "checkout.session.completed" &&
+            stripeEvent.type !== "checkout.session.async_payment_succeeded" &&
+            stripeEvent.type !== "checkout.session.async_payment_failed" &&
+            stripeEvent.type !== "checkout.session.expired"
+        ) {
             return Response.json(
                 {
                     success: false,
@@ -22,6 +28,42 @@ export async function POST(req: Request) {
         }
 
         const session = stripeEvent.data.object
+
+        if (stripeEvent.type === "checkout.session.async_payment_failed" || stripeEvent.type === "checkout.session.expired") {
+            const cancelResult = await db.order
+                .update({
+                    where: {
+                        sessionId: session.id,
+                    },
+                    data: {
+                        status: "CANCELED",
+                        cancelReason: "EXCEPTION",
+                        cancelMessage: `Stripe event: ${stripeEvent.type}`,
+                        updatedAt: new Date(),
+                    },
+                })
+                .catch((error) => {
+                    console.error("PAYMENT_CANCELED_DELETE_ORDER_ERROR:", error)
+                    return undefined
+                })
+
+            if (!cancelResult) {
+                return Response.json(
+                    {
+                        success: false,
+                        errorMessage: `Order cancel failed.`,
+                    },
+                    {
+                        status: 400,
+                    },
+                )
+            }
+
+            return Response.json({
+                success: true,
+                orderCaceled: cancelResult.id,
+            })
+        }
 
         const confirmationResult = await handleChekoutConfirmation(session)
 
