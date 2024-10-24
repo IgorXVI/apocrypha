@@ -197,11 +197,11 @@ export default function DataTable(props: {
                                                             <XIcon className="w-4 h-4 text-red-500" />
                                                         )
                                                     ) : typeof row[attr] === "string" && attr.endsWith("Date") ? (
-                                                        new Date(row[attr]).toLocaleDateString()
+                                                        new Date(row[attr]).toLocaleDateString("pt-BR")
                                                     ) : !row[attr] && row[attr] !== 0 ? (
                                                         "N/A"
                                                     ) : row[attr] instanceof Date ? (
-                                                        row[attr].toLocaleDateString()
+                                                        row[attr].toLocaleDateString("pt-BR")
                                                     ) : typeof row[attr] === "string" ? (
                                                         <FieldTooLong
                                                             content={row[attr]}
