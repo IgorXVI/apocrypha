@@ -1,8 +1,11 @@
 import Image from "next/image"
 import Link from "next/link"
 import { env } from "~/env"
+import { db } from "~/server/db"
 
 export default async function HeroSection() {
+    const booksCount = await db.book.count()
+
     return (
         <section className="bg-gradient-to-b from-black to-white min-h-[600px]">
             <div className="grid py-8 lg:gap-8 lg:py-16 lg:grid-cols-12">
@@ -17,7 +20,7 @@ export default async function HeroSection() {
                         {env.APP_NAME}
                     </h1>
                     <p className="max-w-xl mb-6 font-light lg:mb-8 md:text-lg lg:text-xl text-neutral-200">
-                        Descubra seu próximo livro favorito, explore nossa vasta coleção de livros em todos os gêneros.
+                        Descubra seu próximo livro favorito, explore nossa vasta coleção de {booksCount} livros em todos os gêneros.
                     </p>
                     <div className="grid place-content-center">
                         <Link
