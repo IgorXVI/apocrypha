@@ -118,8 +118,8 @@ export default async function Admin({
         ),
         ticketId: order.ticketId,
         shippingMethod: order.shippingServiceName,
-        updatedAt: order.updatedAt.toLocaleString("pt-BR"),
-        createdAt: order.createdAt.toLocaleString("pt-BR"),
+        updatedAt: order.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
+        createdAt: order.createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
         printLink: order.printUrl && (
             <a
                 className="hover:underline"

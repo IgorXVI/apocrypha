@@ -86,7 +86,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                     <div className="flex items-center gap-2">
                         <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                        <span>{order.createdAt.toLocaleString("pt-BR")}</span>
+                        <span>{order.createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</span>
                     </div>
                 </div>
             </div>
@@ -256,7 +256,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                     status={order.status}
                                 ></OrderStatus>
                                 <span className="text-muted-foreground text-lg font-light text-nowrap">
-                                    Atualizado em: {order.updatedAt.toLocaleString("pt-BR")}
+                                    Atualizado em: {order.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
                                 </span>
                             </div>
                         </CardContent>
