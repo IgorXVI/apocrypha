@@ -69,7 +69,7 @@ export default function CommerceHeader() {
                     <HeaderUserButton></HeaderUserButton>
                 </div>
             </HeaderBase>
-            <div className="p-3 items-center justify-center flex flex-grow flex-nowrap text-nowrap text-white bg-black xl:hidden">
+            <div className="pb-2 items-center justify-center flex flex-grow flex-nowrap text-nowrap text-white bg-black xl:hidden">
                 <UserAddress></UserAddress>
             </div>
         </>

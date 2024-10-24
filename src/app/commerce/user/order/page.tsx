@@ -110,63 +110,101 @@ export default async function UserOrders({
                             <CardDescription>Lista dos seus pedidos na Apocrypha</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead></TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Items</TableHead>
-                                        <TableHead className="text-right text-nowrap">Data da última atualização</TableHead>
-                                        <TableHead className="text-right text-nowrap">Data da compra</TableHead>
-                                        <TableHead className="text-right text-nowrap">Total</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {orders.map((order) => (
-                                        <TableRow key={order.id}>
-                                            <TableCell>
-                                                <Button
-                                                    disabled={order.status === "AWAITING_CONFIRMATION"}
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="px-0"
-                                                >
+                            <div className="md:hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Items</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {orders.map((order) => (
+                                            <TableRow key={order.id}>
+                                                <TableCell>
                                                     <Link
                                                         href={`/commerce/user/order/${order.id}`}
                                                         className="h-full w-full grid place-content-center px-3"
                                                     >
-                                                        <span>Ver detalhes</span>
+                                                        <div className="max-w-[150px]">
+                                                            <OrderStatus status={order.status}></OrderStatus>
+                                                        </div>
                                                     </Link>
-                                                </Button>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="max-w-[150px]">
-                                                    <OrderStatus status={order.status}></OrderStatus>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <OrderItemsCompact
-                                                    maxDisplay={5}
-                                                    products={order.BookOnOrder.map((bo) => ({
-                                                        id: bo.Book.id,
-                                                        image: bo.Book.DisplayImage[0]?.url ?? "",
-                                                        name: bo.Book.title,
-                                                    }))}
-                                                ></OrderItemsCompact>
-                                            </TableCell>
-                                            <TableCell className="text-right text-nowrap">
-                                                {order.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
-                                            </TableCell>
-                                            <TableCell className="text-right text-nowrap">
-                                                {order.createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
-                                            </TableCell>
-                                            <TableCell className="text-right text-nowrap font-bold text-green-500">
-                                                {order.totalPrice && <span>R$ {order.totalPrice.toFixed(2)}</span>}
-                                            </TableCell>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <OrderItemsCompact
+                                                        maxDisplay={1}
+                                                        products={order.BookOnOrder.map((bo) => ({
+                                                            id: bo.Book.id,
+                                                            image: bo.Book.DisplayImage[0]?.url ?? "",
+                                                            name: bo.Book.title,
+                                                        }))}
+                                                    ></OrderItemsCompact>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            <div className="hidden md:block">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead></TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Items</TableHead>
+                                            <TableHead className="text-right text-nowrap">Data da última atualização</TableHead>
+                                            <TableHead className="text-right text-nowrap">Data da compra</TableHead>
+                                            <TableHead className="text-right text-nowrap">Total</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {orders.map((order) => (
+                                            <TableRow key={order.id}>
+                                                <TableCell>
+                                                    <Button
+                                                        disabled={order.status === "AWAITING_CONFIRMATION"}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="px-0"
+                                                    >
+                                                        <Link
+                                                            href={`/commerce/user/order/${order.id}`}
+                                                            className="h-full w-full grid place-content-center px-3"
+                                                        >
+                                                            <span>Ver detalhes</span>
+                                                        </Link>
+                                                    </Button>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="max-w-[150px]">
+                                                        <OrderStatus status={order.status}></OrderStatus>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <OrderItemsCompact
+                                                        maxDisplay={5}
+                                                        products={order.BookOnOrder.map((bo) => ({
+                                                            id: bo.Book.id,
+                                                            image: bo.Book.DisplayImage[0]?.url ?? "",
+                                                            name: bo.Book.title,
+                                                        }))}
+                                                    ></OrderItemsCompact>
+                                                </TableCell>
+                                                <TableCell className="text-right text-nowrap">
+                                                    {order.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                                                </TableCell>
+                                                <TableCell className="text-right text-nowrap">
+                                                    {order.createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                                                </TableCell>
+                                                <TableCell className="text-right text-nowrap font-bold text-green-500">
+                                                    {order.totalPrice && <span>R$ {order.totalPrice.toFixed(2)}</span>}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </CardContent>
 
                         <CardFooter className="grid place-content-center">

@@ -91,7 +91,67 @@ export default function CartPage() {
             {cartContent.length > 0 ? (
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Cart Items */}
-                    <div className="lg:w-2/3">
+                    <div className="md:hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[100px]">Produto</TableHead>
+                                    <TableHead>Quantidade</TableHead>
+                                    <TableHead className="text-right">Preço</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {cartContent.map((item) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell>
+                                            <Link
+                                                href={`/commerce/book/${item.id}`}
+                                                className="w-full h-full"
+                                            >
+                                                <Image
+                                                    src={item.mainImg}
+                                                    alt={`Cover of ${item.title}`}
+                                                    className="w-16 h-20 object-cover"
+                                                    width={100}
+                                                    height={100}
+                                                />
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center space-x-2">
+                                                <Button
+                                                    disabled={isDisabled}
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => updateQuantity(item.id, item.amount - 1, item.stock)}
+                                                >
+                                                    <Minus className="h-4 w-4" />
+                                                </Button>
+                                                <Input
+                                                    disabled={isDisabled}
+                                                    type="number"
+                                                    min="1"
+                                                    value={item.amount}
+                                                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value), item.stock)}
+                                                    className="w-16 text-center"
+                                                />
+                                                <Button
+                                                    disabled={isDisabled}
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => updateQuantity(item.id, item.amount + 1, item.stock)}
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right text-nowrap">R$ {(item.price * item.amount).toFixed(2)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <div className="lg:w-2/3 hidden md:block">
                         <Table>
                             <TableHeader>
                                 <TableRow>

@@ -57,7 +57,7 @@ export default function OrderItemsCompact({ products = [], maxDisplay = 3 }: Ord
                     onClick={() => setIsExpanded(false)}
                     className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none focus:underline"
                 >
-                    Show less
+                    Mostrar menos
                 </button>
             )}
         </div>
