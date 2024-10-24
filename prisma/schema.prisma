@@ -86,6 +86,7 @@ model AuthorOnBook {
     Author   Author  @relation(fields: [authorId], references: [id])
     authorId String  @db.Uuid
     main     Boolean
+    order    Int     @default(9999)
 
     @@id([bookId, authorId])
 }
@@ -104,6 +105,7 @@ model TranslatorOnBook {
     Translator   Translator @relation(fields: [translatorId], references: [id])
     translatorId String     @db.Uuid
     main         Boolean
+    order        Int        @default(9999)
 
     @@id([bookId, translatorId])
 }
@@ -127,6 +129,7 @@ model CategoryOnBook {
     Category   Category @relation(fields: [categoryId], references: [id])
     categoryId String   @db.Uuid
     main       Boolean
+    order      Int      @default(9999)
 
     @@id([bookId, categoryId])
 }

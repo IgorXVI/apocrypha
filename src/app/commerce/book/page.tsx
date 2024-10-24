@@ -157,7 +157,7 @@ export default async function BooksPage({
                     },
                 },
                 orderBy: {
-                    main: "asc",
+                    order: "asc",
                 },
                 take: 1,
             },

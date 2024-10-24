@@ -27,7 +27,7 @@ export default async function AuthorDetailsPage({ params: { id } }: { params: { 
                             },
                             AuthorOnBook: {
                                 orderBy: {
-                                    main: "asc",
+                                    order: "asc",
                                 },
                                 include: {
                                     Author: {

@@ -107,7 +107,7 @@ export default async function BookDetails({
         },
         AuthorOnBook: {
             orderBy: {
-                main: "asc" as Prisma.SortOrder,
+                order: "asc" as Prisma.SortOrder,
             },
             take: 1,
             include: {
@@ -143,7 +143,7 @@ export default async function BookDetails({
                 },
                 AuthorOnBook: {
                     orderBy: {
-                        main: "asc",
+                        order: "asc",
                     },
                     include: {
                         Author: true,
@@ -151,7 +151,7 @@ export default async function BookDetails({
                 },
                 TranslatorOnBook: {
                     orderBy: {
-                        main: "asc",
+                        order: "asc",
                     },
                     include: {
                         Translator: {
@@ -183,7 +183,7 @@ export default async function BookDetails({
                 },
                 CategoryOnBook: {
                     orderBy: {
-                        main: "asc",
+                        order: "asc",
                     },
                     take: 1,
                     include: {
