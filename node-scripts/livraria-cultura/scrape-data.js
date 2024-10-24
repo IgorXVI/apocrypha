@@ -2,8 +2,6 @@ import fs from "fs"
 import _ from "lodash"
 import path from "path"
 
-import categoriesConfig from "./dump/categories.json" with { type: "json" }
-
 const fetchJSON2 = async (url = "") => {
     const result = await fetch(url)
 
@@ -32,6 +30,10 @@ const langsMap = {
 }
 
 const main = async () => {
+    const categoriesConfigFile = fs.readFileSync(path.resolve("./node-scripts/livraria-cultura/dump/categories.json")).toString()
+
+    const categoriesConfig = JSON.parse(categoriesConfigFile)
+
     for (const categoryConfig of categoriesConfig) {
         console.log(`READING CATEGORY ${categoryConfig.category}"...`)
 
