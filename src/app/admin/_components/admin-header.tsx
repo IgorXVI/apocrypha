@@ -23,6 +23,13 @@ export default function AdminHeader() {
                     href="/admin"
                     className="hover:underline"
                 >
+                    Feedbacks
+                </Link>
+                <Link
+                    key="/admin/orders"
+                    href="/admin/orders"
+                    className="hover:underline"
+                >
                     Pedidos
                 </Link>
                 <Link

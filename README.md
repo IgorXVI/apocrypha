@@ -24,7 +24,7 @@
 -   [x] Adicionar páginação na listagem de livros
 -   [x] Adicionar simulação de envio da compra
 -   [x] Fazer página de autores
--   [ ] Fazer página de contato
+-   [x] Fazer página de contato
 -   [x] Fazer página de entrega
 -   [x] Fazer página de histórico de compras
 -   [x] Adicionar reviews
