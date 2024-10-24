@@ -244,6 +244,8 @@ model Review {
     Book     Book   @relation(fields: [bookId], references: [id])
     bookId   String @db.Uuid
 
+    createdAt DateTime @default(now())
+
     @@unique([userId, bookId])
 }
 

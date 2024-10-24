@@ -13,7 +13,9 @@ import {
     PaginationPrevious,
 } from "~/components/ui/pagination"
 
-export default function PaginationNumbers(props: { total: number; urlPageParamName: string; page: number; take: number }) {
+export default function PaginationNumbers(props: { total: number; urlPageParamName: string; page: number; take: number; sectionId?: string }) {
+    const sectionId = props.sectionId ? `#${props.sectionId}` : ""
+
     const searchParams = useSearchParams()
     const pathname = usePathname()
 
@@ -25,9 +27,9 @@ export default function PaginationNumbers(props: { total: number; urlPageParamNa
 
             params.set(props.urlPageParamName, page.toString())
 
-            return `${pathname}?${params.toString()}`
+            return `${pathname}?${params.toString()}${sectionId}`
         },
-        [searchParams, pathname, props.urlPageParamName],
+        [searchParams, props.urlPageParamName, pathname, sectionId],
     )
 
     const getNextPageLink = useCallback(
@@ -42,9 +44,9 @@ export default function PaginationNumbers(props: { total: number; urlPageParamNa
 
             params.set(props.urlPageParamName, newPage.toString())
 
-            return `${pathname}?${params.toString()}`
+            return `${pathname}?${params.toString()}${sectionId}`
         },
-        [searchParams, pathname, props.page, props.urlPageParamName],
+        [searchParams, props.page, props.urlPageParamName, pathname, sectionId],
     )
 
     return (
