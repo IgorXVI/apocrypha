@@ -98,103 +98,205 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                         <CardDescription>ID: {order.id}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table className="md:text-lg">
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>
-                                        <div className="flex flex-row gap-1 items-center justify-start">
-                                            <BookOpenIcon></BookOpenIcon>
-                                            <span className="hidden md:block">Item</span>
-                                        </div>
-                                    </TableHead>
-                                    <TableHead>
-                                        <div className="flex flex-row gap-1 items-center justify-end">
-                                            <BoxesIcon></BoxesIcon>
-                                            <span className="hidden md:block">Quantidade</span>
-                                        </div>
-                                    </TableHead>
-                                    <TableHead>
-                                        <div className="flex flex-row gap-1 items-center justify-end">
-                                            <TagIcon></TagIcon>
-                                            <span className="hidden md:block">Preço</span>
-                                        </div>
-                                    </TableHead>
-                                    <TableHead>
-                                        <div className="flex flex-row gap-1 items-center justify-end">
-                                            <TagsIcon></TagsIcon>
-                                            <span className="hidden md:block">Total</span>
-                                        </div>
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {order.BookOnOrder.map((bo) => (
-                                    <TableRow key={bo.Book.id}>
-                                        <TableCell>
-                                            <div className="flex flex-col gap-3 justify-center items-center md:items-start">
-                                                <Link href={`/commerce/book/${bo.Book.id}`}>
-                                                    <Image
-                                                        src={bo.Book.DisplayImage[0]?.url ?? ""}
-                                                        alt={bo.Book.title}
-                                                        className="min-h-[150px] min-w-[100px] max-h-[150px] max-w-[100px] rounded-lg object-cover"
-                                                        width={100}
-                                                        height={150}
-                                                    ></Image>
-                                                </Link>
-                                                <div className={`${order.status === "DELIVERED" ? "block" : "hidden"}`}>
-                                                    <Link href={`/commerce/user/review/book/${bo.Book.id}`}>
-                                                        <div
-                                                            className="flex flex-row gap-2 bg-yellow-500 hover:bg-yellow-400 transition-all duration-300 
-                                                                    text-white py-1 px-3 rounded-lg items-center justify-center"
-                                                        >
-                                                            <StarsIcon></StarsIcon>
-                                                            <span className="tex-sm md:text-base">{bo.Book.Review[0] ? "Reavaliar" : "Avaliar"}</span>
-                                                        </div>
-                                                    </Link>
-                                                </div>
+                        <div className="md:hidden">
+                            <Table className="md:text-lg">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>
+                                            <div className="flex flex-row gap-1 items-center justify-start">
+                                                <BookOpenIcon></BookOpenIcon>
+                                                <span className="hidden md:block">Item</span>
                                             </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">{bo.amount}</TableCell>
-                                        <TableCell className="text-right text-nowrap">R$ {bo.price.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right text-nowrap">R$ {(bo.amount * bo.price.toNumber()).toFixed(2)}</TableCell>
+                                        </TableHead>
+                                        <TableHead>
+                                            <div className="flex flex-row gap-1 items-center justify-end">
+                                                <BoxesIcon></BoxesIcon>
+                                                <span className="hidden md:block">Quantidade</span>
+                                            </div>
+                                        </TableHead>
+                                        <TableHead>
+                                            <div className="flex flex-row gap-1 items-center justify-end">
+                                                <TagsIcon></TagsIcon>
+                                                <span className="hidden md:block">Total</span>
+                                            </div>
+                                        </TableHead>
                                     </TableRow>
-                                ))}
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={3}
-                                        className="font-medium"
-                                    >
-                                        Subtotal
-                                    </TableCell>
-                                    <TableCell className="text-right text-nowrap ">
-                                        R${" "}
-                                        {order.totalPrice && order.shippingPrice
-                                            ? (order.totalPrice.toNumber() - order.shippingPrice?.toNumber()).toFixed(2)
-                                            : "N/A"}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={3}
-                                        className="font-medium"
-                                    >
-                                        Entrega
-                                    </TableCell>
-                                    <TableCell className="text-right text-nowrap">R$ {order.shippingPrice?.toFixed(2) ?? "N/A"}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={3}
-                                        className="font-bold"
-                                    >
-                                        Total
-                                    </TableCell>
-                                    <TableCell className="text-nowrap text-right font-bold text-lg md:text-2xl text-green-500">
-                                        R$ {order.totalPrice?.toFixed(2) ?? "N/A"}
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {order.BookOnOrder.map((bo) => (
+                                        <TableRow key={bo.Book.id}>
+                                            <TableCell>
+                                                <div className="flex flex-col gap-3 justify-center items-start md:items-start">
+                                                    <Link href={`/commerce/book/${bo.Book.id}`}>
+                                                        <Image
+                                                            src={bo.Book.DisplayImage[0]?.url ?? ""}
+                                                            alt={bo.Book.title}
+                                                            className="min-h-[150px] min-w-[100px] max-h-[150px] max-w-[100px] rounded-lg object-cover"
+                                                            width={100}
+                                                            height={150}
+                                                        ></Image>
+                                                    </Link>
+                                                    <div className={`${order.status === "DELIVERED" ? "block" : "hidden"}`}>
+                                                        <Link href={`/commerce/user/review/book/${bo.Book.id}`}>
+                                                            <div
+                                                                className="flex flex-row gap-2 bg-yellow-500 hover:bg-yellow-400 transition-all duration-300 
+                                                                    text-white py-1 px-3 rounded-lg items-center justify-center"
+                                                            >
+                                                                <StarsIcon></StarsIcon>
+                                                                <span className="tex-sm md:text-base">
+                                                                    {bo.Book.Review[0] ? "Reavaliar" : "Avaliar"}
+                                                                </span>
+                                                            </div>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right">{bo.amount}</TableCell>
+                                            <TableCell className="text-right text-nowrap">
+                                                R$ {(bo.amount * bo.price.toNumber()).toFixed(2)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={2}
+                                            className="font-medium"
+                                        >
+                                            Subtotal
+                                        </TableCell>
+                                        <TableCell className="text-right text-nowrap ">
+                                            R${" "}
+                                            {order.totalPrice && order.shippingPrice
+                                                ? (order.totalPrice.toNumber() - order.shippingPrice?.toNumber()).toFixed(2)
+                                                : "N/A"}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={2}
+                                            className="font-medium"
+                                        >
+                                            Entrega
+                                        </TableCell>
+                                        <TableCell className="text-right text-nowrap">R$ {order.shippingPrice?.toFixed(2) ?? "N/A"}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={2}
+                                            className="font-bold"
+                                        >
+                                            Total
+                                        </TableCell>
+                                        <TableCell className="text-nowrap text-right font-bold text-lg md:text-2xl text-green-500">
+                                            R$ {order.totalPrice?.toFixed(2) ?? "N/A"}
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <div className="hidden md:block">
+                            <Table className="md:text-lg">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>
+                                            <div className="flex flex-row gap-2 items-center justify-start">
+                                                <BookOpenIcon></BookOpenIcon>
+                                                <span>Item</span>
+                                            </div>
+                                        </TableHead>
+                                        <TableHead>
+                                            <div className="flex flex-row gap-2 items-center justify-end">
+                                                <BoxesIcon></BoxesIcon>
+                                                <span>Quantidade</span>
+                                            </div>
+                                        </TableHead>
+                                        <TableHead>
+                                            <div className="flex flex-row gap-2 items-center justify-end">
+                                                <TagIcon></TagIcon>
+                                                <span>Preço</span>
+                                            </div>
+                                        </TableHead>
+                                        <TableHead>
+                                            <div className="flex flex-row gap-2 items-center justify-end">
+                                                <TagsIcon></TagsIcon>
+                                                <span>Total</span>
+                                            </div>
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {order.BookOnOrder.map((bo) => (
+                                        <TableRow key={bo.Book.id}>
+                                            <TableCell>
+                                                <div className="flex flex-col gap-3 justify-center items-center md:items-start">
+                                                    <Link href={`/commerce/book/${bo.Book.id}`}>
+                                                        <Image
+                                                            src={bo.Book.DisplayImage[0]?.url ?? ""}
+                                                            alt={bo.Book.title}
+                                                            className="min-h-[150px] min-w-[100px] max-h-[150px] max-w-[100px] rounded-lg object-cover"
+                                                            width={100}
+                                                            height={150}
+                                                        ></Image>
+                                                    </Link>
+                                                    <div className={`${order.status === "DELIVERED" ? "block" : "hidden"}`}>
+                                                        <Link href={`/commerce/user/review/book/${bo.Book.id}`}>
+                                                            <div
+                                                                className="flex flex-row gap-2 bg-yellow-500 hover:bg-yellow-400 transition-all duration-300 
+                                                                    text-white py-1 px-3 rounded-lg items-center justify-center"
+                                                            >
+                                                                <StarsIcon></StarsIcon>
+                                                                <span className="tex-sm md:text-base">
+                                                                    {bo.Book.Review[0] ? "Reavaliar" : "Avaliar"}
+                                                                </span>
+                                                            </div>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right">{bo.amount}</TableCell>
+                                            <TableCell className="text-right text-nowrap">R$ {bo.price.toFixed(2)}</TableCell>
+                                            <TableCell className="text-right text-nowrap">
+                                                R$ {(bo.amount * bo.price.toNumber()).toFixed(2)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={3}
+                                            className="font-medium"
+                                        >
+                                            Subtotal
+                                        </TableCell>
+                                        <TableCell className="text-right text-nowrap ">
+                                            R${" "}
+                                            {order.totalPrice && order.shippingPrice
+                                                ? (order.totalPrice.toNumber() - order.shippingPrice?.toNumber()).toFixed(2)
+                                                : "N/A"}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={3}
+                                            className="font-medium"
+                                        >
+                                            Entrega
+                                        </TableCell>
+                                        <TableCell className="text-right text-nowrap">R$ {order.shippingPrice?.toFixed(2) ?? "N/A"}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={3}
+                                            className="font-bold"
+                                        >
+                                            Total
+                                        </TableCell>
+                                        <TableCell className="text-nowrap text-right font-bold text-lg md:text-2xl text-green-500">
+                                            R$ {order.totalPrice?.toFixed(2) ?? "N/A"}
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
                     </CardContent>
                 </Card>
 

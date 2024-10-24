@@ -72,10 +72,12 @@ export const upsertReview = async (data: unknown) => {
                 ...validData,
                 userId: user.userId,
                 userName: userData.fullName ?? user.userId,
+                createdAt: new Date(),
             },
             update: {
                 ...validData,
                 userName: userData.fullName ?? user.userId,
+                createdAt: new Date(),
             },
         })
         .catch((error) => {
