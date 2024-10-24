@@ -499,6 +499,15 @@ export const handleChekoutConfirmation = async (session: Stripe.Checkout.Session
                 }
             })
 
+            await transaction.bookOnOrder.createMany({
+                data: productsForTicket.map((p) => ({
+                    bookId: p.bookDBId,
+                    orderId: order.id,
+                    price: p.unitary_value,
+                    amount: p.quantity,
+                })),
+            })
+
             await transaction.order.update({
                 where: {
                     id: order.id,
@@ -514,15 +523,6 @@ export const handleChekoutConfirmation = async (session: Stripe.Checkout.Session
                     shippingServiceName: stripeShipping.display_name!,
                     shippingDaysMin: stripeShipping.delivery_estimate!.minimum!.value,
                     shippingDaysMax: stripeShipping.delivery_estimate!.maximum!.value,
-                    BookOnOrder: {
-                        createMany: {
-                            data: productsForTicket.map((p) => ({
-                                bookId: p.bookDBId,
-                                price: p.unitary_value,
-                                amount: p.quantity,
-                            })),
-                        },
-                    },
                 },
             })
 
@@ -587,7 +587,7 @@ export const handleChekoutConfirmation = async (session: Stripe.Checkout.Session
 
             if (refund.status !== "succeeded" && refund.status !== "pending") {
                 console.error(
-                    "STRIPE_HANDLE_CONFIRMATION_ERROR:",
+                    "STRIPE_HANDLE_CONFIRMATION_ERROR_DURING_REFUND:",
                     `Error when trying to make stripe refund, returned status: ${refund.status}, payment ID: ${globalPaymentId}`,
                 )
                 return commonErrorResponse
@@ -595,7 +595,7 @@ export const handleChekoutConfirmation = async (session: Stripe.Checkout.Session
 
             return commonErrorResponse
         } catch (stripeError) {
-            console.error("STRIPE_HANDLE_CONFIRMATION_ERROR:", stripeError)
+            console.error("STRIPE_HANDLE_CONFIRMATION_ERROR_AFTER_REFUND:", stripeError)
 
             return commonErrorResponse
         }
