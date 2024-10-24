@@ -333,9 +333,11 @@ export default async function BookDetails({
                     </div>
 
                     <div className="md:hidden">
+                        <Separator className="my-6" />
                         <BookPriceCard {...bookForCart} />
-                        {book.relatedBooks.length > 0 && <RelatedBooks relatedBooks={book.relatedBooks} />}
                     </div>
+
+                    <Separator className="my-6" />
 
                     <div className="mt-6">
                         <h3 className="text-lg font-semibold">{book.authors.length > 1 ? "Autores" : "Autor"}</h3>
@@ -450,6 +452,13 @@ export default async function BookDetails({
                             <dd className="text-muted-foreground">{book.attributes.subcategory}</dd>
                         </dl>
                     </div>
+
+                    {book.relatedBooks.length > 0 && (
+                        <div className="md:hidden">
+                            <Separator className="my-6" />
+                            <RelatedBooks relatedBooks={book.relatedBooks} />
+                        </div>
+                    )}
 
                     <BookReviews
                         bookId={id}
