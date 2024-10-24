@@ -154,8 +154,12 @@ export default async function UserOrders({
                                                     }))}
                                                 ></OrderItemsCompact>
                                             </TableCell>
-                                            <TableCell className="text-right text-nowrap">{order.updatedAt.toLocaleString("pt-BR")}</TableCell>
-                                            <TableCell className="text-right text-nowrap">{order.createdAt.toLocaleString("pt-BR")}</TableCell>
+                                            <TableCell className="text-right text-nowrap">
+                                                {order.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                                            </TableCell>
+                                            <TableCell className="text-right text-nowrap">
+                                                {order.createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                                            </TableCell>
                                             <TableCell className="text-right text-nowrap font-bold text-green-500">
                                                 {order.totalPrice && <span>R$ {order.totalPrice.toFixed(2)}</span>}
                                             </TableCell>

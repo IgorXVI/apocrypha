@@ -71,7 +71,9 @@ export default async function BookReviewPage({ params: { id } }: { params: { id:
                                 <Link href={`/commerce/book/${book.id}`}>{book.title}</Link>
                             </h2>
                             <p className="text-muted-foreground mb-2">de {book.AuthorOnBook[0]?.Author.name ?? "N/A"}</p>
-                            <p className="text-sm text-muted-foreground">Publicado em {book.publicationDate.toLocaleDateString("pt-BR")}</p>
+                            <p className="text-sm text-muted-foreground">
+                                Publicado em {book.publicationDate.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
