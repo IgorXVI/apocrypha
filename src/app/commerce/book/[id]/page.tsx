@@ -11,6 +11,7 @@ import { db } from "~/server/db"
 import AddToCartButton from "../../_components/add-to-cart-button"
 import AddToFavoriteButton from "../../_components/add-to-favorite-button"
 import { type BookClientSideState } from "~/lib/types"
+import { type Prisma } from "prisma/prisma-client"
 
 const langsMap: Record<string, string> = {
     PORTUGUESE: "Português",
@@ -84,6 +85,32 @@ function RelatedBooks({ relatedBooks }: { relatedBooks: { id: string; title: str
     )
 }
 export default async function BookDetails({ params: { id } }: { params: { id: string } }) {
+    const bookInclude = {
+        DisplayImage: {
+            select: {
+                url: true,
+            },
+            orderBy: {
+                order: "asc" as Prisma.SortOrder,
+            },
+            take: 1,
+        },
+        AuthorOnBook: {
+            orderBy: {
+                main: "asc" as Prisma.SortOrder,
+            },
+            take: 1,
+            include: {
+                Author: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        },
+    }
+
     const [DBBook, reviewStats] = await Promise.all([
         db.book.findUniqueOrThrow({
             where: {
@@ -99,58 +126,10 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                     },
                 },
                 RelatedBook: {
-                    include: {
-                        DisplayImage: {
-                            select: {
-                                url: true,
-                            },
-                            orderBy: {
-                                order: "asc",
-                            },
-                            take: 1,
-                        },
-                        AuthorOnBook: {
-                            orderBy: {
-                                main: "asc",
-                            },
-                            take: 1,
-                            include: {
-                                Author: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
+                    include: bookInclude,
                 },
                 RelatedBooks: {
-                    include: {
-                        DisplayImage: {
-                            select: {
-                                url: true,
-                            },
-                            orderBy: {
-                                order: "asc",
-                            },
-                            take: 1,
-                        },
-                        AuthorOnBook: {
-                            orderBy: {
-                                main: "asc",
-                            },
-                            take: 1,
-                            include: {
-                                Author: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
+                    include: bookInclude,
                 },
                 AuthorOnBook: {
                     orderBy: {
@@ -227,10 +206,49 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
         DBBook.RelatedBooks.unshift(DBBook.RelatedBook)
     }
 
+    if (DBBook.RelatedBooks.length === 0) {
+        const categoryBooks = await db.category.findMany({
+            where: {
+                id: {
+                    in: DBBook.CategoryOnBook.map((cb) => cb.categoryId),
+                },
+            },
+            include: {
+                CategoryOnBook: {
+                    include: {
+                        Book: {
+                            include: bookInclude,
+                        },
+                    },
+                    take: 5,
+                },
+            },
+        })
+
+        const relatedCategoryBooks = categoryBooks.flatMap((el) => el.CategoryOnBook.map((cb) => cb.Book))
+
+        DBBook.RelatedBooks.push(...relatedCategoryBooks)
+    }
+
+    const passedBooks: Record<string, boolean> = {
+        [id]: true,
+    }
+
+    const newRelatedBooks: typeof DBBook.RelatedBooks = []
+
+    DBBook.RelatedBooks.forEach((relBook) => {
+        if (!passedBooks[relBook.id]) {
+            passedBooks[relBook.id] = true
+            newRelatedBooks.push(relBook)
+        }
+    })
+
+    DBBook.RelatedBooks = newRelatedBooks
+
     const book = {
         title: DBBook.title.split(":")[0] ?? "N/A",
         subtitle: DBBook.title.split(":")[1] ?? "",
-        authors: DBBook.AuthorOnBook.map((author) => author.Author.name),
+        authors: DBBook.AuthorOnBook.map((author) => author.Author),
         authorInfo: {
             id: DBBook.AuthorOnBook[0]?.Author.id ?? "N/A",
             name: DBBook.AuthorOnBook[0]?.Author.name ?? "N/A",
@@ -324,7 +342,14 @@ export default async function BookDetails({ params: { id } }: { params: { id: st
                         <h3 className="text-lg font-semibold">{book.authors.length > 1 ? "Autores" : "Autor"}</h3>
                         <ul className="mt-2 space-y-1">
                             {book.authors.map((author, index) => (
-                                <li key={index}>{author}</li>
+                                <li key={index}>
+                                    <Link
+                                        href={`/commerce/author/${author.id}`}
+                                        className="hover:underline"
+                                    >
+                                        {author.name}
+                                    </Link>
+                                </li>
                             ))}
                         </ul>
                     </div>

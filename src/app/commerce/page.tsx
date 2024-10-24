@@ -87,6 +87,17 @@ export default async function MainCommercePage() {
 
     const [books, superCategories] = await Promise.all([
         db.book.findMany({
+            where: {
+                AuthorOnBook: {
+                    some: {
+                        Author: {
+                            name: {
+                                endsWith: "Tolkien",
+                            },
+                        },
+                    },
+                },
+            },
             include: {
                 DisplayImage: {
                     select: {
@@ -115,7 +126,7 @@ export default async function MainCommercePage() {
             orderBy: {
                 price: "asc",
             },
-            take: 10,
+            take: 7,
         }),
         db.superCategory.findMany({
             include: {
@@ -140,7 +151,7 @@ export default async function MainCommercePage() {
             <HeroSection></HeroSection>
             <div className="container mx-auto px-4 py-12 flex flex-col gap-10">
                 <HorizontalList
-                    title="Lançamentos"
+                    title="Destaques"
                     books={books.map((book) => ({
                         id: book.id,
                         title: book.title,
