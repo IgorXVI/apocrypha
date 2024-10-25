@@ -1,14 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { env } from "~/env"
-
-type CepResponse = {
-    cep: string
-    state: string
-    city: string
-    neighborhood: string
-    street: string
-    service: string
-}
+import { type CepResponse } from "~/lib/types"
 
 export const brasilApi = createApi({
     reducerPath: "brasilApi",

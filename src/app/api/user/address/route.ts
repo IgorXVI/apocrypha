@@ -1,70 +1,14 @@
-import { z } from "zod"
 import { auth } from "@clerk/nextjs/server"
+import { type z } from "zod"
+import { env } from "~/env"
+import { type CepResponse } from "~/lib/types"
+import { userAddressValidationSchema, type UserAddressSchemaType } from "~/lib/validation"
 
 import { db } from "~/server/db"
 import { errorHandler } from "~/server/generic-queries"
 
-const userAddressValidationSchema = z.object({
-    cep: z
-        .string()
-        .min(8, {
-            message: "CEP deve ter no mínimo 8 dígitos.",
-        })
-        .max(8, {
-            message: "CEP deve ter no máximo 8 dígitos.",
-        })
-        .transform((cepStr) => Number(cepStr))
-        .pipe(
-            z
-                .number({
-                    message: "CEP deve ser um número válido",
-                })
-                .transform((cepNum) => cepNum.toString()),
-        )
-        .default(""),
-    state: z
-        .string()
-        .min(2, {
-            message: "UF deve ter no mínimo 2 letras.",
-        })
-        .max(2, {
-            message: "UF deve ter no máximo 2 letras.",
-        })
-        .default(""),
-    city: z
-        .string()
-        .min(2, {
-            message: "Cidade deve ter no mínimo 2 letras.",
-        })
-        .default(""),
-    neighborhood: z
-        .string()
-        .min(2, {
-            message: "Bairro deve ter no mínimo 2 letras.",
-        })
-        .default(""),
-    street: z
-        .string()
-        .min(2, {
-            message: "Rua deve ter no mínimo 2 letras.",
-        })
-        .default(""),
-    number: z.number().int().positive({ message: "Número deve ser positivo." }).default(0),
-    complement: z.preprocess(
-        (value) => value ?? undefined,
-        z
-            .string()
-            .min(2, {
-                message: "Complemento deve ter no mínimo 2 letras.",
-            })
-            .optional(),
-    ),
-})
-
-type UserAdressSchema = z.infer<typeof userAddressValidationSchema>
-
 export type POSTApiUserAddressInput = {
-    data: UserAdressSchema
+    data: UserAddressSchemaType
 }
 
 export type POSTApiUserAddressOutput =
@@ -136,14 +80,40 @@ export async function POST(req: Request) {
         )
     }
 
-    const requestData = reqBodyResult.data as UserAdressSchema
+    const requestData = reqBodyResult.data as UserAddressSchemaType
+
+    const cepResponse: CepResponse | undefined = await fetch(`${env.BRASIL_API}/cep/v1/${requestData.cep}`)
+        .then((res) => res.json())
+        .then((json) => {
+            if (json.errors) {
+                console.error("CEP_API_ERROR", JSON.stringify(json.errors, null, 2))
+                return undefined
+            }
+            return json
+        })
+        .catch((error) => {
+            console.error("CEP_API_ERROR", error)
+            return undefined
+        })
+
+    if (!cepResponse) {
+        return Response.json(
+            {
+                success: false,
+                errorMessage: "CEP is invalid.",
+            },
+            {
+                status: 400,
+            },
+        )
+    }
 
     const dataForDB = {
         cep: requestData.cep,
-        state: requestData.state,
-        city: requestData.city,
-        neighborhood: requestData.neighborhood,
-        street: requestData.street,
+        state: cepResponse.state,
+        city: cepResponse.city,
+        neighborhood: cepResponse.neighborhood,
+        street: cepResponse.street,
         number: requestData.number,
         userId: user.userId,
         complement: requestData.complement,
@@ -179,7 +149,15 @@ export async function POST(req: Request) {
 export type GETApiUserAddressOutput =
     | {
           success: true
-          data: UserAdressSchema | null
+          data: {
+              number: number
+              cep: string
+              state: string
+              city: string
+              neighborhood: string
+              street: string
+              complement?: string | undefined
+          } | null
       }
     | {
           success: false

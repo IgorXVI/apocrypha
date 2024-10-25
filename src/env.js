@@ -21,6 +21,7 @@ export const env = createEnv({
         APP_NAME: z.string(),
         APP_SUPPORT_EMAIL: z.string().email(),
         STRIPE_WEBHOOK_SECRET: z.string(),
+        BRASIL_API: z.string(),
     },
     client: {
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
@@ -54,6 +55,7 @@ export const env = createEnv({
         COMPANY_STREET: process.env.COMPANY_STREET,
         APP_SUPPORT_EMAIL: process.env.APP_SUPPORT_EMAIL,
         NEXT_PUBLIC_BRASIL_API: process.env.NEXT_PUBLIC_BRASIL_API,
+        BRASIL_API: process.env.NEXT_PUBLIC_BRASIL_API,
         STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     },
     skipValidation: !!process.env.SKIP_ENV_VALIDATION,

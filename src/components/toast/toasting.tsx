@@ -3,7 +3,21 @@ import { LoaderCircle } from "lucide-react"
 import { type CommonDBReturn } from "~/lib/types"
 
 export const toastError = (error: unknown) => {
-    const errorStr = error instanceof Error ? error.message : typeof error === "string" ? error : !error ? "Erro desconhecido" : JSON.stringify(error)
+    const errorStr =
+        error instanceof Error
+            ? error.message
+            : typeof error === "string"
+              ? error
+              : !error
+                ? "Erro desconhecido"
+                : typeof error === "object" &&
+                    "data" in error &&
+                    typeof error.data == "object" &&
+                    error.data &&
+                    "errorMessage" in error.data &&
+                    typeof error.data.errorMessage === "string"
+                  ? error.data.errorMessage
+                  : JSON.stringify(error)
 
     toast(<span className="text-lg text-red-500">{errorStr}</span>)
 }
