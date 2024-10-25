@@ -155,3 +155,30 @@ export const reviewValidationSchema = z.object({
 })
 
 export type ReviewSchemaType = z.infer<typeof reviewValidationSchema>
+
+export const userAddressValidationSchema = z.object({
+    cep: z.preprocess(
+        (value) => (typeof value === "string" ? value.replace("-", "") : value),
+        z
+            .string()
+            .min(8, {
+                message: "CEP deve ter no mínimo 8 dígitos.",
+            })
+            .max(8, {
+                message: "CEP deve ter no máximo 8 dígitos.",
+            })
+            .default(""),
+    ),
+    number: z.preprocess(
+        (value) => (typeof value === "string" ? Number(value) : value),
+        z.number().int().positive({ message: "Número deve ser positivo." }).default(0),
+    ),
+    complement: z
+        .string()
+        .min(2, {
+            message: "Complemento deve ter no mínimo 2 letras.",
+        })
+        .optional(),
+})
+
+export type UserAddressSchemaType = z.infer<typeof userAddressValidationSchema>

@@ -1,10 +1,9 @@
 "use client"
 
-import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { LoaderCircleIcon, MapPin, XCircleIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { dbQueryWithToast, toastError } from "~/components/toast/toasting"
+import { toastError, toastLoading, toastSuccess } from "~/components/toast/toasting"
 import { Button } from "~/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
@@ -14,53 +13,23 @@ import { useState, useMemo } from "react"
 import { mainApi } from "~/lib/redux/apis/main-api/main"
 import { useUser } from "@clerk/nextjs"
 import { useDebouncedCallback } from "use-debounce"
-
-export const userAddressValidationSchema = z.object({
-    cep: z.preprocess(
-        (value) => (typeof value === "string" ? value.replace("-", "") : value),
-        z
-            .string()
-            .min(8, {
-                message: "CEP deve ter no mínimo 8 dígitos.",
-            })
-            .max(8, {
-                message: "CEP deve ter no máximo 8 dígitos.",
-            })
-            .transform((cepStr) => Number(cepStr))
-            .pipe(
-                z
-                    .number({
-                        message: "CEP deve ser um número válido",
-                    })
-                    .transform((cepNum) => cepNum.toString()),
-            )
-            .default(""),
-    ),
-    number: z.preprocess(
-        (value) => (typeof value === "string" ? Number(value) : value),
-        z.number().int().positive({ message: "Número deve ser positivo." }).default(0),
-    ),
-    complement: z
-        .string()
-        .min(2, {
-            message: "Complemento deve ter no mínimo 2 letras.",
-        })
-        .optional(),
-})
-
-export type UserAddressSchemaType = z.infer<typeof userAddressValidationSchema>
+import { toast } from "sonner"
+import { type UserAddressSchemaType, userAddressValidationSchema } from "~/lib/validation"
 
 export default function UserAddress() {
     const user = useUser()
 
     const [isDisabled, setIsDisabled] = useState(false)
     const [modalClose, setmodalClose] = useState(true)
-    const [cepDetails, setCepDetails] = useState({
-        state: "",
-        city: "",
-        neighborhood: "",
-        street: "",
-    })
+    const [cepDetails, setCepDetails] = useState<
+        | {
+              state: string
+              city: string
+              neighborhood: string
+              street: string
+          }
+        | undefined
+    >()
 
     const [triggerGetCepInfo] = brasilApi.useLazyGetCepInfoQuery()
 
@@ -73,92 +42,56 @@ export default function UserAddress() {
         resolver: zodResolver(userAddressValidationSchema),
     })
 
-    const onSubmit = async (values: UserAddressSchemaType) => {
-        setIsDisabled(true)
-
-        const result = await dbQueryWithToast({
-            dbQuery: () =>
-                triggerSaveUserAddress({
-                    data: {
-                        ...cepDetails,
-                        ...values,
-                    },
-                })
-                    .then((result) => {
-                        if (result.error) {
-                            if ("status" in result.error) {
-                                const erroData = result.error.data as { message: string } | undefined
-
-                                throw new Error(
-                                    erroData?.message ?? `STATUS - ${result.error.status}: DATA - ${JSON.stringify(result.error.data ?? {})}`,
-                                )
-                            } else {
-                                throw new Error(`${result.error.name}: ${result.error.message}`)
-                            }
-                        }
-
-                        return {
-                            data: result.data,
-                            success: true,
-                            errorMessage: "",
-                        }
-                    })
-                    .then((result) => getUserAddress.refetch().then(() => result))
-                    .catch((error) => ({
-                        data: undefined,
-                        success: false,
-                        errorMessage: (error as Error).message,
-                    })),
-            mutationName: "save-user-address",
-            waitingMessage: "Salvando endereço...",
-            successMessage: "Endereço salvo.",
-        })
-        setIsDisabled(false)
-
-        if (result?.success) {
-            setmodalClose(true)
-        }
-    }
-
-    const onCepInput = useDebouncedCallback(async (e) => {
-        const cepResponse = await triggerGetCepInfo((e.target as HTMLInputElement).value || "0")
-            .then((result) => {
-                if (result.error) {
-                    if ("status" in result.error) {
-                        if (result.error.status === 404) {
-                            throw new Error("CEP não foi encontrado.")
-                        }
-
-                        const erroData = result.error.data as { message: string } | undefined
-
-                        throw new Error(erroData?.message ?? `STATUS - ${result.error.status}: DATA - ${JSON.stringify(result.error.data ?? {})}`)
-                    } else {
-                        throw new Error(`${result.error.name}: ${result.error.message}`)
-                    }
-                }
-
-                return {
-                    data: result.data,
-                    success: true,
-                    errorMessage: "",
-                }
-            })
-            .catch((error) => ({
-                data: undefined,
-                success: false,
-                errorMessage: (error as Error).message,
-            }))
-
-        if (!cepResponse.data) {
-            if (cepResponse.errorMessage === "CEP não foi encontrado.") {
-                toastError(cepResponse.errorMessage)
-            }
-
+    const onSubmit = (values: UserAddressSchemaType) => {
+        if (!cepDetails) {
+            toastError("Por favor, digite um CEP válido.")
             return
         }
 
-        setCepDetails(cepResponse.data)
-    }, 1000)
+        setIsDisabled(true)
+        toastLoading("Salvando dados do endereço...", "save-address")
+
+        triggerSaveUserAddress({
+            data: values,
+        })
+            .then((result) => {
+                if (result.error) {
+                    toast.dismiss("save-address")
+                    setIsDisabled(false)
+                    toastError(result.error)
+                } else {
+                    return getUserAddress.refetch().then(() => {
+                        toast.dismiss("save-address")
+                        setIsDisabled(false)
+                        toastSuccess("Salvo")
+                    })
+                }
+            })
+            .catch((error) => {
+                toast.dismiss("save-address")
+                setIsDisabled(false)
+                toastError(error)
+            })
+    }
+
+    const onCepInput = useDebouncedCallback((e) => {
+        toastLoading("Buscando dados do CEP...", "CEP-search")
+
+        triggerGetCepInfo((e.target as HTMLInputElement).value || "0")
+            .then((result) => {
+                toast.dismiss("CEP-search")
+                if (result.error || !result.data) {
+                    toastError("Dados do CEP não foram encontrados.")
+                    setCepDetails(undefined)
+                } else {
+                    setCepDetails(result.data)
+                }
+            })
+            .catch((error) => {
+                toast.dismiss("CEP-search")
+                toastError(error)
+            })
+    }, 700)
 
     const userName = useMemo(() => user.user?.firstName ?? "N/A", [user])
 
@@ -222,7 +155,7 @@ export default function UserAddress() {
                                         </FormControl>
                                         <FormDescription>
                                             Informe o CEP do seu endereço.
-                                            {cepDetails.state !== "" && (
+                                            {cepDetails && cepDetails.state !== "" && (
                                                 <>
                                                     <br />
                                                     <br />
