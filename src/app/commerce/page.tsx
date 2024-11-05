@@ -10,6 +10,7 @@ import { auth } from "@clerk/nextjs/server"
 import { type BookClientSideState } from "~/lib/types"
 import { type Prisma } from "prisma/prisma-client"
 import HorizontalAuthorList from "./_components/horizontal-author-list"
+import { getBooksReviewsMap } from "~/server/book-queries"
 
 function SuperCategoriesSection(props: {
     superCategories: {
@@ -154,7 +155,7 @@ export default async function MainCommercePage() {
         }),
     ])
 
-    const [bestSellingAuthors, authorsWithMostBooks] = await Promise.all([
+    const [bestSellingAuthors, authorsWithMostBooks, booksReviewsMap] = await Promise.all([
         db.author.findMany({
             where: {
                 id: {
@@ -181,6 +182,7 @@ export default async function MainCommercePage() {
             },
             take: 5,
         }),
+        getBooksReviewsMap(newBooks.map((book) => book.id).concat(bestSellingBooks.map((book) => book.id))),
     ])
 
     const authors = bestSellingAuthors.concat(authorsWithMostBooks)
@@ -198,6 +200,8 @@ export default async function MainCommercePage() {
             stock: book.stock,
             amount: 1,
             prevPrice: book.prevPrice.toNumber(),
+            rating: booksReviewsMap.get(book.id)?.rating ?? 0,
+            ratingAmount: booksReviewsMap.get(book.id)?.amount ?? 0,
         }))
 
     return (

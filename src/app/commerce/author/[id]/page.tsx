@@ -4,6 +4,7 @@ import sanitizeHtml from "sanitize-html"
 import { Separator } from "~/components/ui/separator"
 import { db } from "~/server/db"
 import BookCard from "../../_components/book-card"
+import { getBooksReviewsMap } from "~/server/book-queries"
 
 export default async function AuthorDetailsPage({ params: { id } }: { params: { id: string } }) {
     const author = await db.author.findUnique({
@@ -49,6 +50,8 @@ export default async function AuthorDetailsPage({ params: { id } }: { params: { 
         return <p>Autor não foi encontrado.</p>
     }
 
+    const booksReviewsMap = await getBooksReviewsMap(author.AuthorOnBook.map((ab) => ab.Book.id))
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col gap-8 mb-12 items-center justify-center">
@@ -88,6 +91,8 @@ export default async function AuthorDetailsPage({ params: { id } }: { params: { 
                                 stripeId: Book.stripeId,
                                 prevPrice: Book.prevPrice.toNumber(),
                                 price: Book.price.toNumber(),
+                                rating: booksReviewsMap.get(Book.id)?.rating ?? 0,
+                                ratingAmount: booksReviewsMap.get(Book.id)?.amount ?? 0,
                             }}
                         ></BookCard>
                     ))}

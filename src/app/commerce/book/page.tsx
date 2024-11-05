@@ -6,6 +6,7 @@ import BookCard from "../_components/book-card"
 import { type BookClientSideState } from "~/lib/types"
 import { calcSkip } from "~/lib/utils"
 import PaginationNumbers from "~/components/pagination/pagination-numbers"
+import { getBooksReviewsMap } from "~/server/book-queries"
 
 export default async function BooksPage({
     searchParams,
@@ -166,6 +167,8 @@ export default async function BooksPage({
         skip: calcSkip(currentPage, currentTake),
     })
 
+    const booksReviewsMap = await getBooksReviewsMap(DBBooks.map((book) => book.id))
+
     const books: BookClientSideState[] = DBBooks.map((book) => ({
         id: book.id,
         title: book.title,
@@ -178,6 +181,8 @@ export default async function BooksPage({
         stock: book.stock,
         amount: 1,
         prevPrice: book.prevPrice.toNumber(),
+        rating: booksReviewsMap.get(book.id)?.rating ?? 0,
+        ratingAmount: booksReviewsMap.get(book?.id)?.amount ?? 0,
     }))
 
     const categories = superCategory.Category.filter((category) => category.name === "Todos" || category.name !== superCategory.name).map(

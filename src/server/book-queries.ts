@@ -544,3 +544,28 @@ export const bookDeleteOne = (id: string) =>
 
         return undefined
     })
+
+export const getBooksReviewsMap: (ids: string[]) => Promise<Map<string, { rating: number; amount: number }>> = async (ids) => {
+    const booksReviews = await db.review.groupBy({
+        by: "bookId",
+        _count: true,
+        _avg: {
+            rating: true,
+        },
+        where: {
+            bookId: {
+                in: ids,
+            },
+        },
+    })
+
+    const bookReviewMap = new Map<string, { amount: number; rating: number }>()
+    booksReviews.forEach((bookReview) => {
+        bookReviewMap.set(bookReview.bookId, {
+            amount: bookReview._count,
+            rating: bookReview._avg.rating ?? 0,
+        })
+    })
+
+    return bookReviewMap
+}
