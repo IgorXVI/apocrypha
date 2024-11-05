@@ -25,7 +25,7 @@ function HeroImg({ img, size }: { img: Img; size: number }) {
 }
 
 function HeroImgs({ imgs }: { imgs: Img[] }) {
-    const imgIndexMatrix: number[][] = [[0], [1, 2], [3, 4, 5], [6, 7, 8, 9], [10, 11, 12, 13], [14, 15, 16], [17, 18], [19]]
+    const imgIndexMatrix: number[][] = [[0], [1, 2], [3, 4, 5], [6, 7], [8, 9, 10], [11, 12], [13]]
 
     return (
         <div className="grid grid-flow-col gap-2 place-content-center">
@@ -41,7 +41,7 @@ function HeroImgs({ imgs }: { imgs: Img[] }) {
                                 <HeroImg
                                     key={img.id}
                                     img={img}
-                                    size={100}
+                                    size={125}
                                 ></HeroImg>
                             )
                         )
@@ -55,10 +55,15 @@ function HeroImgs({ imgs }: { imgs: Img[] }) {
 export default async function HeroSection() {
     const booksCount = await db.book.count()
 
-    const skip = Math.floor(Math.random() * (booksCount - 20))
+    const amountOfBookImgs = 14
+
+    const skip = Math.floor(Math.random() * (booksCount - amountOfBookImgs))
 
     const displayImgs = await db.displayImage.findMany({
-        take: 20,
+        where: {
+            order: 0,
+        },
+        take: amountOfBookImgs,
         skip,
     })
 
