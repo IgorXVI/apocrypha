@@ -359,15 +359,6 @@ export const handleChekoutConfirmation = async (session: Stripe.Checkout.Session
     try {
         const sessionId = session.id
 
-        const eventPayment = session.payment_intent
-
-        if (!eventPayment) {
-            throw new Error("Payment ID not found.")
-        }
-
-        const paymentId = typeof eventPayment === "string" ? eventPayment : eventPayment.id
-        globalPaymentId = paymentId
-
         const order = await db.order.findUnique({
             where: {
                 sessionId,
@@ -379,6 +370,15 @@ export const handleChekoutConfirmation = async (session: Stripe.Checkout.Session
         }
 
         globalOrderId = order.id
+
+        const eventPayment = session.payment_intent
+
+        if (!eventPayment) {
+            throw new Error("Payment ID not found.")
+        }
+
+        const paymentId = typeof eventPayment === "string" ? eventPayment : eventPayment.id
+        globalPaymentId = paymentId
 
         const refund = await stripe.refunds
             .list({
