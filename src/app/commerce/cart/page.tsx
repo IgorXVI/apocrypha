@@ -189,7 +189,7 @@ export default function CartPage() {
                                                 </Link>
 
                                                 <Link
-                                                    href={`/commerce/author/${item.id}`}
+                                                    href={`/commerce/author/${item.authorId}`}
                                                     className="hover:underline"
                                                 >
                                                     <span className="text-sm text-muted-foreground">{item.author}</span>
