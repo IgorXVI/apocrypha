@@ -287,6 +287,7 @@ export default async function BookDetails({
             edition: DBBook.edition,
             category: DBBook.CategoryOnBook[0]?.Category.SuperCategory?.name ?? "N/A",
             subcategory: DBBook.CategoryOnBook[0]?.Category.name ?? "N/A",
+            publicationDate: DBBook.publicationDate,
         },
     }
 
@@ -382,13 +383,16 @@ export default async function BookDetails({
                             <div>
                                 <h3 className="text-lg font-semibold mb-4">Sobre o Autor</h3>
                                 <div className="flex flex-row gap-4">
-                                    <Link href={`/commerce/author/${book.authorInfo.id}`}>
+                                    <Link
+                                        href={`/commerce/author/${book.authorInfo.id}`}
+                                        className="flex items-start justify-center max-h-[75px]"
+                                    >
                                         <Image
                                             src={book.authorInfo.image}
                                             alt={book.authorInfo.name}
                                             width={75}
                                             height={75}
-                                            className="rounded-lg shadow-lg min-w-[75px] max-w-[75px] min-h-[75px] max-h-[75px]"
+                                            className="rounded-full border border-black shadow-lg min-w-[75px] max-w-[75px] min-h-[75px] max-h-[75px]"
                                         ></Image>
                                     </Link>
                                     <div className="flex flex-col">
@@ -450,6 +454,14 @@ export default async function BookDetails({
                             <dd className="text-muted-foreground">{book.attributes.category}</dd>
                             <dt className="font-medium">Subcategoria</dt>
                             <dd className="text-muted-foreground">{book.attributes.subcategory}</dd>
+                            {book.attributes.publicationDate <= new Date() && (
+                                <>
+                                    <dt className="font-medium">Data de publicação</dt>
+                                    <dd className="text-muted-foreground">
+                                        {book.attributes.publicationDate.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                                    </dd>
+                                </>
+                            )}
                         </dl>
                     </div>
 

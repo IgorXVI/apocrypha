@@ -20,7 +20,7 @@
 -   [x] Transformar línguas em enum no banco dados
 -   [x] Adicionar relação entre lívros
 -   [x] Adicionar categorias secundárias para livros
--   [ ] Adicionar imagens flutuantes no hero section
+-   [x] Adicionar imagens flutuantes no hero section
 -   [x] Adicionar páginação na listagem de livros
 -   [x] Adicionar simulação de envio da compra
 -   [x] Fazer página de autores

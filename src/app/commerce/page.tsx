@@ -7,6 +7,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/
 import HorizontalList from "./_components/horizontal-list"
 import HeroSection from "./_components/hero-section"
 import { auth } from "@clerk/nextjs/server"
+import { type BookClientSideState } from "~/lib/types"
+import { type Prisma } from "prisma/prisma-client"
+import HorizontalAuthorList from "./_components/horizontal-author-list"
 
 function SuperCategoriesSection(props: {
     superCategories: {
@@ -85,48 +88,53 @@ export default async function MainCommercePage() {
         return <p>Unauthorized</p>
     }
 
-    const [books, superCategories] = await Promise.all([
-        db.book.findMany({
-            where: {
-                AuthorOnBook: {
-                    some: {
-                        Author: {
-                            name: {
-                                endsWith: "Tolkien",
-                            },
-                        },
-                    },
-                },
-            },
-            include: {
-                DisplayImage: {
-                    select: {
-                        id: true,
-                        url: true,
-                    },
-                    orderBy: {
-                        order: "asc",
-                    },
-                    take: 1,
-                },
-                AuthorOnBook: {
-                    orderBy: {
-                        order: "asc",
-                    },
-                    include: {
-                        Author: {
-                            select: {
-                                name: true,
-                            },
-                        },
-                    },
-                    take: 1,
-                },
+    const booksInclude = {
+        DisplayImage: {
+            select: {
+                id: true,
+                url: true,
             },
             orderBy: {
-                price: "asc",
+                order: "asc" as Prisma.SortOrder,
             },
-            take: 7,
+            take: 1,
+        },
+        AuthorOnBook: {
+            orderBy: {
+                order: "asc" as Prisma.SortOrder,
+            },
+            include: {
+                Author: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+            take: 1,
+        },
+    }
+
+    const [bestSellingBooks, newBooks, superCategories] = await Promise.all([
+        db.book.findMany({
+            include: booksInclude,
+            orderBy: {
+                BookOnOrder: {
+                    _count: "desc",
+                },
+            },
+            take: 10,
+        }),
+        db.book.findMany({
+            where: {
+                publicationDate: {
+                    lte: new Date(),
+                },
+            },
+            include: booksInclude,
+            orderBy: {
+                publicationDate: "desc",
+            },
+            take: 10,
         }),
         db.superCategory.findMany({
             include: {
@@ -146,26 +154,74 @@ export default async function MainCommercePage() {
         }),
     ])
 
+    const [bestSellingAuthors, authorsWithMostBooks] = await Promise.all([
+        db.author.findMany({
+            where: {
+                id: {
+                    in: bestSellingBooks.map((book) => book.AuthorOnBook[0]?.authorId ?? ""),
+                },
+            },
+            orderBy: {
+                AuthorOnBook: {
+                    _count: "desc",
+                },
+            },
+            take: 5,
+        }),
+        db.author.findMany({
+            where: {
+                id: {
+                    not: "aa5fe3dc-c2e0-4da3-83c7-51c97acf99e2",
+                },
+            },
+            orderBy: {
+                AuthorOnBook: {
+                    _count: "desc",
+                },
+            },
+            take: 5,
+        }),
+    ])
+
+    const authors = bestSellingAuthors.concat(authorsWithMostBooks)
+
+    const formatBooks: (input: typeof newBooks) => BookClientSideState[] = (inputBooks) =>
+        inputBooks.map((book) => ({
+            id: book.id,
+            title: book.title,
+            mainImg: book.DisplayImage[0]?.url ?? "",
+            author: book.AuthorOnBook[0]?.Author.name ?? "",
+            price: book.price.toNumber(),
+            authorId: book.AuthorOnBook[0]?.authorId ?? "",
+            stripeId: book.stripeId,
+            description: book.description,
+            stock: book.stock,
+            amount: 1,
+            prevPrice: book.prevPrice.toNumber(),
+        }))
+
     return (
         <main className="flex-grow">
             <HeroSection></HeroSection>
             <div className="container mx-auto px-4 py-12 flex flex-col gap-10">
                 <HorizontalList
-                    title="Destaques"
-                    books={books.map((book) => ({
-                        id: book.id,
-                        title: book.title,
-                        mainImg: book.DisplayImage[0]?.url ?? "",
-                        author: book.AuthorOnBook[0]?.Author.name ?? "",
-                        price: book.price.toNumber(),
-                        authorId: book.AuthorOnBook[0]?.authorId ?? "",
-                        stripeId: book.stripeId,
-                        description: book.description,
-                        stock: book.stock,
-                        amount: 1,
-                        prevPrice: book.prevPrice.toNumber(),
-                    }))}
+                    title="Mais Vendidos"
+                    books={formatBooks(bestSellingBooks)}
                 />
+
+                <HorizontalList
+                    title="Lançamentos"
+                    books={formatBooks(newBooks)}
+                />
+
+                <HorizontalAuthorList
+                    title="Principais Autores"
+                    authors={authors.map((author) => ({
+                        id: author.id,
+                        img: author.imgUrl,
+                        name: author.name,
+                    }))}
+                ></HorizontalAuthorList>
 
                 <SuperCategoriesSection
                     superCategories={superCategories.map((sc) => ({
