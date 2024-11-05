@@ -4,6 +4,7 @@ import CommerceHeader from "./_components/commerce-header"
 import StoreProvider from "~/components/redux/StoreProvider"
 import { auth } from "@clerk/nextjs/server"
 import { type BookClientSideState, type UserClientSideState } from "~/lib/types"
+import { getBooksReviewsMap } from "~/server/book-queries"
 
 export default async function CommerceLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     const user = auth()
@@ -40,20 +41,29 @@ export default async function CommerceLayout({ children }: Readonly<{ children: 
             take: 200,
         })
 
+        const booksReviewsMap = await getBooksReviewsMap(books.map((book) => book.id))
+
         books.forEach((book) => {
             const bookCartItem = init?.bookCart.find((bc) => bc.id === book.id)
             const bookFavsItem = init?.bookFavs.find((bf) => bf.id === book.id)
+
+            const bookRating = booksReviewsMap.get(book.id)?.rating ?? 0
+            const bookRatingAmount = booksReviewsMap.get(book.id)?.amount ?? 0
 
             if (bookCartItem) {
                 bookCartItem.stock = book.stock
                 bookCartItem.price = book.price.toNumber()
                 bookCartItem.prevPrice = book.prevPrice.toNumber()
+                bookCartItem.rating = bookRating
+                bookCartItem.ratingAmount = bookRatingAmount
             }
 
             if (bookFavsItem) {
                 bookFavsItem.stock = book.stock
                 bookFavsItem.price = book.price.toNumber()
                 bookFavsItem.prevPrice = book.prevPrice.toNumber()
+                bookFavsItem.rating = bookRating
+                bookFavsItem.ratingAmount = bookRatingAmount
             }
         })
 

@@ -5,6 +5,7 @@ import Image from "next/image"
 import FavoriteButton from "./add-to-favorite-button"
 import { type BookClientSideState } from "~/lib/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
+import ReviewStars from "./review-stats"
 
 export default function BookCard({ book, hideAuthor }: { book: BookClientSideState; hideAuthor?: boolean }) {
     const priceDiff = book.price < book.prevPrice ? Math.ceil(100 * (1 - book.price / book.prevPrice)) : 0
@@ -48,6 +49,13 @@ export default function BookCard({ book, hideAuthor }: { book: BookClientSideSta
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
+
+                    {book.ratingAmount > 0 && (
+                        <div className="flex items-center justify-start gap-1">
+                            <ReviewStars rating={book.rating}></ReviewStars>
+                            <span className="ml-1 text-neutral-400 text-sm text-center">{book.ratingAmount} avaliações</span>
+                        </div>
+                    )}
 
                     <Link
                         href={`/commerce/author/${book.authorId}`}

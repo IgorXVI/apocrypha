@@ -11,7 +11,7 @@ import AddToCartButton from "../../_components/add-to-cart-button"
 import AddToFavoriteButton from "../../_components/add-to-favorite-button"
 import { type BookClientSideState } from "~/lib/types"
 import { type Prisma } from "prisma/prisma-client"
-import ReviewStars from "../_components/review-stats"
+import ReviewStars from "../../_components/review-stats"
 import BookReviews from "../_components/book-reviews"
 
 const langsMap: Record<string, string> = {
@@ -302,6 +302,8 @@ export default async function BookDetails({
         stock: DBBook.stock,
         authorId: DBBook.AuthorOnBook[0]?.authorId ?? "",
         prevPrice: DBBook.prevPrice.toNumber(),
+        rating: reviewStats._avg.rating ?? 0,
+        ratingAmount: reviewStats._count,
     }
 
     return (
