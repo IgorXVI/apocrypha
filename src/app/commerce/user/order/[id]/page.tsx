@@ -12,6 +12,7 @@ import { stripe } from "~/server/stripe-api"
 import Link from "next/link"
 import Image from "next/image"
 import { auth } from "@clerk/nextjs/server"
+import { calcShippingDate } from "~/lib/utils"
 
 const formatStripeName = (name: string) =>
     name
@@ -360,6 +361,11 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                 <span className="text-muted-foreground text-lg font-light text-nowrap">
                                     Atualizado em: {order.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
                                 </span>
+                                {order.status === "IN_TRANSIT" && (
+                                    <span className="no-wrap text-lg">
+                                        Entega estimada: {calcShippingDate(order.updatedAt, order.shippingDaysMin ?? 1, order.shippingDaysMax ?? 10)}
+                                    </span>
+                                )}
                             </div>
                         </CardContent>
                         {order.tracking && (

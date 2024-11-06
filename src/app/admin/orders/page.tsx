@@ -8,6 +8,7 @@ import ParamsSearch from "../_components/params-search"
 import { type $Enums } from "prisma/prisma-client"
 import { z } from "zod"
 import { cancelOrder, emitOrderTicket, inferNewOrderStatus, simulateOrderDone, simulateStripeConfirmation } from "~/server/actions/order"
+import Link from "next/link"
 
 const orderStatusSearch = new Map<string, $Enums.OrderStatus>([
     ["entregue", "DELIVERED"],
@@ -95,15 +96,22 @@ export default async function OrdersPage({
     })
 
     const odersForView = orders.map((order) => ({
-        id: order.id,
+        detailsLink: (
+            <Link
+                className="hover:underline text-nowrap"
+                href={`/admin/orders/${order.id}`}
+            >
+                Ver detalhes
+            </Link>
+        ),
         status: <OrderStatus status={order.status}></OrderStatus>,
         booksLink: (
-            <a
+            <Link
                 className="hover:underline text-nowrap"
                 href={`/admin/book?search=IDS-->${order.BookOnOrder.map((bo) => bo.bookId).join("__AND__")}`}
             >
                 Ver livros
-            </a>
+            </Link>
         ),
         userName: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.fullName,
         userEmail: userMap.get(orderToUserIdMap.get(order.id) ?? "")?.primaryEmailAddress?.emailAddress,
@@ -143,7 +151,7 @@ export default async function OrdersPage({
                 namePlural="pedidos"
                 tableDescription="Atualize os pedidos."
                 tableHeaders={{
-                    id: "ID",
+                    detailsLink: "Detalhes do pedido",
                     status: "Status",
                     booksLink: "Livros",
                     createdAt: "Data de criação",
