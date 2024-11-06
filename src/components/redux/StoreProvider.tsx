@@ -38,19 +38,6 @@ export default function StoreProvider({ children, initialState }: { children: Re
                     value: initialState.bookFavs,
                 },
             })
-
-            console.log("CREATE SUBSCRIBE")
-            storeRef.current.subscribe(() => {
-                console.log("SUBSCRIBE CALLED")
-                const state = storeRef.current?.getState()
-
-                saveStateFun({
-                    data: {
-                        bookCart: state?.bookCart.value ?? [],
-                        bookFavs: state?.bookFavs.value ?? [],
-                    },
-                })
-            })
         } else {
             storeRef.current = makeStore({
                 bookCart: {
@@ -61,6 +48,19 @@ export default function StoreProvider({ children, initialState }: { children: Re
                 },
             })
         }
+
+        console.log("CREATE SUBSCRIBE")
+        storeRef.current.subscribe(() => {
+            console.log("SUBSCRIBE CALLED")
+            const state = storeRef.current?.getState()
+
+            saveStateFun({
+                data: {
+                    bookCart: state?.bookCart.value ?? [],
+                    bookFavs: state?.bookFavs.value ?? [],
+                },
+            })
+        })
     }
 
     return <Provider store={storeRef.current}>{children}</Provider>
