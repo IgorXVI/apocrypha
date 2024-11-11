@@ -96,6 +96,7 @@ export default async function OrdersPage({
     })
 
     const odersForView = orders.map((order) => ({
+        id: order.id,
         detailsLink: (
             <Link
                 className="hover:underline text-nowrap"
