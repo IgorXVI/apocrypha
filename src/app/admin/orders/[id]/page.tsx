@@ -1,6 +1,8 @@
 import Image from "next/image"
 import Link from "next/link"
 import OrderStatus from "~/components/order/order-status"
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 import { authClient } from "~/server/auth-api"
 import { db } from "~/server/db"
 
@@ -99,44 +101,59 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                 </a>
             )}
             <h2 className="font-bold text-3xl p-5">Livros Comprados</h2>
-            <div className={`grid grid-cols-${Math.min(order.BookOnOrder.length, 4)} gap-5`}>
+            <div className={`flex flex-wrap gap-5`}>
                 {order.BookOnOrder.map((bo) => (
-                    <div
+                    <Card
                         key={bo.bookId}
-                        className="flex flex-col gap-2 items-start justify-center border-2 border-black rounded-lg p-5 font-bold max-w-md"
+                        className="max-w-80"
                     >
-                        <Image
-                            src={bo.Book.DisplayImage[0]?.url ?? ""}
-                            alt="capa do livro"
-                            className="object-cover self-center mb-2"
-                            width={200}
-                            height={200}
-                        ></Image>
-                        <Link
-                            className="hover:underline text-nowrap font-normal self-center"
-                            href={`/admin/book?search=IDS-->${bo.Book.id}`}
-                        >
-                            Ver detalhes
-                        </Link>
-                        <p>
-                            ID: <span className="font-light">{bo.Book.id}</span>
-                        </p>
-                        <p>
-                            Título: <span className="font-light">{bo.Book.title}</span>
-                        </p>
-                        <p>
-                            Autor: <span className="font-light">{bo.Book.AuthorOnBook[0]?.Author.name ?? "N/A"}</span>
-                        </p>
-                        <p>
-                            Categoria: <span className="font-light">{bo.Book.CategoryOnBook[0]?.Category.SuperCategory?.name ?? "N/A"}</span>
-                        </p>
-                        <p>
-                            Subcategoria: <span className="font-light">{bo.Book.CategoryOnBook[0]?.Category?.name ?? "N/A"}</span>
-                        </p>
-                        <p>
-                            Quantidade: <span className="font-light">{bo.amount}</span>
-                        </p>
-                    </div>
+                        <CardHeader>
+                            <CardTitle>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger className="text-left">
+                                            <Link
+                                                className="line-clamp-1 hover:underline"
+                                                href={`/admin/book?search=IDS-->${bo.Book.id}`}
+                                            >
+                                                {bo.Book.title}
+                                            </Link>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="font-normal">{bo.Book.title}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-col gap-2 justify-center font-bold">
+                                <Image
+                                    src={bo.Book.DisplayImage[0]?.url ?? ""}
+                                    alt="capa do livro"
+                                    className="object-cover self-center mb-2 rounded-lg aspect-square"
+                                    width={150}
+                                    height={150}
+                                ></Image>
+
+                                <p>
+                                    ID: <span className="font-light">{bo.Book.id}</span>
+                                </p>
+                                <p>
+                                    Autor: <span className="font-light">{bo.Book.AuthorOnBook[0]?.Author.name ?? "N/A"}</span>
+                                </p>
+                                <p>
+                                    Categoria: <span className="font-light">{bo.Book.CategoryOnBook[0]?.Category.SuperCategory?.name ?? "N/A"}</span>
+                                </p>
+                                <p>
+                                    Subcategoria: <span className="font-light">{bo.Book.CategoryOnBook[0]?.Category?.name ?? "N/A"}</span>
+                                </p>
+                                <p>
+                                    Quantidade: <span className="font-light">{bo.amount}</span>
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
                 ))}
             </div>
         </div>
