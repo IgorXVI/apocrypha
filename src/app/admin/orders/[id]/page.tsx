@@ -82,7 +82,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                 Email do usuário: <span className="font-light">{userData.primaryEmailAddress?.emailAddress ?? "N/A"}</span>
             </p>
             <p className="font-bold">
-                Última atulização: <span className="font-light">{order.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</span>
+                Última atualização: <span className="font-light">{order.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</span>
             </p>
             {order.paymentId && (
                 <a
