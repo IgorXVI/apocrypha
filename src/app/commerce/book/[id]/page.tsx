@@ -374,7 +374,10 @@ export default async function BookDetails({
                     <div>
                         <h3 className="text-lg font-semibold mb-2">Descrição</h3>
                         <div className="text-muted-foreground">
-                            <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.description) }}></div>
+                            <div
+                                className="text-justify"
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.description) }}
+                            ></div>
                         </div>
                     </div>
 
@@ -407,7 +410,10 @@ export default async function BookDetails({
                                             </Link>
                                         </h4>
                                         <div className="text-sm text-muted-foreground mt-2">
-                                            <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.authorInfo.bio) }}></div>
+                                            <div
+                                                className="text-justify"
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(book.authorInfo.bio) }}
+                                            ></div>
                                         </div>
                                     </div>
                                 </div>

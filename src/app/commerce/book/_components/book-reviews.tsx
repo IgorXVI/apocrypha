@@ -89,7 +89,7 @@ export default async function BookReviews({
                                 </div>
                             </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">{review.body}</p>
+                        <p className="text-sm text-muted-foreground text-justify">{review.body}</p>
                     </CardContent>
                 </Card>
             ))}
