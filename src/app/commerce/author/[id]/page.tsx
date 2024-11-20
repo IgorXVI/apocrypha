@@ -58,7 +58,7 @@ export default async function AuthorDetailsPage({ params: { id } }: { params: { 
                 <h1 className="text-4xl font-bold mb-4">{author.name}</h1>
                 {author.about !== "N/A" && (
                     <>
-                        <div className="flex flex-row gap-5 items-center justify-center">
+                        <div className="flex flex-col md:flex-row gap-5 items-center justify-center">
                             <Image
                                 src={author.imgUrl}
                                 alt={author.name}
@@ -67,7 +67,7 @@ export default async function AuthorDetailsPage({ params: { id } }: { params: { 
                                 className="rounded-lg shadow-lg max-h-[250px] max-w-[250px] min-h-[250px] min-w-[250px]"
                             />
                             <p
-                                className="text-lg mb-6"
+                                className="text-lg mb-6 text-justify"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(author.about) }}
                             ></p>
                         </div>
