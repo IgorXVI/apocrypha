@@ -16,3 +16,4 @@ export const createS3Client = () =>
     })
 
 export const s3Bucket = process.env.S3_IMG_BUCKET ?? ""
+export const s3CloudfrontUrl = process.env.S3_CLOUDFRONT_URL ?? ""

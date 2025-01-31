@@ -2,7 +2,7 @@ import fs from "fs"
 import path from "path"
 
 import { PutObjectCommand } from "@aws-sdk/client-s3"
-import { createS3Client, s3Bucket } from "../s3"
+import { createS3Client, s3Bucket, s3CloudfrontUrl } from "../s3"
 
 const s3Client = createS3Client()
 
@@ -34,7 +34,7 @@ const main = async () => {
 
     fileJSON.forEach((book) => {
         const imgUrlKey = getUniqueKey(book.mainImgUrl)
-        book.mainImgUrl = `https://d32155ei7f8k3w.cloudfront.net/${imgUrlKey}`
+        book.mainImgUrl = `https://${s3CloudfrontUrl}/${imgUrlKey}`
     })
 
     console.log(fileJSON[0])

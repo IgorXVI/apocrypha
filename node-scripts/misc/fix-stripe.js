@@ -1,8 +1,25 @@
-import { db } from "../db"
-import { s3Bucket } from "../s3"
-import { stripe } from "../stripe"
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import dotenv from "dotenv"
+dotenv.config()
+
+import { Pool, neonConfig } from "@neondatabase/serverless"
+import { PrismaNeon } from "@prisma/adapter-neon"
+import ws from "ws"
+import { PrismaClient } from "@prisma/client"
 import Stripe from "stripe"
+
+neonConfig.webSocketConstructor = ws
+const connectionString = `${process.env.DATABASE_URL}`
+
+const pool = new Pool({ connectionString })
+const adapter = new PrismaNeon(pool)
+
+const db = new PrismaClient({ adapter })
+
+const s3CloudfrontUrl = process.env.S3_CLOUDFRONT_URL ?? ""
+
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
+    apiVersion: "2024-06-20",
+})
 
 const main = async () => {
     /**@type {Stripe.Product[]} */
@@ -44,7 +61,7 @@ const main = async () => {
     allProducts.forEach((p) => {
         if (!bookStripeIdMap[p.id]) {
             ghostProductIds.push(p.id)
-        } else if (s3Bucket && p.images.some((img) => img.includes(s3Bucket))) {
+        } else if (s3CloudfrontUrl && p.images.some((img) => img.includes("d32155ei7f8k3w.cloudfront.net"))) {
             normalProducts.push(p)
         }
     })
@@ -92,7 +109,7 @@ const main = async () => {
 
             promises.push(
                 stripe.products.update(product.id, {
-                    images: product.images.map((img) => img.replace(`${s3Bucket}.s3.amazonaws.com`, "d32155ei7f8k3w.cloudfront.net")),
+                    images: product.images.map((img) => img.replace(`d32155ei7f8k3w.cloudfront.net`, s3CloudfrontUrl)),
                 }),
             )
         }
