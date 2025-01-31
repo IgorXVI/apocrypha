@@ -269,29 +269,31 @@ export const createCheckoutSession = async (inputProducts: { stripeId: string; q
             success_url: `${env.URL}/commerce/payment-success/{CHECKOUT_SESSION_ID}`,
             cancel_url: `${env.URL}/commerce/payment-canceled/{CHECKOUT_SESSION_ID}`,
             locale: "pt-BR",
-            shipping_options: shippingOptions.map((shipping) => ({
-                shipping_rate_data: {
-                    type: "fixed_amount",
-                    metadata: {
-                        serviceId: shipping.id,
-                    },
-                    display_name: shipping.name,
-                    delivery_estimate: {
-                        minimum: {
-                            unit: "business_day",
-                            value: shipping.delivery_range.min,
+            shipping_options: shippingOptions
+                .filter((shipping) => shipping.delivery_range && shipping.price)
+                .map((shipping) => ({
+                    shipping_rate_data: {
+                        type: "fixed_amount",
+                        metadata: {
+                            serviceId: shipping.id,
                         },
-                        maximum: {
-                            unit: "business_day",
-                            value: shipping.delivery_range.max,
+                        display_name: shipping.name,
+                        delivery_estimate: {
+                            minimum: {
+                                unit: "business_day",
+                                value: shipping.delivery_range?.min ?? 1,
+                            },
+                            maximum: {
+                                unit: "business_day",
+                                value: shipping.delivery_range?.max ?? 2,
+                            },
+                        },
+                        fixed_amount: {
+                            amount: Math.ceil(shipping.price * 100),
+                            currency: "brl",
                         },
                     },
-                    fixed_amount: {
-                        amount: Math.ceil(shipping.price * 100),
-                        currency: "brl",
-                    },
-                },
-            })),
+                })),
         }),
     ])
 
