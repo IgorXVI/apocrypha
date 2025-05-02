@@ -14,3 +14,6 @@ const getDateOffset = (date: Date, offsetInDays: number) =>
 
 export const calcShippingDate = (updatedAt: Date, min: number, max: number) =>
     min === max ? getDateOffset(updatedAt, min) : `Entre ${getDateOffset(updatedAt, min)} e ${getDateOffset(updatedAt, max)}`
+
+export const fixS3Image = (img: string) =>
+    img.includes("d2qumoasfjbq40.cloudfront.net") ? "https://hkk8duf9w2.ufs.sh/f/V4ibhetxoONeMNogYIK59YCkhEifT6aIPlqR4nxetQcKzBy8" : img

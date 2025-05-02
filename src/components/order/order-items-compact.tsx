@@ -3,6 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
+import { fixS3Image } from "~/lib/utils"
 
 interface Product {
     id: string
@@ -34,7 +35,7 @@ export default function OrderItemsCompact({ products = [], maxDisplay = 3 }: Ord
                     href={`/commerce/book/${product.id}`}
                 >
                     <Image
-                        src={product.image}
+                        src={fixS3Image(product.image)}
                         alt={product.name}
                         width={50}
                         height={50}

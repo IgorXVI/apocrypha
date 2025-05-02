@@ -13,6 +13,7 @@ import { type BookClientSideState } from "~/lib/types"
 import { type Prisma } from "prisma/prisma-client"
 import ReviewStars from "../../_components/review-stats"
 import BookReviews from "../_components/book-reviews"
+import { fixS3Image } from "~/lib/utils"
 
 const langsMap: Record<string, string> = {
     PORTUGUESE: "Português",
@@ -67,7 +68,7 @@ function RelatedBooks({ relatedBooks }: { relatedBooks: { id: string; title: str
                             className="flex items-center space-x-4 p-2 hover:bg-muted rounded-md transition-colors"
                         >
                             <Image
-                                src={relatedBook.cover}
+                                src={fixS3Image(relatedBook.cover)}
                                 alt={`Cover of ${relatedBook.title}`}
                                 width={60}
                                 height={90}

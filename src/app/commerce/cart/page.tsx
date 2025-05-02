@@ -14,6 +14,7 @@ import { dbQueryWithToast } from "~/components/toast/toasting"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { useState } from "react"
+import { fixS3Image } from "~/lib/utils"
 
 export default function CartPage() {
     const dispatch = useAppDispatch()
@@ -109,7 +110,7 @@ export default function CartPage() {
                                                 className="w-full h-full"
                                             >
                                                 <Image
-                                                    src={item.mainImg}
+                                                    src={fixS3Image(item.mainImg)}
                                                     alt={`Cover of ${item.title}`}
                                                     className="w-16 h-20 object-cover"
                                                     width={100}
@@ -171,7 +172,7 @@ export default function CartPage() {
                                                 className="w-full h-full"
                                             >
                                                 <Image
-                                                    src={item.mainImg}
+                                                    src={fixS3Image(item.mainImg)}
                                                     alt={`Cover of ${item.title}`}
                                                     className="w-16 h-20 object-cover"
                                                     width={100}

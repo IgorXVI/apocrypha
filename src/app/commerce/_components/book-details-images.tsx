@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { fixS3Image } from "~/lib/utils"
 
 export default function BookDetailsImages({ images, title }: { images: string[]; title: string }) {
     const [zoomedImage, setZoomedImage] = useState("")
@@ -18,7 +19,7 @@ export default function BookDetailsImages({ images, title }: { images: string[];
         <>
             <div className={`grid ${images.length > 1 ? "grid-cols-4" : "grid-cols-1"} gap-2 p-4 md:p-12 max-w-2xl`}>
                 <Image
-                    src={images[0] ?? ""}
+                    src={fixS3Image(images[0] ?? "")}
                     alt={`${title} -Imagem principal`}
                     width={400}
                     height={400}

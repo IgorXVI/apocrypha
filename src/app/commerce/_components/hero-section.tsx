@@ -57,14 +57,16 @@ export default async function HeroSection() {
 
     const amountOfBookImgs = 14
 
-    const skip = Math.floor(Math.random() * (booksCount - amountOfBookImgs))
-
     const displayImgs = await db.displayImage.findMany({
         where: {
             order: 0,
+            url: {
+                not: {
+                    contains: env.S3_CLOUDFRONT_URL,
+                },
+            },
         },
         take: amountOfBookImgs,
-        skip,
     })
 
     return (
