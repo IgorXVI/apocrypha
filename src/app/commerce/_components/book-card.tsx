@@ -6,6 +6,7 @@ import FavoriteButton from "./add-to-favorite-button"
 import { type BookClientSideState } from "~/lib/types"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 import ReviewStars from "./review-stats"
+import { fixS3Image } from "~/lib/utils"
 
 export default function BookCard({ book, hideAuthor }: { book: BookClientSideState; hideAuthor?: boolean }) {
     const priceDiff = book.price < book.prevPrice ? Math.ceil(100 * (1 - book.price / book.prevPrice)) : 0
@@ -18,7 +19,7 @@ export default function BookCard({ book, hideAuthor }: { book: BookClientSideSta
                     className="w-full h-full"
                 >
                     <Image
-                        src={book.mainImg}
+                        src={fixS3Image(book.mainImg)}
                         alt={book.title}
                         className="object-cover w-full h-full rounded-t-md"
                         width={200}

@@ -3,6 +3,7 @@ import Link from "next/link"
 import OrderStatus from "~/components/order/order-status"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
+import { fixS3Image } from "~/lib/utils"
 import { authClient } from "~/server/auth-api"
 import { db } from "~/server/db"
 
@@ -129,7 +130,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                         <CardContent>
                             <div className="flex flex-col gap-2 justify-center font-bold">
                                 <Image
-                                    src={bo.Book.DisplayImage[0]?.url ?? ""}
+                                    src={fixS3Image(bo.Book.DisplayImage[0]?.url ?? "")}
                                     alt="capa do livro"
                                     className="object-cover self-center mb-2 rounded-lg aspect-square"
                                     width={150}

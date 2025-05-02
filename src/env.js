@@ -22,6 +22,7 @@ export const env = createEnv({
         APP_SUPPORT_EMAIL: z.string().email(),
         STRIPE_WEBHOOK_SECRET: z.string(),
         BRASIL_API: z.string(),
+        S3_CLOUDFRONT_URL: z.string(),
     },
     client: {
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
@@ -57,6 +58,7 @@ export const env = createEnv({
         NEXT_PUBLIC_BRASIL_API: process.env.NEXT_PUBLIC_BRASIL_API,
         BRASIL_API: process.env.NEXT_PUBLIC_BRASIL_API,
         STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+        S3_CLOUDFRONT_URL: process.env.S3_CLOUDFRONT_URL,
     },
     skipValidation: !!process.env.SKIP_ENV_VALIDATION,
     emptyStringAsUndefined: true,

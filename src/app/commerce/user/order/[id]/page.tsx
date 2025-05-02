@@ -12,7 +12,7 @@ import { stripe } from "~/server/stripe-api"
 import Link from "next/link"
 import Image from "next/image"
 import { auth } from "@clerk/nextjs/server"
-import { calcShippingDate } from "~/lib/utils"
+import { calcShippingDate, fixS3Image } from "~/lib/utils"
 
 const formatStripeName = (name: string) =>
     name
@@ -130,7 +130,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                                 <div className="flex flex-col gap-3 justify-center items-start md:items-start">
                                                     <Link href={`/commerce/book/${bo.Book.id}`}>
                                                         <Image
-                                                            src={bo.Book.DisplayImage[0]?.url ?? ""}
+                                                            src={fixS3Image(bo.Book.DisplayImage[0]?.url ?? "")}
                                                             alt={bo.Book.title}
                                                             className="min-h-[150px] min-w-[100px] max-h-[150px] max-w-[100px] rounded-lg object-cover"
                                                             width={100}
@@ -232,7 +232,7 @@ export default async function OrderDetails({ params: { id } }: { params: { id: s
                                                 <div className="flex flex-col gap-3 justify-center items-center md:items-start">
                                                     <Link href={`/commerce/book/${bo.Book.id}`}>
                                                         <Image
-                                                            src={bo.Book.DisplayImage[0]?.url ?? ""}
+                                                            src={fixS3Image(bo.Book.DisplayImage[0]?.url ?? "")}
                                                             alt={bo.Book.title}
                                                             className="min-h-[150px] min-w-[100px] max-h-[150px] max-w-[100px] rounded-lg object-cover"
                                                             width={100}

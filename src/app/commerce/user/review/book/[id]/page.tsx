@@ -6,6 +6,7 @@ import { db } from "~/server/db"
 import ReviewForm from "../_components/review-form"
 import Link from "next/link"
 import { auth } from "@clerk/nextjs/server"
+import { fixS3Image } from "~/lib/utils"
 
 export default async function BookReviewPage({ params: { id } }: { params: { id: string } }) {
     const user = auth()
@@ -59,7 +60,7 @@ export default async function BookReviewPage({ params: { id } }: { params: { id:
                     <CardContent className="flex flex-col items-center justify-center gap-12">
                         <Link href={`/commerce/book/${book.id}`}>
                             <Image
-                                src={book.DisplayImage[0]?.url ?? ""}
+                                src={fixS3Image(book.DisplayImage[0]?.url ?? "")}
                                 alt={book.title}
                                 width={200}
                                 height={300}
